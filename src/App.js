@@ -277,7 +277,6 @@ const categories = [
     slug: 'tubes-de-prelevement', 
     color: '#6d9eeb', 
     count: 45, 
-    icon: '🧪',
     image: 'https://www.teclab.ma/storage/products/tube-sous-vide/whatsapp-image-2026-01-21-at-140953-photoroom-300x300.png'
   },
   { 
@@ -286,7 +285,6 @@ const categories = [
     slug: 'aiguilles-et-accessoires', 
     color: '#ff6b6b', 
     count: 32, 
-    icon: '💉',
     image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115703-300x300.jpeg'
   },
   { 
@@ -295,7 +293,6 @@ const categories = [
     slug: 'consommables', 
     color: '#4ecdc4', 
     count: 78, 
-    icon: '🧴',
     image: 'https://www.teclab.ma/storage/products/chatgpt-image-feb-26-2026-02-01-23-pm-300x300.png'
   },
   { 
@@ -304,7 +301,6 @@ const categories = [
     slug: 'reactifs', 
     color: '#45b7d1', 
     count: 56, 
-    icon: '🧪',
     image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg'
   },
   { 
@@ -313,7 +309,6 @@ const categories = [
     slug: 'analyseurs', 
     color: '#f9ca24', 
     count: 23, 
-    icon: '🔬',
     image: 'https://www.teclab.ma/storage/products/machine/chatgpt-image-feb-14-2026-12-09-48-pm-300x300.png'
   },
   { 
@@ -322,7 +317,6 @@ const categories = [
     slug: 'equipements', 
     color: '#a55eea', 
     count: 34, 
-    icon: '⚙️',
     image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-mt5nx2mt5nx2mt5n-300x300.jpg'
   },
 ];
@@ -2575,36 +2569,36 @@ const HomePage = ({ navigate }) => {
         </div>
       </motion.section>
 
-      <motion.section 
-        className="categories-section"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={fadeIn}
-      >
-        <div className="container">
-          <h2 className="section-title">Catégories populaires</h2>
-          <div className="categories-grid">
-            {categories.map(cat => (
-              <motion.div 
-                key={cat.id}
-                className="category-card"
-                variants={slideUp}
-                whileHover={{ y: -8 }}
-                onClick={() => navigate(`/products?category=${cat.id}`)}
-              >
-                <div className="category-image">
-                  <img src={cat.image} alt={cat.name} />
-                </div>
-                <div className="category-icon" style={{ backgroundColor: cat.color }}>
-                  {cat.icon}
-                </div>
-                <h3>{cat.name}</h3>
-              </motion.div>
-            ))}
+      // In the HomePage component, replace the categories-section with this:
+
+<motion.section 
+  className="categories-section"
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.2 }}
+  variants={fadeIn}
+>
+  <div className="container">
+    <h2 className="section-title">Catégories populaires</h2>
+    <div className="categories-grid">
+      {categories.map(cat => (
+        <motion.div 
+          key={cat.id}
+          className="category-card"
+          variants={slideUp}
+          whileHover={{ y: -8 }}
+          onClick={() => navigate(`/products?category=${cat.id}`)}
+        >
+          <div className="category-image-wrapper">
+            <img src={cat.image} alt={cat.name} className="category-product-image" />
           </div>
-        </div>
-      </motion.section>
+          <h3 className="category-name">{cat.name}</h3>
+          <span className="category-count">{cat.count} produits</span>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</motion.section>
 
       <motion.section 
         className="featured-products"
