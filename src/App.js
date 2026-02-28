@@ -1,10 +1,8 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import './App.css';
 
 // ==================== ICON COMPONENTS ====================
-// Using inline SVG icons to avoid dependencies
-
 const Icons = {
   Home: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
@@ -228,17 +226,133 @@ const Icons = {
   ),
 };
 
-// ==================== DATA ====================
+// ==================== ANIMATION VARIANTS ====================
+// Optimized variants for better performance
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 0.5 }
+  }
+};
+
+const slideUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -30 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.5 }
+  }
+};
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 30 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.5 }
+  }
+};
+
+const scaleOnHover = {
+  whileHover: { scale: 1.05 },
+  whileTap: { scale: 0.95 }
+};
 
 // ==================== DATA ====================
 
 const categories = [
-  { id: 38, name: 'TUBES DE PRELEVEMENT', slug: 'tubes-de-prelevement', color: '#6d9eeb', count: 45, icon: '🧪' },
-  { id: 40, name: 'AIGUILLES ET ACCESSOIRES', slug: 'aiguilles-et-accessoires', color: '#ff6b6b', count: 32, icon: '💉' },
-  { id: 41, name: 'CONSOMMABLES DE LABORATOIRE', slug: 'consommables', color: '#4ecdc4', count: 78, icon: '🧴' },
-  { id: 75, name: 'REACTIFS DE LABORATOIRE', slug: 'reactifs', color: '#45b7d1', count: 56, icon: '🧪' },
-  { id: 95, name: 'ANALYSEURS', slug: 'analyseurs', color: '#f9ca24', count: 23, icon: '🔬' },
-  { id: 116, name: 'EQUIPEMENTS DE LABORATOIRE', slug: 'equipements', color: '#a55eea', count: 34, icon: '⚙️' },
+  { 
+    id: 38, 
+    name: 'TUBES DE PRELEVEMENT', 
+    slug: 'tubes-de-prelevement', 
+    color: '#6d9eeb', 
+    count: 45, 
+    icon: '🧪',
+    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/whatsapp-image-2026-01-21-at-140953-photoroom-300x300.png'
+  },
+  { 
+    id: 40, 
+    name: 'AIGUILLES ET ACCESSOIRES', 
+    slug: 'aiguilles-et-accessoires', 
+    color: '#ff6b6b', 
+    count: 32, 
+    icon: '💉',
+    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115703-300x300.jpeg'
+  },
+  { 
+    id: 41, 
+    name: 'CONSOMMABLES DE LABORATOIRE', 
+    slug: 'consommables', 
+    color: '#4ecdc4', 
+    count: 78, 
+    icon: '🧴',
+    image: 'https://www.teclab.ma/storage/products/chatgpt-image-feb-26-2026-02-01-23-pm-300x300.png'
+  },
+  { 
+    id: 75, 
+    name: 'REACTIFS DE LABORATOIRE', 
+    slug: 'reactifs', 
+    color: '#45b7d1', 
+    count: 56, 
+    icon: '🧪',
+    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg'
+  },
+  { 
+    id: 95, 
+    name: 'ANALYSEURS', 
+    slug: 'analyseurs', 
+    color: '#f9ca24', 
+    count: 23, 
+    icon: '🔬',
+    image: 'https://www.teclab.ma/storage/products/machine/chatgpt-image-feb-14-2026-12-09-48-pm-300x300.png'
+  },
+  { 
+    id: 116, 
+    name: 'EQUIPEMENTS DE LABORATOIRE', 
+    slug: 'equipements', 
+    color: '#a55eea', 
+    count: 34, 
+    icon: '⚙️',
+    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-mt5nx2mt5nx2mt5n-300x300.jpg'
+  },
+];
+
+// Carousel offers data
+const carouselOffers = [
+  {
+    id: 1,
+    title: 'Livraison Gratuite',
+    subtitle: 'Pour toute commande > 1000DH',
+    image: 'https://www.teclab.ma/storage/products/generated-image-c96cf929-90af-4249-aced-bea1c63d6f5d.png',
+    bgColor: '#6d9eeb',
+    textColor: '#ffffff'
+  },
+  {
+    id: 2,
+    title: 'Promotion Spéciale',
+    subtitle: 'Jusqu\'à -25% sur une sélection',
+    image: 'https://www.teclab.ma/storage/products/generated-image-7aeac712-54fd-49ab-a84e-62610d086010.png',
+    bgColor: '#ff6b6b',
+    textColor: '#ffffff'
+  },
+  {
+    id: 3,
+    title: 'Nouveaux Produits',
+    subtitle: 'Découvrez notre nouvelle gamme',
+    image: 'https://www.teclab.ma/storage/products/generated-image-f19f78ff-6f6e-46de-9f9d-21a88cdea097.png',
+    bgColor: '#4ecdc4',
+    textColor: '#ffffff'
+  }
 ];
 
 const products = [
@@ -1750,10 +1864,102 @@ const ProductProvider = ({ children }) => {
 
 // ==================== COMPONENTS ====================
 
-// Product Card Component
+// Carousel Component
+const Carousel = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % carouselOffers.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % carouselOffers.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + carouselOffers.length) % carouselOffers.length);
+  };
+
+  return (
+    <div className="carousel-container">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          className="carousel-slide"
+          style={{ backgroundColor: carouselOffers[currentIndex].bgColor }}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="carousel-content">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ color: carouselOffers[currentIndex].textColor }}
+            >
+              {carouselOffers[currentIndex].title}
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              style={{ color: carouselOffers[currentIndex].textColor }}
+            >
+              {carouselOffers[currentIndex].subtitle}
+            </motion.p>
+            <motion.button 
+              className="carousel-btn"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              En savoir plus
+            </motion.button>
+          </div>
+          <motion.div 
+            className="carousel-image"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <img src={carouselOffers[currentIndex].image} alt={carouselOffers[currentIndex].title} />
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+      
+      <button className="carousel-nav carousel-prev" onClick={handlePrev}>
+        <Icons.ChevronLeft />
+      </button>
+      <button className="carousel-nav carousel-next" onClick={handleNext}>
+        <Icons.ChevronRight />
+      </button>
+
+      <div className="carousel-dots">
+        {carouselOffers.map((_, index) => (
+          <button
+            key={index}
+            className={`carousel-dot ${index === currentIndex ? 'active' : ''}`}
+            onClick={() => setCurrentIndex(index)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Product Card Component with optimized animations
 const ProductCard = ({ product, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   const handleAddToCart = () => {
     onAddToCart(product);
@@ -1763,10 +1969,13 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <motion.div 
+      ref={ref}
       className="product-card"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -10 }}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={slideUp}
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.3 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
@@ -1778,6 +1987,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             className="product-badge"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
           >
             {product.badge}
           </motion.span>
@@ -1788,6 +1998,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             className="product-discount"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
           >
             {product.discount}
           </motion.span>
@@ -1797,16 +2008,30 @@ const ProductCard = ({ product, onAddToCart }) => {
           className="product-actions"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : 20 }}
+          transition={{ duration: 0.2 }}
         >
-          <button className="action-btn" onClick={handleAddToCart}>
+          <motion.button 
+            className="action-btn" 
+            onClick={handleAddToCart}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
             <Icons.ShoppingBag />
-          </button>
-          <button className="action-btn">
+          </motion.button>
+          <motion.button 
+            className="action-btn"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
             <Icons.Eye />
-          </button>
-          <button className="action-btn">
+          </motion.button>
+          <motion.button 
+            className="action-btn"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
             <Icons.Heart />
-          </button>
+          </motion.button>
         </motion.div>
 
         <AnimatePresence>
@@ -1816,6 +2041,7 @@ const ProductCard = ({ product, onAddToCart }) => {
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1.5, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
               <Icons.Check />
             </motion.div>
@@ -1844,7 +2070,7 @@ const ProductCard = ({ product, onAddToCart }) => {
   );
 };
 
-// Header Component
+// Header Component with blue navbar
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -1875,14 +2101,24 @@ const Header = ({ currentPath, navigate }) => {
         </div>
       </div>
 
-      <header className="header">
+      <motion.header 
+        className="header"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="header-top">
           <div className="container">
             <div className="header-left">
-              <button className="menu-toggle" onClick={() => setShowCategoryMenu(!showCategoryMenu)}>
+              <motion.button 
+                className="menu-toggle" 
+                onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+                whileHover={{ backgroundColor: 'var(--primary-dark)' }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Menu />
                 <span>Catégories</span>
-              </button>
+              </motion.button>
 
               <a href="/" className="logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                 <img src="https://www.teclab.ma/storage/products/partenaires/teclab-logo-320px.png" alt="TECLAB" />
@@ -1896,32 +2132,57 @@ const Header = ({ currentPath, navigate }) => {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
-              <button type="submit">
+              <motion.button 
+                type="submit"
+                whileHover={{ backgroundColor: 'var(--primary-dark)' }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Search />
-              </button>
+              </motion.button>
             </form>
 
             <div className="header-right">
-              <a href="/compare" className="header-icon" onClick={(e) => { e.preventDefault(); navigate('/compare'); }}>
+              <motion.a 
+                href="/compare" 
+                className="header-icon" 
+                onClick={(e) => { e.preventDefault(); navigate('/compare'); }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
                 <Icons.Ticket />
                 <span className="count">0</span>
-              </a>
+              </motion.a>
               
-              <a href="/wishlist" className="header-icon" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
+              <motion.a 
+                href="/wishlist" 
+                className="header-icon" 
+                onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
                 <Icons.Heart />
                 <span className="count">0</span>
-              </a>
+              </motion.a>
               
-              <a href="/cart" className="header-icon cart-icon" onClick={(e) => { e.preventDefault(); navigate('/cart'); }}>
-                <Icons.ShoppingBag />
-                <motion.span 
-                  className="count"
-                  key={cartCount}
-                  animate={{ scale: [1, 1.2, 1] }}
+              <div className="ps-cart--mini">
+                <motion.a 
+                  href="/cart" 
+                  className="header-icon cart-icon" 
+                  onClick={(e) => { e.preventDefault(); navigate('/cart'); }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  {cartCount}
-                </motion.span>
-              </a>
+                  <Icons.ShoppingBag />
+                  <motion.span 
+                    className="count"
+                    key={cartCount}
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {cartCount}
+                  </motion.span>
+                </motion.a>
+              </div>
 
               <div className="user-menu">
                 <Icons.User />
@@ -1943,9 +2204,14 @@ const Header = ({ currentPath, navigate }) => {
                 </div>
               </div>
 
-              <button className="mobile-menu-toggle" onClick={() => setShowMobileMenu(true)}>
+              <motion.button 
+                className="mobile-menu-toggle" 
+                onClick={() => setShowMobileMenu(true)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Menu />
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -1953,21 +2219,24 @@ const Header = ({ currentPath, navigate }) => {
         <nav className="navigation">
           <div className="container">
             <ul className="nav-menu">
-              <li className={currentPath === '/' ? 'active' : ''}>
-                <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}><Icons.Home /> Accueil</a>
-              </li>
-              <li className={currentPath === '/products' ? 'active' : ''}>
-                <a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}><Icons.RProject /> Produits</a>
-              </li>
-              <li className={currentPath === '/about' ? 'active' : ''}>
-                <a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }}><Icons.Users /> À propos</a>
-              </li>
-              <li className={currentPath === '/contact' ? 'active' : ''}>
-                <a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}><Icons.Phone /> Contact</a>
-              </li>
-              <li className="promo">
-                <a href="/products?promo=1" onClick={(e) => { e.preventDefault(); navigate('/products?promo=1'); }}><Icons.Gift /> Promotions</a>
-              </li>
+              {[
+                { href: '/', icon: <Icons.Home />, text: 'Accueil', active: currentPath === '/' },
+                { href: '/products', icon: <Icons.RProject />, text: 'Produits', active: currentPath === '/products' },
+                { href: '/about', icon: <Icons.Users />, text: 'À propos', active: currentPath === '/about' },
+                { href: '/contact', icon: <Icons.Phone />, text: 'Contact', active: currentPath === '/contact' },
+                { href: '/products?promo=1', icon: <Icons.Gift />, text: 'Promotions', active: false, promo: true },
+              ].map((item, index) => (
+                <motion.li 
+                  key={index}
+                  className={item.active ? 'active' : item.promo ? 'promo' : ''}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <a href={item.href} onClick={(e) => { e.preventDefault(); navigate(item.href); }}>
+                    {item.icon} {item.text}
+                  </a>
+                </motion.li>
+              ))}
             </ul>
           </div>
         </nav>
@@ -1979,19 +2248,22 @@ const Header = ({ currentPath, navigate }) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="container">
                 {categories.map(cat => (
-                  <a 
+                  <motion.a 
                     key={cat.id} 
                     href={`/products?category=${cat.id}`} 
                     className="category-link"
                     onClick={(e) => { e.preventDefault(); navigate(`/products?category=${cat.id}`); setShowCategoryMenu(false); }}
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.2 }}
                   >
                     <span className="category-color" style={{ backgroundColor: cat.color }}></span>
                     <span className="category-icon">{cat.icon}</span>
                     {cat.name}
-                  </a>
+                  </motion.a>
                 ))}
               </div>
             </motion.div>
@@ -2005,10 +2277,17 @@ const Header = ({ currentPath, navigate }) => {
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="mobile-menu-header">
                 <h3>Menu</h3>
-                <button onClick={() => setShowMobileMenu(false)}><Icons.X /></button>
+                <motion.button 
+                  onClick={() => setShowMobileMenu(false)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Icons.X />
+                </motion.button>
               </div>
               <ul className="mobile-nav">
                 <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); setShowMobileMenu(false); }}>Accueil</a></li>
@@ -2034,7 +2313,7 @@ const Header = ({ currentPath, navigate }) => {
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+      </motion.header>
     </>
   );
 };
@@ -2051,10 +2330,34 @@ const Footer = ({ navigate }) => {
             <p><Icons.MapPin /> Rue 7 N° 184/Q4, Fès, Maroc</p>
             <p><Icons.Mail /> info@teclab.ma</p>
             <div className="social-links">
-              <a href="#"><Icons.Facebook /></a>
-              <a href="#"><Icons.Twitter /></a>
-              <a href="#"><Icons.Youtube /></a>
-              <a href="#"><Icons.Linkedin /></a>
+              <motion.a 
+                href="#" 
+                whileHover={{ scale: 1.2, y: -5 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Icons.Facebook />
+              </motion.a>
+              <motion.a 
+                href="#" 
+                whileHover={{ scale: 1.2, y: -5 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Icons.Twitter />
+              </motion.a>
+              <motion.a 
+                href="#" 
+                whileHover={{ scale: 1.2, y: -5 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Icons.Youtube />
+              </motion.a>
+              <motion.a 
+                href="#" 
+                whileHover={{ scale: 1.2, y: -5 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Icons.Linkedin />
+              </motion.a>
             </div>
           </div>
 
@@ -2099,10 +2402,19 @@ const Footer = ({ navigate }) => {
         </div>
       </div>
 
-      <a href="https://wa.me/212666868091" className="whatsapp-btn" target="_blank">
+      <motion.a 
+        href="https://wa.me/212666868091" 
+        className="whatsapp-btn" 
+        target="_blank"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1, rotate: 10 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      >
         <Icons.WhatsApp />
         <span className="tooltip">Contactez-nous !</span>
-      </a>
+      </motion.a>
     </footer>
   );
 };
@@ -2235,34 +2547,24 @@ const HomePage = ({ navigate }) => {
 
   return (
     <div className="home-page">
-      <section className="hero">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1>Bienvenue chez TECLAB</h1>
-            <p>Votre partenaire de confiance pour les équipements de laboratoire</p>
-            <button className="btn-primary" onClick={() => navigate('/products')}>
-              Découvrir nos produits
-            </button>
-          </motion.div>
-        </div>
-      </section>
+      <Carousel />
 
-      <section className="features">
+      <motion.section 
+        className="features"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={fadeIn}
+      >
         <div className="container">
           <div className="features-grid">
             {features.map((feat, i) => (
               <motion.div 
                 key={i}
                 className="feature"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                variants={slideUp}
                 transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
               >
                 <div className="feature-icon">{feat.icon}</div>
                 <h4>{feat.title}</h4>
@@ -2271,9 +2573,15 @@ const HomePage = ({ navigate }) => {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="categories-section">
+      <motion.section 
+        className="categories-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={fadeIn}
+      >
         <div className="container">
           <h2 className="section-title">Catégories populaires</h2>
           <div className="categories-grid">
@@ -2281,9 +2589,13 @@ const HomePage = ({ navigate }) => {
               <motion.div 
                 key={cat.id}
                 className="category-card"
-                whileHover={{ y: -10 }}
+                variants={slideUp}
+                whileHover={{ y: -8 }}
                 onClick={() => navigate(`/products?category=${cat.id}`)}
               >
+                <div className="category-image">
+                  <img src={cat.image} alt={cat.name} />
+                </div>
                 <div className="category-icon" style={{ backgroundColor: cat.color }}>
                   {cat.icon}
                 </div>
@@ -2292,9 +2604,15 @@ const HomePage = ({ navigate }) => {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="featured-products">
+      <motion.section 
+        className="featured-products"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeIn}
+      >
         <div className="container">
           <h2 className="section-title">Produits en vedette</h2>
           <div className="products-grid">
@@ -2303,9 +2621,15 @@ const HomePage = ({ navigate }) => {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="partners-section">
+      <motion.section 
+        className="partners-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={fadeIn}
+      >
         <div className="container">
           <h2 className="section-title">Nos Partenaires</h2>
           <div className="partners-marquee">
@@ -2315,14 +2639,18 @@ const HomePage = ({ navigate }) => {
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
               {[...partners, ...partners].map((partner, index) => (
-                <div key={`${partner.id}-${index}`} className="partner">
+                <motion.div 
+                  key={`${partner.id}-${index}`} 
+                  className="partner"
+                  whileHover={{ scale: 1.1 }}
+                >
                   <img src={partner.image} alt={partner.name} />
-                </div>
+                </motion.div>
               ))}
             </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 };
@@ -2345,7 +2673,12 @@ const ProductsPage = ({ navigate }) => {
   const [showFilter, setShowFilter] = useState(false);
 
   return (
-    <div className="products-page">
+    <motion.div 
+      className="products-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="page-header">
         <div className="container">
           <h1>Nos Produits</h1>
@@ -2382,9 +2715,14 @@ const ProductsPage = ({ navigate }) => {
                 </select>
               </div>
 
-              <button className="mobile-filter-btn" onClick={() => setShowFilter(true)}>
+              <motion.button 
+                className="mobile-filter-btn" 
+                onClick={() => setShowFilter(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Filter /> Filtrer
-              </button>
+              </motion.button>
             </div>
 
             {paginatedProducts.length > 0 ? (
@@ -2395,36 +2733,41 @@ const ProductsPage = ({ navigate }) => {
                       key={product.id} 
                       product={product} 
                       onAddToCart={addToCart}
-                      onClick={() => navigate(`/product/${product.slug}`)}
                     />
                   ))}
                 </div>
 
                 {totalPages > 1 && (
                   <div className="pagination">
-                    <button 
+                    <motion.button 
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(currentPage - 1)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Icons.ChevronLeft />
-                    </button>
+                    </motion.button>
                     
                     {[...Array(totalPages)].map((_, i) => (
-                      <button 
+                      <motion.button 
                         key={i}
                         className={currentPage === i + 1 ? 'active' : ''}
                         onClick={() => setCurrentPage(i + 1)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         {i + 1}
-                      </button>
+                      </motion.button>
                     ))}
                     
-                    <button 
+                    <motion.button 
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(currentPage + 1)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Icons.ChevronRight />
-                    </button>
+                    </motion.button>
                   </div>
                 )}
               </>
@@ -2433,7 +2776,13 @@ const ProductsPage = ({ navigate }) => {
                 <Icons.Package size={48} />
                 <h3>Aucun produit trouvé</h3>
                 <p>Essayez de modifier vos filtres</p>
-                <button onClick={clearFilters}>Effacer les filtres</button>
+                <motion.button 
+                  onClick={clearFilters}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Effacer les filtres
+                </motion.button>
               </div>
             )}
           </main>
@@ -2454,6 +2803,7 @@ const ProductsPage = ({ navigate }) => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
+              transition={{ duration: 0.3 }}
               onClick={e => e.stopPropagation()}
             >
               <FilterSidebar onClose={() => setShowFilter(false)} />
@@ -2461,7 +2811,7 @@ const ProductsPage = ({ navigate }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 
@@ -2495,7 +2845,12 @@ const ProductDetailPage = ({ navigate }) => {
   const related = products.filter(p => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="product-detail-page">
+    <motion.div 
+      className="product-detail-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="container">
         <div className="breadcrumb">
           <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a> / 
@@ -2507,17 +2862,19 @@ const ProductDetailPage = ({ navigate }) => {
         </div>
 
         <div className="product-detail">
-          <div className="product-gallery">
-            <motion.div 
-              className="main-image"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
+          <motion.div 
+            className="product-gallery"
+            variants={slideInLeft}
+          >
+            <div className="main-image">
               <img src={product.image} alt={product.name} />
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
 
-          <div className="product-info">
+          <motion.div 
+            className="product-info"
+            variants={slideInRight}
+          >
             <h1>{product.name}</h1>
             
             <div className="product-meta">
@@ -2574,9 +2931,13 @@ const ProductDetailPage = ({ navigate }) => {
 
             <div className="product-actions">
               <div className="quantity-selector">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+                <motion.button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
                   <Icons.Minus />
-                </button>
+                </motion.button>
                 <input 
                   type="number" 
                   value={quantity}
@@ -2584,31 +2945,49 @@ const ProductDetailPage = ({ navigate }) => {
                   min="1"
                   max={product.stock}
                 />
-                <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}>
+                <motion.button 
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
                   <Icons.Plus />
-                </button>
+                </motion.button>
               </div>
 
-              <button 
+              <motion.button 
                 className="add-to-cart-btn"
                 onClick={() => addToCart(product, quantity, selectedAttributes)}
                 disabled={product.stock === 0}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <Icons.ShoppingBag /> Ajouter au panier
-              </button>
+              </motion.button>
 
-              <button className="buy-now-btn">
+              <motion.button 
+                className="buy-now-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 Acheter maintenant
-              </button>
+              </motion.button>
             </div>
 
             <div className="product-extra">
-              <button className="wishlist-btn">
+              <motion.button 
+                className="wishlist-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Heart /> Ajouter aux favoris
-              </button>
-              <button className="compare-btn">
+              </motion.button>
+              <motion.button 
+                className="compare-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Ticket /> Comparer
-              </button>
+              </motion.button>
             </div>
 
             {product.features && (
@@ -2619,7 +2998,7 @@ const ProductDetailPage = ({ navigate }) => {
                 </ul>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         <div className="product-tabs">
@@ -2684,7 +3063,7 @@ const ProductDetailPage = ({ navigate }) => {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -2699,21 +3078,36 @@ const CartPage = ({ navigate }) => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="cart-page empty-cart">
+      <motion.div 
+        className="cart-page empty-cart"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
         <div className="container">
           <Icons.ShoppingBag size={64} />
           <h2>Votre panier est vide</h2>
           <p>Découvrez nos produits et commencez vos achats</p>
-          <button className="btn-primary" onClick={() => navigate('/products')}>
+          <motion.button 
+            className="btn-primary" 
+            onClick={() => navigate('/products')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             Voir les produits
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="cart-page">
+    <motion.div 
+      className="cart-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="container">
         <h1>Mon Panier</h1>
 
@@ -2723,9 +3117,10 @@ const CartPage = ({ navigate }) => {
               <motion.div 
                 key={`${item.id}-${index}`}
                 className="cart-item"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ delay: index * 0.1 }}
               >
                 <img src={item.image} alt={item.name} />
                 
@@ -2742,32 +3137,47 @@ const CartPage = ({ navigate }) => {
                 </div>
 
                 <div className="item-quantity">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.attributes)}>
+                  <motion.button 
+                    onClick={() => updateQuantity(item.id, item.quantity - 1, item.attributes)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
                     <Icons.Minus />
-                  </button>
+                  </motion.button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.attributes)}>
+                  <motion.button 
+                    onClick={() => updateQuantity(item.id, item.quantity + 1, item.attributes)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
                     <Icons.Plus />
-                  </button>
+                  </motion.button>
                 </div>
 
                 <div className="item-total">
                   {item.price * item.quantity} MAD
                 </div>
 
-                <button 
+                <motion.button 
                   className="remove-item"
                   onClick={() => removeFromCart(item.id, item.attributes)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   <Icons.Trash />
-                </button>
+                </motion.button>
               </motion.div>
             ))}
 
             <div className="cart-actions">
-              <button onClick={clearCart} className="clear-cart">
+              <motion.button 
+                onClick={clearCart} 
+                className="clear-cart"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Icons.Trash /> Vider le panier
-              </button>
+              </motion.button>
             </div>
           </div>
 
@@ -2804,20 +3214,32 @@ const CartPage = ({ navigate }) => {
             )}
 
             {isAuthenticated ? (
-              <button className="checkout-btn" onClick={() => navigate('/checkout')}>
+              <motion.button 
+                className="checkout-btn" 
+                onClick={() => navigate('/checkout')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 Passer la commande
-              </button>
+              </motion.button>
             ) : (
               <div className="checkout-login">
                 <p>Connectez-vous pour finaliser votre commande</p>
-                <button className="login-btn" onClick={() => navigate('/login')}>Se connecter</button>
+                <motion.button 
+                  className="login-btn" 
+                  onClick={() => navigate('/login')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Se connecter
+                </motion.button>
                 <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Créer un compte</a>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -2845,9 +3267,17 @@ const LoginPage = ({ navigate }) => {
   };
 
   return (
-    <div className="auth-page">
+    <motion.div 
+      className="auth-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="container">
-        <div className="auth-box">
+        <motion.div 
+          className="auth-box"
+          variants={slideUp}
+        >
           <h2>Connexion</h2>
           
           {error && <div className="error-message">{error}</div>}
@@ -2873,17 +3303,22 @@ const LoginPage = ({ navigate }) => {
               />
             </div>
 
-            <button type="submit" disabled={loading}>
+            <motion.button 
+              type="submit" 
+              disabled={loading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               {loading ? 'Connexion...' : 'Se connecter'}
-            </button>
+            </motion.button>
           </form>
 
           <p className="auth-link">
             Pas encore de compte ? <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>S'inscrire</a>
           </p>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -2927,9 +3362,17 @@ const RegisterPage = ({ navigate }) => {
   };
 
   return (
-    <div className="auth-page">
+    <motion.div 
+      className="auth-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="container">
-        <div className="auth-box">
+        <motion.div 
+          className="auth-box"
+          variants={slideUp}
+        >
           <h2>Inscription</h2>
           
           {error && <div className="error-message">{error}</div>}
@@ -3001,17 +3444,22 @@ const RegisterPage = ({ navigate }) => {
               />
             </div>
 
-            <button type="submit" disabled={loading}>
+            <motion.button 
+              type="submit" 
+              disabled={loading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               {loading ? 'Inscription...' : "S'inscrire"}
-            </button>
+            </motion.button>
           </form>
 
           <p className="auth-link">
             Déjà un compte ? <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Se connecter</a>
           </p>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -3035,7 +3483,12 @@ const DashboardPage = ({ navigate }) => {
   };
 
   return (
-    <div className="dashboard-page">
+    <motion.div 
+      className="dashboard-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="container">
         <h1>Mon Compte</h1>
 
@@ -3071,9 +3524,14 @@ const DashboardPage = ({ navigate }) => {
                 <div className="tab-header">
                   <h2>Mon Profil</h2>
                   {!editMode && (
-                    <button className="edit-btn" onClick={() => setEditMode(true)}>
+                    <motion.button 
+                      className="edit-btn" 
+                      onClick={() => setEditMode(true)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       Modifier
-                    </button>
+                    </motion.button>
                   )}
                 </div>
 
@@ -3107,10 +3565,21 @@ const DashboardPage = ({ navigate }) => {
                     </div>
 
                     <div className="form-actions">
-                      <button type="submit">Enregistrer</button>
-                      <button type="button" onClick={() => setEditMode(false)}>
+                      <motion.button 
+                        type="submit"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Enregistrer
+                      </motion.button>
+                      <motion.button 
+                        type="button" 
+                        onClick={() => setEditMode(false)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         Annuler
-                      </button>
+                      </motion.button>
                     </div>
                   </form>
                 ) : (
@@ -3133,7 +3602,13 @@ const DashboardPage = ({ navigate }) => {
                 ) : (
                   <div className="orders-list">
                     {userOrders.map(order => (
-                      <div key={order.id} className="order-card">
+                      <motion.div 
+                        key={order.id} 
+                        className="order-card"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
                         <div className="order-header">
                           <span className="order-id">Commande #{order.id}</span>
                           <span className={`order-status status-${order.status}`}>
@@ -3153,9 +3628,15 @@ const DashboardPage = ({ navigate }) => {
 
                         <div className="order-footer">
                           <span className="order-total">Total: {order.total} MAD</span>
-                          <button className="track-order">Suivre</button>
+                          <motion.button 
+                            className="track-order"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Suivre
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 )}
@@ -3168,14 +3649,20 @@ const DashboardPage = ({ navigate }) => {
                 <div className="address-card">
                   <h3>Adresse par défaut</h3>
                   <p>{user?.address || 'Aucune adresse enregistrée'}</p>
-                  <button className="edit-address">Modifier</button>
+                  <motion.button 
+                    className="edit-address"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Modifier
+                  </motion.button>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -3200,7 +3687,12 @@ const AdminPage = ({ navigate }) => {
   };
 
   return (
-    <div className="admin-page">
+    <motion.div 
+      className="admin-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="container">
         <h1>Administration</h1>
 
@@ -3271,7 +3763,13 @@ const AdminPage = ({ navigate }) => {
             {activeTab === 'products' && (
               <div className="products-management">
                 <h2>Gestion des produits</h2>
-                <button className="add-product-btn">+ Ajouter un produit</button>
+                <motion.button 
+                  className="add-product-btn"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  + Ajouter un produit
+                </motion.button>
                 
                 <table className="admin-table">
                   <thead>
@@ -3295,8 +3793,20 @@ const AdminPage = ({ navigate }) => {
                         <td>{product.stock}</td>
                         <td>{product.category}</td>
                         <td>
-                          <button className="edit-btn">Modifier</button>
-                          <button className="delete-btn">Supprimer</button>
+                          <motion.button 
+                            className="edit-btn"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Modifier
+                          </motion.button>
+                          <motion.button 
+                            className="delete-btn"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Supprimer
+                          </motion.button>
                         </td>
                       </tr>
                     ))}
@@ -3329,8 +3839,20 @@ const AdminPage = ({ navigate }) => {
                         <td>{user.phone}</td>
                         <td>{user.role}</td>
                         <td>
-                          <button className="edit-btn">Modifier</button>
-                          <button className="delete-btn">Supprimer</button>
+                          <motion.button 
+                            className="edit-btn"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Modifier
+                          </motion.button>
+                          <motion.button 
+                            className="delete-btn"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Supprimer
+                          </motion.button>
                         </td>
                       </tr>
                     ))}
@@ -3344,38 +3866,55 @@ const AdminPage = ({ navigate }) => {
                 <h2>Statistiques</h2>
                 
                 <div className="stats-grid">
-                  <div className="stat-card">
+                  <motion.div 
+                    className="stat-card"
+                    whileHover={{ y: -5 }}
+                  >
                     <h3>Commandes totales</h3>
                     <p className="stat-value">{orders.length}</p>
-                  </div>
-                  <div className="stat-card">
+                  </motion.div>
+                  <motion.div 
+                    className="stat-card"
+                    whileHover={{ y: -5 }}
+                  >
                     <h3>Chiffre d'affaires</h3>
                     <p className="stat-value">
                       {orders.reduce((sum, o) => sum + o.total, 0)} MAD
                     </p>
-                  </div>
-                  <div className="stat-card">
+                  </motion.div>
+                  <motion.div 
+                    className="stat-card"
+                    whileHover={{ y: -5 }}
+                  >
                     <h3>Produits</h3>
                     <p className="stat-value">{products.length}</p>
-                  </div>
-                  <div className="stat-card">
+                  </motion.div>
+                  <motion.div 
+                    className="stat-card"
+                    whileHover={{ y: -5 }}
+                  >
                     <h3>Clients</h3>
                     <p className="stat-value">{users.length}</p>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // About Page
-const AboutPage = () => {
+const AboutPage = ({ navigate }) => {
   return (
-    <div className="about-page">
+    <motion.div 
+      className="about-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="page-header">
         <div className="container">
           <h1>Qui sommes-nous</h1>
@@ -3383,7 +3922,10 @@ const AboutPage = () => {
       </div>
 
       <div className="container">
-        <div className="about-content">
+        <motion.div 
+          className="about-content"
+          variants={slideUp}
+        >
           <div className="about-section">
             <h2>Notre histoire</h2>
             <p>
@@ -3413,9 +3955,9 @@ const AboutPage = () => {
               <li>Intégrité et transparence</li>
             </ul>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -3436,7 +3978,12 @@ const ContactPage = ({ navigate }) => {
   };
 
   return (
-    <div className="contact-page">
+    <motion.div 
+      className="contact-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
       <div className="page-header">
         <div className="container">
           <h1>Contactez-nous</h1>
@@ -3446,35 +3993,54 @@ const ContactPage = ({ navigate }) => {
       <div className="container">
         <div className="contact-layout">
           <div className="contact-info">
-            <div className="info-card">
+            <motion.div 
+              className="info-card"
+              variants={slideUp}
+              whileHover={{ y: -5 }}
+            >
               <Icons.MapPin />
               <h3>Adresse</h3>
               <p>Rue 7 N° 184/Q4, Lotis Hadika Tghat<br />30090 Fès, Maroc</p>
-            </div>
+            </motion.div>
 
-            <div className="info-card">
+            <motion.div 
+              className="info-card"
+              variants={slideUp}
+              whileHover={{ y: -5 }}
+            >
               <Icons.Phone />
               <h3>Téléphone</h3>
               <p>+212 8086 26102</p>
               <p>+212 6668 68091</p>
-            </div>
+            </motion.div>
 
-            <div className="info-card">
+            <motion.div 
+              className="info-card"
+              variants={slideUp}
+              whileHover={{ y: -5 }}
+            >
               <Icons.Mail />
               <h3>Email</h3>
               <p>info@teclab.ma</p>
               <p>support@teclab.ma</p>
-            </div>
+            </motion.div>
 
-            <div className="info-card">
+            <motion.div 
+              className="info-card"
+              variants={slideUp}
+              whileHover={{ y: -5 }}
+            >
               <Icons.Headphones />
               <h3>Horaires</h3>
               <p>Lun-Ven: 9h - 18h</p>
               <p>Sam: 9h - 13h</p>
-            </div>
+            </motion.div>
           </div>
 
-          <div className="contact-form">
+          <motion.div 
+            className="contact-form"
+            variants={slideInRight}
+          >
             <h2>Envoyez-nous un message</h2>
             
             {sent && (
@@ -3524,12 +4090,18 @@ const ContactPage = ({ navigate }) => {
                 ></textarea>
               </div>
 
-              <button type="submit">Envoyer</button>
+              <motion.button 
+                type="submit"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Envoyer
+              </motion.button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -3596,7 +4168,14 @@ function App() {
       <div className="not-found">
         <h1>404</h1>
         <p>Page non trouvée</p>
-        <button className="btn-primary" onClick={() => navigate('/')}>Retour à l'accueil</button>
+        <motion.button 
+          className="btn-primary" 
+          onClick={() => navigate('/')}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Retour à l'accueil
+        </motion.button>
       </div>
     );
   };
@@ -3622,6 +4201,7 @@ function App() {
                   exit={{ scale: 0, opacity: 0 }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <Icons.ArrowUp />
                 </motion.div>
