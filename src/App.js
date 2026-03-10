@@ -1,9 +1,53 @@
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import axios from 'axios';
 import './App.css';
+import EmailCampaign from './EmailCampaign';
+// ==================== API CONFIGURATION ====================
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  withCredentials: true,
+});
+
+// Request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ==================== ICON COMPONENTS ====================
 const Icons = {
+  Mail: (props) => (
+  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>
+),
   Home: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -24,11 +68,6 @@ const Icons = {
   Phone: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z" />
-    </svg>
-  ),
-  Gift: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
     </svg>
   ),
   Heart: (props) => (
@@ -67,16 +106,6 @@ const Icons = {
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   ),
-  ChevronDown: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  ),
-  ChevronUp: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <polyline points="18 15 12 9 6 15" />
-    </svg>
-  ),
   ChevronLeft: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polyline points="15 18 9 12 15 6" />
@@ -104,48 +133,6 @@ const Icons = {
       <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
       <circle cx="5.5" cy="18.5" r="2.5" />
       <circle cx="18.5" cy="18.5" r="2.5" />
-    </svg>
-  ),
-  RefreshCw: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M23 4v6h-6" />
-      <path d="M1 20v-6h6" />
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-    </svg>
-  ),
-  CreditCard: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-      <line x1="1" y1="10" x2="23" y2="10" />
-    </svg>
-  ),
-  Headphones: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
-    </svg>
-  ),
-  MapPin: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  ),
-  Mail: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-      <polyline points="22,6 12,13 2,6" />
-    </svg>
-  ),
-  ArrowUp: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <line x1="12" y1="19" x2="12" y2="5" />
-      <polyline points="5 12 12 5 19 12" />
-    </svg>
-  ),
-  Filter: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <polygon points="22 3 2 3 10 13 10 21 14 18 14 13 22 3" />
     </svg>
   ),
   Plus: (props) => (
@@ -177,34 +164,22 @@ const Icons = {
       <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   ),
-  LogIn: (props) => (
+  Percent: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-      <polyline points="10 17 15 12 10 7" />
-      <line x1="15" y1="12" x2="3" y2="12" />
+      <line x1="19" y1="5" x2="5" y2="19" />
+      <circle cx="6.5" cy="6.5" r="2.5" />
+      <circle cx="17.5" cy="17.5" r="2.5" />
     </svg>
   ),
-  Facebook: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" {...props}>
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  ArrowUp: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
     </svg>
   ),
-  Twitter: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" {...props}>
-      <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />
-    </svg>
-  ),
-  Youtube: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" {...props}>
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
-    </svg>
-  ),
-  Linkedin: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" {...props}>
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect x="2" y="9" width="4" height="12" />
-      <circle cx="4" cy="4" r="2" />
+  Filter: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <polygon points="22 3 2 3 10 13 10 21 14 18 14 13 22 3" />
     </svg>
   ),
   WhatsApp: (props) => (
@@ -212,22 +187,9 @@ const Icons = {
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   ),
-  Ticket: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
-      <circle cx="8" cy="12" r="1" />
-      <circle cx="16" cy="12" r="1" />
-    </svg>
-  ),
-  RProject: (props) => (
-    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-    </svg>
-  ),
 };
 
 // ==================== ANIMATION VARIANTS ====================
-// Optimized variants for better performance
 const fadeIn = {
   hidden: { opacity: 0 },
   visible: { 
@@ -245,1387 +207,188 @@ const slideUp = {
   }
 };
 
-const slideInLeft = {
-  hidden: { opacity: 0, x: -30 },
-  visible: { 
-    opacity: 1, 
-    x: 0,
-    transition: { duration: 0.5 }
-  }
-};
-
-const slideInRight = {
-  hidden: { opacity: 0, x: 30 },
-  visible: { 
-    opacity: 1, 
-    x: 0,
-    transition: { duration: 0.5 }
-  }
-};
-
-const scaleOnHover = {
-  whileHover: { scale: 1.05 },
-  whileTap: { scale: 0.95 }
-};
-
-// ==================== DATA ====================
-
-const categories = [
-  { 
-    id: 38, 
-    name: 'TUBES DE PRELEVEMENT', 
-    slug: 'tubes-de-prelevement', 
-    color: '#6d9eeb', 
-    count: 45, 
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/whatsapp-image-2026-01-21-at-140953-photoroom-300x300.png'
-  },
-  { 
-    id: 40, 
-    name: 'AIGUILLES ET ACCESSOIRES', 
-    slug: 'aiguilles-et-accessoires', 
-    color: '#ff6b6b', 
-    count: 32, 
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115703-300x300.jpeg'
-  },
-  { 
-    id: 41, 
-    name: 'CONSOMMABLES DE LABORATOIRE', 
-    slug: 'consommables', 
-    color: '#4ecdc4', 
-    count: 78, 
-    image: 'https://www.teclab.ma/storage/products/chatgpt-image-feb-26-2026-02-01-23-pm-300x300.png'
-  },
-  { 
-    id: 75, 
-    name: 'REACTIFS DE LABORATOIRE', 
-    slug: 'reactifs', 
-    color: '#45b7d1', 
-    count: 56, 
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg'
-  },
-  { 
-    id: 95, 
-    name: 'ANALYSEURS', 
-    slug: 'analyseurs', 
-    color: '#f9ca24', 
-    count: 23, 
-    image: 'https://www.teclab.ma/storage/products/machine/chatgpt-image-feb-14-2026-12-09-48-pm-300x300.png'
-  },
-  { 
-    id: 116, 
-    name: 'EQUIPEMENTS DE LABORATOIRE', 
-    slug: 'equipements', 
-    color: '#a55eea', 
-    count: 34, 
-    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-mt5nx2mt5nx2mt5n-300x300.jpg'
-  },
-];
-
-// Carousel offers data
-const carouselOffers = [
-  {
-    id: 1,
-    title: 'Livraison Gratuite',
-    subtitle: 'Pour toute commande > 1000DH',
-    image: 'https://www.teclab.ma/storage/products/generated-image-c96cf929-90af-4249-aced-bea1c63d6f5d.png',
-    bgColor: '#6d9eeb',
-    textColor: '#ffffff'
-  },
-  {
-    id: 2,
-    title: 'Promotion Spéciale',
-    subtitle: 'Jusqu\'à -25% sur une sélection',
-    image: 'https://www.teclab.ma/storage/products/generated-image-7aeac712-54fd-49ab-a84e-62610d086010.png',
-    bgColor: '#ff6b6b',
-    textColor: '#ffffff'
-  },
-  {
-    id: 3,
-    title: 'Nouveaux Produits',
-    subtitle: 'Découvrez notre nouvelle gamme',
-    image: 'https://www.teclab.ma/storage/products/generated-image-f19f78ff-6f6e-46de-9f9d-21a88cdea097.png',
-    bgColor: '#4ecdc4',
-    textColor: '#ffffff'
-  }
-];
-
-const products = [
-  {
-    id: 1,
-    name: 'Tube PRP GEL+NC1:9',
-    slug: 'tube-prp-gelnc19',
-    sku: 'KS100PRP',
-    price: 140,
-    originalPrice: 150,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/whatsapp-image-2026-01-21-at-140953-photoroom-300x300.png',
-    description: 'Tube PRP jetable avec ACD+GEL. La cellulose, la fibronectine et la vitronectine contenues dans le PRP peuvent transformer le PRP contenant de la thrombine en gel. Le PRP peut favoriser la régénération osseuse, augmenter la densité osseuse et favoriser la cicatrisation des plaies.',
-    features: [
-      'Tube PRP stérile, à usage unique',
-      'Diamètre: 15mm, bouchon: 18mm',
-      'Modèle 10ml: jusqu\'à 9ml de sang',
-      'Modèle 15ml: jusqu\'à 12ml de sang',
-      'Certifié CE classe IIa'
-    ],
-    attributes: {
-      condition: ['Unité', 'Boîte/100'],
-      color: ['BLUE', 'GREEN'],
-      size: ['10ML', '15ML']
-    },
-    stock: 45,
-    rating: 4.5,
-    reviews: 12,
-    badge: 'Hot',
-    featured: true
-  },
-  {
-    id: 2,
-    name: 'Tube Sous Vide ESR 1,6ml en Verre',
-    slug: 'tube-sous-vide-esr',
-    sku: 'ESR001',
-    price: 120,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/gemini-generated-image-b4on7wb4on7wb4on-300x300.jpg',
-    description: 'Tube sous vide pour vitesse de sédimentation (ESR) en verre de haute qualité. Idéal pour les tests de laboratoire précis.',
-    stock: 38,
-    rating: 4.2,
-    reviews: 8,
-    badge: 'Hot',
-    featured: true
-  },
-  {
-    id: 3,
-    name: 'Tube Sous Vide Fluoré De Potassium',
-    slug: 'tube-sous-vide-fluor',
-    sku: 'FLU002',
-    price: 130,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/wechatimage-202209012048532-600x-300x300.jpg',
-    description: 'Tube sous vide avec fluorure de potassium pour la stabilisation du glucose.',
-    stock: 52,
-    rating: 4.7,
-    reviews: 15,
-    badge: 'Hot'
-  },
-  {
-    id: 4,
-    name: 'Tube Sous Vide avec Gel Séparateur',
-    slug: 'tube-sous-vide-gel',
-    sku: 'GEL003',
-    price: 140,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/wechatimage-202209012048541-2a25-300x300.jpg',
-    description: 'Tube sous vide avec gel séparateur pour une séparation optimale du sérum.',
-    stock: 27,
-    rating: 4.3,
-    reviews: 10,
-    badge: 'Hot'
-  },
-  {
-    id: 5,
-    name: 'Tube Sous Vide Héparine',
-    slug: 'tube-sous-vide-heparine',
-    sku: 'HEP004',
-    price: 125,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/wechatimage-20220901204853-1200x-300x300.jpg',
-    description: 'Tube sous vide avec héparine de lithium pour les tests de chimie clinique.',
-    stock: 63,
-    rating: 4.6,
-    reviews: 14
-  },
-  {
-    id: 6,
-    name: 'Tube Sous Vide Citrate pour V.S',
-    slug: 'tube-sous-vide-citrate-vs',
-    sku: 'CIT005',
-    price: 135,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/whatsapp-image-2026-01-21-at-140429-1-photoroom-300x300.png',
-    description: 'Tube sous vide avec citrate de sodium pour la vitesse de sédimentation.',
-    stock: 41,
-    rating: 4.4,
-    reviews: 9
-  },
-  {
-    id: 7,
-    name: 'Tube Sous Vide Citrate pour Coagulation',
-    slug: 'tube-sous-vide-citrate-coag',
-    sku: 'CIT006',
-    price: 138,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/wechatimage-20220901204854-1024x-300x300.jpg',
-    description: 'Tube sous vide avec citrate de sodium pour les tests de coagulation.',
-    stock: 35,
-    rating: 4.5,
-    reviews: 11
-  },
-  {
-    id: 8,
-    name: 'Tube Sous Vide EDTA',
-    slug: 'tube-sous-vide-edta',
-    sku: 'EDTA007',
-    price: 125,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/65309-home-default-300x300.jpg',
-    description: 'Tube sous vide avec EDTA pour les analyses hématologiques.',
-    stock: 58,
-    rating: 4.6,
-    reviews: 13
-  },
-  {
-    id: 9,
-    name: 'Tube Sous Vide SEC avec Activateur',
-    slug: 'tube-sous-vide-sec',
-    sku: 'SEC008',
-    price: 132,
-    originalPrice: null,
-    category: 'TUBES DE PRELEVEMENT',
-    categoryId: 38,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/tube-sous-vide/wechatimage-202209012048531-1200x-300x300.webp',
-    description: 'Tube sous vide avec activateur de coagulation pour les tests biochimiques.',
-    stock: 42,
-    rating: 4.4,
-    reviews: 9
-  },
-  {
-    id: 10,
-    name: 'Tampon Alcoolisé',
-    slug: 'tampon-alcoolise',
-    sku: 'TAM001',
-    price: 45,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115900-300x300.jpeg',
-    description: 'Tampons alcoolisés individuels pour la désinfection de la peau avant prélèvement.',
-    stock: 200,
-    rating: 4.1,
-    reviews: 6,
-    badge: 'Hot'
-  },
-  {
-    id: 11,
-    name: 'Garrot avec crochet',
-    slug: 'garrot-crochet',
-    sku: 'GAR002',
-    price: 65,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115548-300x300.jpeg',
-    description: 'Garrot professionnel avec système de crochet pour un maintien facile.',
-    stock: 85,
-    rating: 4.3,
-    reviews: 7,
-    badge: 'Hot'
-  },
-  {
-    id: 12,
-    name: 'Corps avec éjection d\'aiguille',
-    slug: 'corps-ejection-aiguille',
-    sku: 'COR003',
-    price: 85,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115425-300x300.jpeg',
-    description: 'Corps de prélèvement avec système d\'éjection d\'aiguille intégré.',
-    stock: 42,
-    rating: 4.5,
-    reviews: 11,
-    badge: 'Hot'
-  },
-  {
-    id: 13,
-    name: 'Corps pour Aiguille',
-    slug: 'corps-aiguille',
-    sku: 'COR004',
-    price: 55,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115222-300x300.jpeg',
-    description: 'Corps de prélèvement standard compatible avec la plupart des aiguilles.',
-    stock: 97,
-    rating: 4.2,
-    reviews: 5
-  },
-  {
-    id: 14,
-    name: 'Aiguille Hypodermique 25G',
-    slug: 'aiguille-hypodermique-25g',
-    sku: 'AIG005',
-    price: 35,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-115703-300x300.jpeg',
-    description: 'Aiguille hypodermique stérile 25G x 1 pouce. Pour injections et prélèvements.',
-    stock: 150,
-    rating: 4.4,
-    reviews: 8
-  },
-  {
-    id: 15,
-    name: 'Aiguille épicrânienne',
-    slug: 'aiguille-epicranienne',
-    sku: 'AIG006',
-    price: 38,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-120743-300x300.jpeg',
-    description: 'Aiguille épicrânienne pour prélèvements spécifiques.',
-    stock: 75,
-    rating: 4.3,
-    reviews: 6
-  },
-  {
-    id: 16,
-    name: 'Aiguille avec vision 22G',
-    slug: 'aiguille-vision-22g',
-    sku: 'AIG007',
-    price: 42,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-22-at-114911-1-300x300.jpeg',
-    description: 'Aiguille avec chambre de vision pour un contrôle optimal du flux sanguin.',
-    stock: 62,
-    rating: 4.6,
-    reviews: 9
-  },
-  {
-    id: 17,
-    name: 'Aiguille sous vide 21G',
-    slug: 'aiguille-sous-vide-21g',
-    sku: 'AIG008',
-    price: 40,
-    originalPrice: null,
-    category: 'AIGUILLES ET ACCESSOIRES',
-    categoryId: 40,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/whatsapp-image-2026-01-21-at-165605-300x300.jpeg',
-    description: 'Aiguille sous vide standard 21G pour prélèvement sanguin.',
-    stock: 120,
-    rating: 4.5,
-    reviews: 10
-  },
-  {
-    id: 18,
-    name: 'Sparadrap CURE-AID',
-    slug: 'sparadrap-cure-aid',
-    sku: 'SPA001',
-    price: 150,
-    originalPrice: 200,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Cure-Aid',
-    image: 'https://www.teclab.ma/storage/products/chatgpt-image-feb-26-2026-02-01-23-pm-300x300.png',
-    description: 'Sparadrap hypoallergénique pour fixation de pansements et compresses.',
-    stock: 75,
-    rating: 4.4,
-    reviews: 18,
-    discount: '-25%'
-  },
-  {
-    id: 19,
-    name: 'RACK/cône Blanc 96 Trous',
-    slug: 'rack-cone-blanc-96',
-    sku: 'RAC001',
-    price: 95,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/aiguilles/chatgpt-image-feb-24-2026-02-31-01-pm-300x300.png',
-    description: 'Rack pour cônes de pipettes, 96 trous. Compatible avec la plupart des pipettes automatiques.',
-    stock: 30,
-    rating: 4.2,
-    reviews: 7,
-    badge: 'Hot'
-  },
-  {
-    id: 20,
-    name: 'Ecouvillon stérile tige en bois',
-    slug: 'ecouvillon-sterile-bois',
-    sku: 'ECO001',
-    price: 75,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Carestainer',
-    image: 'https://www.teclab.ma/storage/products/eccouvillons/gemini-generated-image-dp8g8idp8g8idp8g-300x300.jpg',
-    description: 'Ecouvillon stérile avec tige en bois pour prélèvements microbiologiques.',
-    stock: 200,
-    rating: 4.3,
-    reviews: 9,
-    badge: 'Hot'
-  },
-  {
-    id: 21,
-    name: 'CUPULE ACCESS 2',
-    slug: 'cupule-access-2',
-    sku: 'CUP001',
-    price: 180,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Beckman Coulter',
-    image: 'https://www.teclab.ma/storage/products/autre/chatgpt-image-feb-24-2026-01-32-00-pm-300x300.png',
-    description: 'Cupule pour analyseur ACCESS 2 de Beckman Coulter.',
-    stock: 120,
-    rating: 4.5,
-    reviews: 12
-  },
-  {
-    id: 22,
-    name: 'CUVETTE HITACHI',
-    slug: 'cuvette-hitachi',
-    sku: 'CUV001',
-    price: 220,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Hitachi',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-2gfnvt2gfnvt2gfn-300x300.jpg',
-    description: 'Cuvette pour analyseurs Hitachi, haute qualité optique.',
-    stock: 85,
-    rating: 4.7,
-    reviews: 8
-  },
-  {
-    id: 23,
-    name: 'CUVETTE KONELAB',
-    slug: 'cuvette-konelab',
-    sku: 'CUV002',
-    price: 210,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Konelab',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-k4t0klk4t0klk4t0-300x300.jpg',
-    description: 'Cuvette pour analyseurs Konelab, précision et fiabilité.',
-    stock: 64,
-    rating: 4.6,
-    reviews: 7
-  },
-  {
-    id: 24,
-    name: 'FLACON DE BILLE STAGO',
-    slug: 'flacon-bille-stago',
-    sku: 'FLA001',
-    price: 195,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Stago',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-evfpdyevfpdyevfp-300x300.png',
-    description: 'Flacon de billes pour analyseurs Stago, qualité garantie.',
-    stock: 45,
-    rating: 4.8,
-    reviews: 5
-  },
-  {
-    id: 25,
-    name: 'CUVETTE STAGO',
-    slug: 'cuvette-stago',
-    sku: 'CUV003',
-    price: 185,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Stago',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-4dbarv4dbarv4dba-300x300.jpg',
-    description: 'Cuvette pour analyseurs Stago, qualité optique optimale.',
-    stock: 52,
-    rating: 4.5,
-    reviews: 6
-  },
-  {
-    id: 26,
-    name: 'CUPULE pour SYSMEX CS',
-    slug: 'cupule-sysmex-cs',
-    sku: 'CUP002',
-    price: 175,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Sysmex',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-91dpm491dpm491dp-300x300.jpg',
-    description: 'Cupule pour analyseur SYSMEX CS, précision garantie.',
-    stock: 38,
-    rating: 4.7,
-    reviews: 4
-  },
-  {
-    id: 27,
-    name: 'CUPULE pour SYSMEX CA',
-    slug: 'cupule-sysmex-ca',
-    sku: 'CUP003',
-    price: 170,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Sysmex',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-qmaokxqmaokxqmao-300x300.jpg',
-    description: 'Cupule pour analyseur SYSMEX CA, qualité supérieure.',
-    stock: 42,
-    rating: 4.6,
-    reviews: 5
-  },
-  {
-    id: 28,
-    name: 'CUPULE pour A15/A25',
-    slug: 'cupule-a15-a25',
-    sku: 'CUP004',
-    price: 155,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/products/cupule-godet/gemini-generated-image-ypliy4ypliy4ypli-300x300.jpg',
-    description: 'Cupule pour automates A15 et A25, compatible avec Bioelab.',
-    stock: 56,
-    rating: 4.4,
-    reviews: 7
-  },
-  {
-    id: 29,
-    name: 'Micropipette Fixe',
-    slug: 'micropipette-fixe',
-    sku: 'MIC001',
-    price: 450,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/micropipettes/gemini-generated-image-l3thb9l3thb9l3th-300x300.jpg',
-    description: 'Micropipette à volume fixe, précision et ergonomie.',
-    stock: 25,
-    rating: 4.8,
-    reviews: 10
-  },
-  {
-    id: 30,
-    name: 'Micropipette Réglable',
-    slug: 'micropipette-reglable',
-    sku: 'MIC002',
-    price: 580,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/micropipettes/gemini-generated-image-vpzim5vpzim5vpzi-300x300.jpg',
-    description: 'Micropipette à volume réglable, haute précision.',
-    stock: 18,
-    rating: 4.9,
-    reviews: 8
-  },
-  {
-    id: 31,
-    name: 'Parafilm 10cm*38m',
-    slug: 'parafilm',
-    sku: 'PAR001',
-    price: 220,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Parafilm',
-    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-ltg7n2ltg7n2ltg7-300x300.jpg',
-    description: 'Parafilm pour l\'étanchéité des récipients de laboratoire.',
-    stock: 45,
-    rating: 4.7,
-    reviews: 12
-  },
-  {
-    id: 32,
-    name: 'Pince en bois',
-    slug: 'pince-bois',
-    sku: 'PIN001',
-    price: 25,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-nt2q37nt2q37nt2q-300x300.jpg',
-    description: 'Pince en bois pour la manipulation d\'objets chauds.',
-    stock: 150,
-    rating: 4.2,
-    reviews: 15
-  },
-  {
-    id: 33,
-    name: 'Micropipette multicanaux',
-    slug: 'micropipette-multicanaux',
-    sku: 'MIC003',
-    price: 890,
-    originalPrice: null,
-    category: 'CONSOMMABLES DE LABORATOIRE',
-    categoryId: 41,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/micropipettes/gemini-generated-image-vedalrvedalrveda-300x300.jpg',
-    description: 'Micropipette multicanaux 8 canaux pour plaques 96 puits.',
-    stock: 8,
-    rating: 4.9,
-    reviews: 4
-  },
-  {
-    id: 34,
-    name: 'Analyseur de biochimie BT-330',
-    slug: 'analyseur-bt330',
-    sku: 'ANA001',
-    price: 15000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/products/machine/chatgpt-image-feb-14-2026-12-09-48-pm-300x300.png',
-    description: 'Analyseur de biochimie entièrement automatisé. Haute précision et rapidité.',
-    stock: 5,
-    rating: 4.8,
-    reviews: 3
-  },
-  {
-    id: 35,
-    name: 'Analyseur VS SD-100',
-    slug: 'analyseur-sd100',
-    sku: 'ANA002',
-    price: 12000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Succeeder',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-eim67heim67heim6-300x300.png',
-    description: 'Analyseur pour vitesse de sédimentation, automatisé et précis.',
-    stock: 3,
-    rating: 4.6,
-    reviews: 2
-  },
-  {
-    id: 36,
-    name: 'Analyseur AS-380',
-    slug: 'analyseur-as380',
-    sku: 'ANA003',
-    price: 18000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-h7hvj8h7hvj8h7hv-300x300.png',
-    description: 'Analyseur de biochimie haute performance avec grande capacité.',
-    stock: 2,
-    rating: 4.9,
-    reviews: 4
-  },
-  {
-    id: 37,
-    name: 'Analyseur AS-280',
-    slug: 'analyseur-as280',
-    sku: 'ANA004',
-    price: 14500,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/products/machine/3406e3f080cff89509270b153c5605af-300x300.png',
-    description: 'Analyseur de biochimie compact et efficace.',
-    stock: 4,
-    rating: 4.7,
-    reviews: 3,
-    badge: 'Hot'
-  },
-  {
-    id: 38,
-    name: 'Analyseur BH-5390',
-    slug: 'analyseur-bh5390',
-    sku: 'ANA005',
-    price: 22000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Urit',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-yew64uyew64uyew6-300x300.png',
-    description: 'Analyseur d\'hématologie 5-part avec automate complet.',
-    stock: 2,
-    rating: 4.8,
-    reviews: 2
-  },
-  {
-    id: 39,
-    name: 'Analyseur BH-5100',
-    slug: 'analyseur-bh5100',
-    sku: 'ANA006',
-    price: 25000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Urit',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-ah1r0rah1r0rah1r-300x300.png',
-    description: 'Analyseur d\'hématologie haute capacité.',
-    stock: 1,
-    rating: 4.9,
-    reviews: 1
-  },
-  {
-    id: 40,
-    name: 'Analyseur SF-8100',
-    slug: 'analyseur-sf8100',
-    sku: 'ANA007',
-    price: 28000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Succeeder',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-vitlwbvitlwbvitl-300x300.png',
-    description: 'Analyseur de coagulation entièrement automatisé.',
-    stock: 2,
-    rating: 4.8,
-    reviews: 2
-  },
-  {
-    id: 41,
-    name: 'Analyseur SF-8050',
-    slug: 'analyseur-sf8050',
-    sku: 'ANA008',
-    price: 16500,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Succeeder',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-pvfxm2pvfxm2pvfx-300x300.png',
-    description: 'Analyseur de coagulation semi-automatique.',
-    stock: 3,
-    rating: 4.6,
-    reviews: 2
-  },
-  {
-    id: 42,
-    name: 'Analyseur SF-400',
-    slug: 'analyseur-sf400',
-    sku: 'ANA009',
-    price: 12500,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Succeeder',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-jmxae8jmxae8jmxa-300x300.png',
-    description: 'Analyseur de coagulation semi-automatique compact.',
-    stock: 4,
-    rating: 4.5,
-    reviews: 3
-  },
-  {
-    id: 43,
-    name: 'Analyseur MQ-6000',
-    slug: 'analyseur-mq6000',
-    sku: 'ANA010',
-    price: 19500,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Medconn',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-hz7r96hz7r96hz7r-300x300.png',
-    description: 'Analyseur d\'hémoglobine glyquée haute précision.',
-    stock: 3,
-    rating: 4.7,
-    reviews: 2
-  },
-  {
-    id: 44,
-    name: 'Analyseur MQ-2000PT',
-    slug: 'analyseur-mq2000pt',
-    sku: 'ANA011',
-    price: 16800,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Medconn',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-uih99zuih99zuih9-300x300.png',
-    description: 'Analyseur d\'hémoglobine glyquée avec technologie avancée.',
-    stock: 4,
-    rating: 4.6,
-    reviews: 2
-  },
-  {
-    id: 45,
-    name: 'Analyseur MQ-3000',
-    slug: 'analyseur-mq3000',
-    sku: 'ANA012',
-    price: 17800,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Medconn',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-iqmn91iqmn91iqmn-300x300.png',
-    description: 'Analyseur d\'hémoglobine glyquée avec automate.',
-    stock: 3,
-    rating: 4.7,
-    reviews: 2
-  },
-  {
-    id: 46,
-    name: 'Analyseur Hurricane',
-    slug: 'analyseur-hurricane',
-    sku: 'ANA013',
-    price: 32000,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'HIPRO',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-82gnve82gnve82gn-300x300.png',
-    description: 'Analyseur Hurricane Immunoassay System, haute performance.',
-    stock: 1,
-    rating: 5.0,
-    reviews: 1
-  },
-  {
-    id: 47,
-    name: 'Analyseur HP-AFS/A1 PLUS',
-    slug: 'analyseur-hp-afs',
-    sku: 'ANA014',
-    price: 28500,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'HIPRO',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-8mjsuh8mjsuh8mjs-300x300.png',
-    description: 'Analyseur immunologique haute sensibilité.',
-    stock: 2,
-    rating: 4.8,
-    reviews: 1
-  },
-  {
-    id: 48,
-    name: 'Analyseur EG-i',
-    slug: 'analyseur-egi',
-    sku: 'ANA015',
-    price: 22500,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Eaglenos',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-39ijah39ijah39ij-300x300.png',
-    description: 'Analyseur de gaz du sang, rapide et précis.',
-    stock: 2,
-    rating: 4.7,
-    reviews: 2
-  },
-  {
-    id: 49,
-    name: 'Analyseur EG-P1',
-    slug: 'analyseur-egp1',
-    sku: 'ANA016',
-    price: 19800,
-    originalPrice: null,
-    category: 'ANALYSEURS',
-    categoryId: 95,
-    brand: 'Eaglenos',
-    image: 'https://www.teclab.ma/storage/products/machine/gemini-generated-image-552llq552llq552l-300x300.png',
-    description: 'Analyseur d\'électrolytes (K+, Na+, Cl-, iCa2+, iMg2+).',
-    stock: 3,
-    rating: 4.6,
-    reviews: 2
-  },
-  {
-    id: 50,
-    name: 'VANCOMYCINE VA-5',
-    slug: 'vancomycine-va5',
-    sku: 'REA001',
-    price: 250,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Vancomycine 5μg pour tests de sensibilité.',
-    stock: 60,
-    rating: 4.5,
-    reviews: 5
-  },
-  {
-    id: 51,
-    name: 'VANCOMYCINE VA-30',
-    slug: 'vancomycine-va30',
-    sku: 'REA002',
-    price: 280,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Vancomycine 30μg pour tests de sensibilité.',
-    stock: 55,
-    rating: 4.6,
-    reviews: 4
-  },
-  {
-    id: 52,
-    name: 'TOBRAMYCINE TOB-10',
-    slug: 'tobramycine-tob10',
-    sku: 'REA003',
-    price: 220,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Tobramycine 10μg.',
-    stock: 48,
-    rating: 4.4,
-    reviews: 3
-  },
-  {
-    id: 53,
-    name: 'TICARCILLINE TIC-75',
-    slug: 'ticarcilline-tic75',
-    sku: 'REA004',
-    price: 265,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Ticarcilline 75μg.',
-    stock: 42,
-    rating: 4.5,
-    reviews: 3
-  },
-  {
-    id: 54,
-    name: 'TETRACYCLINE TE-30',
-    slug: 'tetracycline-te30',
-    sku: 'REA005',
-    price: 190,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Tétracycline 30μg.',
-    stock: 65,
-    rating: 4.3,
-    reviews: 6
-  },
-  {
-    id: 55,
-    name: 'TEICOPLANINE TEC-30',
-    slug: 'teicoplanine-tec30',
-    sku: 'REA006',
-    price: 275,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Teicoplanine 30μg.',
-    stock: 38,
-    rating: 4.6,
-    reviews: 4
-  },
-  {
-    id: 56,
-    name: 'STREPTOMYCINE S-25',
-    slug: 'streptomycine-s25',
-    sku: 'REA007',
-    price: 185,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Streptomycine 25μg.',
-    stock: 52,
-    rating: 4.4,
-    reviews: 5
-  },
-  {
-    id: 57,
-    name: 'SPIRAMYCINE SP-100',
-    slug: 'spiramycine-sp100',
-    sku: 'REA008',
-    price: 205,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Spiramycine 100μg.',
-    stock: 44,
-    rating: 4.5,
-    reviews: 4
-  },
-  {
-    id: 58,
-    name: 'RIFAMPICINE RA-5',
-    slug: 'rifampicine-ra5',
-    sku: 'REA009',
-    price: 215,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Rifampicine 5μg.',
-    stock: 47,
-    rating: 4.5,
-    reviews: 4
-  },
-  {
-    id: 59,
-    name: 'RIFAMPICINE RA-30',
-    slug: 'rifampicine-ra30',
-    sku: 'REA010',
-    price: 235,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Rifampicine 30μg.',
-    stock: 41,
-    rating: 4.6,
-    reviews: 3
-  },
-  {
-    id: 60,
-    name: 'PRISTINAMYCIN PT-15',
-    slug: 'pristinamycin-pt15',
-    sku: 'REA011',
-    price: 245,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Pristinamycine 15μg.',
-    stock: 36,
-    rating: 4.5,
-    reviews: 3
-  },
-  {
-    id: 61,
-    name: 'PIPERACILLINE/TAZOBACTAM',
-    slug: 'piperacilline-tazobactam',
-    sku: 'REA012',
-    price: 295,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Pipéracilline/Tazobactam 36μg.',
-    stock: 32,
-    rating: 4.7,
-    reviews: 3
-  },
-  {
-    id: 62,
-    name: 'PIPERACILLINE PRL-30',
-    slug: 'piperacilline-prl30',
-    sku: 'REA013',
-    price: 255,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Pipéracilline 30μg.',
-    stock: 39,
-    rating: 4.5,
-    reviews: 3
-  },
-  {
-    id: 63,
-    name: 'PENICILLINE P-10',
-    slug: 'penicilline-p10',
-    sku: 'REA014',
-    price: 165,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Pénicilline 10μg.',
-    stock: 58,
-    rating: 4.3,
-    reviews: 6
-  },
-  {
-    id: 64,
-    name: 'OXACILLINE OX-1',
-    slug: 'oxacilline-ox1',
-    sku: 'REA015',
-    price: 175,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Oxacilline 1μg.',
-    stock: 54,
-    rating: 4.4,
-    reviews: 5
-  },
-  {
-    id: 65,
-    name: 'OFLOXACIN OFX-5',
-    slug: 'ofloxacin-ofx5',
-    sku: 'REA016',
-    price: 195,
-    originalPrice: null,
-    category: 'REACTIFS DE LABORATOIRE',
-    categoryId: 75,
-    brand: 'Bioelab',
-    image: 'https://www.teclab.ma/storage/whatsapp-image-2026-02-03-at-104338-300x300.jpeg',
-    description: 'Disque d\'antibiotique Ofloxacine 5μg.',
-    stock: 46,
-    rating: 4.4,
-    reviews: 4
-  },
-  {
-    id: 66,
-    name: 'Thermomètre (-10 à 100°C)',
-    slug: 'thermometre',
-    sku: 'EQU001',
-    price: 320,
-    originalPrice: null,
-    category: 'EQUIPEMENTS DE LABORATOIRE',
-    categoryId: 116,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-mt5nx2mt5nx2mt5n-300x300.jpg',
-    description: 'Thermomètre de laboratoire précis de -10°C à 100°C.',
-    stock: 25,
-    rating: 4.3,
-    reviews: 8,
-    badge: 'Hot'
-  },
-  {
-    id: 67,
-    name: 'Minuteur digital',
-    slug: 'minuteur-digital',
-    sku: 'EQU002',
-    price: 180,
-    originalPrice: null,
-    category: 'EQUIPEMENTS DE LABORATOIRE',
-    categoryId: 116,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-1yevup1yevup1yev-300x300.jpg',
-    description: 'Minuteur digital avec alarme sonore. Mémoire de plusieurs temps.',
-    stock: 40,
-    rating: 4.6,
-    reviews: 12,
-    badge: 'Hot'
-  },
-  {
-    id: 68,
-    name: 'Minuteur analogique',
-    slug: 'minuteur-analogique',
-    sku: 'EQU003',
-    price: 120,
-    originalPrice: null,
-    category: 'EQUIPEMENTS DE LABORATOIRE',
-    categoryId: 116,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/divers/gemini-generated-image-v1km8lv1km8lv1km-300x300.jpg',
-    description: 'Minuteur analogique mécanique, simple et fiable.',
-    stock: 35,
-    rating: 4.2,
-    reviews: 6
-  },
-  {
-    id: 69,
-    name: 'Bec Benzène',
-    slug: 'bec-benzene',
-    sku: 'EQU004',
-    price: 280,
-    originalPrice: null,
-    category: 'EQUIPEMENTS DE LABORATOIRE',
-    categoryId: 116,
-    brand: 'Labware',
-    image: 'https://www.teclab.ma/storage/products/anses/gemini-generated-image-xblqx7xblqx7xblq-300x300.jpg',
-    description: 'Bec Benzène pour travaux de stérilisation.',
-    stock: 18,
-    rating: 4.5,
-    reviews: 5
-  }
-];
-
-const users = [
-  {
-    id: 1,
-    name: 'Admin User',
-    email: 'admin@teclab.ma',
-    password: 'admin123',
-    role: 'admin',
-    phone: '+212612345678',
-    address: 'Fès, Maroc'
-  },
-  {
-    id: 2,
-    name: 'Client Test',
-    email: 'client@test.com',
-    password: 'client123',
-    role: 'user',
-    phone: '+212612345679',
-    address: 'Casablanca, Maroc'
-  }
-];
-
-const orders = [
-  {
-    id: 'ORD-001',
-    userId: 2,
-    date: '2026-02-15',
-    status: 'livré',
-    total: 635,
-    items: [
-      { productId: 1, name: 'Tube PRP GEL+NC1:9', quantity: 2, price: 140 },
-      { productId: 10, name: 'Tampon Alcoolisé', quantity: 5, price: 45 },
-      { productId: 18, name: 'Sparadrap CURE-AID', quantity: 1, price: 150 }
-    ],
-    shipping: 'Fès, Maroc',
-    payment: 'carte'
-  },
-  {
-    id: 'ORD-002',
-    userId: 2,
-    date: '2026-02-20',
-    status: 'en cours',
-    total: 380,
-    items: [
-      { productId: 3, name: 'Tube Sous Vide Fluoré', quantity: 1, price: 130 },
-      { productId: 11, name: 'Garrot avec crochet', quantity: 2, price: 65 },
-      { productId: 66, name: 'Thermomètre', quantity: 1, price: 120 }
-    ],
-    shipping: 'Fès, Maroc',
-    payment: 'espèces'
-  }
-];
-
-const partners = [
-  { id: 1, name: 'Bioelab', image: 'https://www.teclab.ma/storage/products/partenaires/bioelab.png' },
-  { id: 2, name: 'Carestainer', image: 'https://www.teclab.ma/storage/products/partenaires/carestainer.png' },
-  { id: 3, name: 'Succeeder', image: 'https://www.teclab.ma/storage/products/partenaires/succeeder.png' },
-  { id: 4, name: 'Medconn', image: 'https://www.teclab.ma/storage/products/partenaires/medconn.png' },
-  { id: 5, name: 'Rapid Lab', image: 'https://www.teclab.ma/storage/products/partenaires/rapid-lab.png' },
-  { id: 6, name: 'Healgen', image: 'https://www.teclab.ma/storage/products/partenaires/healgen.png' },
-];
-
 // ==================== CONTEXTS ====================
 
 // Auth Context
 const AuthContext = createContext();
-const useAuth = () => useContext(AuthContext);
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+};
 
 // Cart Context
 const CartContext = createContext();
-const useCart = () => useContext(CartContext);
+const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) throw new Error('useCart must be used within CartProvider');
+  return context;
+};
 
 // Product Context
 const ProductContext = createContext();
-const useProducts = () => useContext(ProductContext);
+const useProducts = () => {
+  const context = useContext(ProductContext);
+  if (!context) throw new Error('useProducts must be used within ProductProvider');
+  return context;
+};
 
-// Auth Provider
+// Coupon Context
+const CouponContext = createContext();
+const useCoupons = () => {
+  const context = useContext(CouponContext);
+  if (!context) throw new Error('useCoupons must be used within CouponProvider');
+  return context;
+};
+
+// ==================== AUTH PROVIDER ====================
+// ==================== AUTH PROVIDER ====================
+// ==================== AUTH PROVIDER ====================
+// ==================== AUTH PROVIDER ====================
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // Load user synchronously from localStorage
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {
+        console.error('Failed to parse user:', e);
+        return null;
+      }
+    }
+    return null;
+  });
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+  const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      
+      if (response.data.success && response.data.data) {
+        const { token, customer } = response.data.data;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(customer));
+        
+        setUser(customer);
+        
+        // Merge guest cart if exists
+        try {
+          const guestSessionId = localStorage.getItem('guest_cart_session');
+          if (guestSessionId) {
+            await api.post('/cart/merge', { session_id: guestSessionId });
+            localStorage.removeItem('guest_cart_session');
+          }
+        } catch (mergeErr) {
+          console.error('Failed to merge cart:', mergeErr);
+        }
+        
+        return customer;
+      } else {
+        throw new Error(response.data.error || 'Erreur de connexion');
+      }
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || 'Erreur de connexion';
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  const login = (email, password) => {
+  const register = async (userData) => {
     setLoading(true);
     setError(null);
     
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = users.find(u => u.email === email && u.password === password);
+    try {
+      const response = await api.post('/auth/register', userData);
+      
+      if (response.data.success && response.data.data) {
+        const { token, customer } = response.data.data;
         
-        if (foundUser) {
-          const { password, ...userWithoutPassword } = foundUser;
-          setUser(userWithoutPassword);
-          localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-          setLoading(false);
-          resolve(userWithoutPassword);
-        } else {
-          setError('Email ou mot de passe incorrect');
-          setLoading(false);
-          reject(new Error('Invalid credentials'));
-        }
-      }, 1000);
-    });
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(customer));
+        
+        setUser(customer);
+        return customer;
+      } else {
+        throw new Error(response.data.error || "Erreur d'inscription");
+      }
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || "Erreur d'inscription";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const register = (userData) => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+    }
+  };
+
+  const updateProfile = async (profileData) => {
     setLoading(true);
     setError(null);
     
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const existingUser = users.find(u => u.email === userData.email);
+    try {
+      const response = await api.put('/auth/profile', profileData);
+      
+      if (response.data.success && response.data.data) {
+        const updatedUser = response.data.data.customer || response.data.data;
         
-        if (existingUser) {
-          setError('Cet email est déjà utilisé');
-          setLoading(false);
-          reject(new Error('Email already exists'));
-        } else {
-          const newUser = {
-            id: users.length + 1,
-            ...userData,
-            role: 'user'
-          };
-          const { password, ...userWithoutPassword } = newUser;
-          setUser(userWithoutPassword);
-          localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-          users.push(newUser);
-          setLoading(false);
-          resolve(userWithoutPassword);
-        }
-      }, 1000);
-    });
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        return updatedUser;
+      } else {
+        throw new Error(response.data.error || 'Erreur de mise à jour');
+      }
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || 'Erreur de mise à jour';
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const resendVerification = async () => {
+    try {
+      const response = await api.post('/resend-verification');
+      return response.data;
+    } catch (err) {
+      console.error('Failed to resend verification:', err);
+      throw err;
+    }
+  };
+
+  const checkVerification = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      if (response.data.success && response.data.data) {
+        const updatedUser = response.data.data;
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return updatedUser;
+      }
+    } catch (err) {
+      console.error('Failed to check verification:', err);
+    }
   };
 
   const value = {
@@ -1635,99 +398,148 @@ const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateProfile,
+    resendVerification,
+    checkVerification,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin'
+    isAdmin: user?.role === 'admin',
+    isEmailVerified: user?.email_verified_at !== null,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-// Cart Provider
+};// ==================== CART PROVIDER ====================
 const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated, user } = useAuth();
+  
+  // Guest session management
+  const [sessionId, setSessionId] = useState(() => {
+    return localStorage.getItem('guest_cart_session') || '';
+  });
 
+  // Save session ID to localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+    if (sessionId) {
+      localStorage.setItem('guest_cart_session', sessionId);
     }
-  }, []);
+  }, [sessionId]);
 
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-    
-    const count = cartItems.reduce((total, item) => total + item.quantity, 0);
-    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    setCartCount(count);
-    setCartTotal(total);
-  }, [cartItems]);
-
-  const addToCart = (product, quantity = 1, attributes = {}) => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      setCartItems(prev => {
-        const existingIndex = prev.findIndex(
-          item => item.id === product.id && JSON.stringify(item.attributes) === JSON.stringify(attributes)
-        );
-
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex].quantity += quantity;
-          return updated;
-        } else {
-          return [...prev, {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            slug: product.slug,
-            quantity,
-            attributes,
-            stock: product.stock
-          }];
-        }
-      });
-      setLoading(false);
-    }, 300);
+  // Get headers with session for guests only
+  const getHeaders = () => {
+    const headers = {};
+    if (!isAuthenticated && sessionId) {
+      headers['X-Cart-Session'] = sessionId;
+    }
+    return headers;
   };
 
-  const updateQuantity = (itemId, newQuantity, attributes = {}) => {
+  // Fetch cart
+  const fetchCart = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/cart', { headers: getHeaders() });
+      
+      if (response.data?.success) {
+        const cartData = response.data.data || {};
+        setCartItems(cartData.items || []);
+        setCartTotal(cartData.total || 0);
+        setCartCount(cartData.count || 0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch cart:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load cart on mount and when auth changes
+  useEffect(() => {
+    fetchCart();
+  }, [isAuthenticated, user?.id]);
+
+  // Add to cart
+  const addToCart = async (product, quantity = 1) => {
+    try {
+      const response = await api.post('/cart/add', {
+        product_id: product.id,
+        quantity
+      }, { headers: getHeaders() });
+      
+      if (response.data?.success) {
+        const cartData = response.data.data || {};
+        setCartItems(cartData.items || []);
+        setCartTotal(cartData.total || 0);
+        setCartCount(cartData.count || 0);
+        alert('Produit ajouté au panier !');
+      }
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+      alert('Erreur lors de l\'ajout au panier');
+    }
+  };
+
+  // Update quantity
+  const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
     
-    setLoading(true);
-    
-    setTimeout(() => {
-      setCartItems(prev => 
-        prev.map(item => 
-          (item.id === itemId && JSON.stringify(item.attributes) === JSON.stringify(attributes))
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
-      );
-      setLoading(false);
-    }, 300);
+    try {
+      const item = cartItems.find(i => i.id === itemId);
+      if (!item?.cart_item_id) return;
+      
+      const response = await api.put('/cart/update', {
+        cart_item_id: item.cart_item_id,
+        quantity: newQuantity
+      }, { headers: getHeaders() });
+      
+      if (response.data?.success) {
+        const cartData = response.data.data || {};
+        setCartItems(cartData.items || []);
+        setCartTotal(cartData.total || 0);
+        setCartCount(cartData.count || 0);
+      }
+    } catch (err) {
+      console.error('Failed to update cart:', err);
+    }
   };
 
-  const removeFromCart = (itemId, attributes = {}) => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      setCartItems(prev => 
-        prev.filter(item => 
-          !(item.id === itemId && JSON.stringify(item.attributes) === JSON.stringify(attributes))
-        )
-      );
-      setLoading(false);
-    }, 300);
+  // Remove from cart
+  const removeFromCart = async (itemId) => {
+    try {
+      const item = cartItems.find(i => i.id === itemId);
+      if (!item?.cart_item_id) return;
+      
+      const response = await api.delete('/cart/remove', {
+        headers: getHeaders(),
+        data: { cart_item_id: item.cart_item_id }
+      });
+      
+      if (response.data?.success) {
+        const cartData = response.data.data || {};
+        setCartItems(cartData.items || []);
+        setCartTotal(cartData.total || 0);
+        setCartCount(cartData.count || 0);
+      }
+    } catch (err) {
+      console.error('Failed to remove from cart:', err);
+    }
   };
 
-  const clearCart = () => {
-    setCartItems([]);
+  // Clear cart
+  const clearCart = async () => {
+    try {
+      const response = await api.delete('/cart/clear', { headers: getHeaders() });
+      
+      if (response.data?.success) {
+        setCartItems([]);
+        setCartTotal(0);
+        setCartCount(0);
+      }
+    } catch (err) {
+      console.error('Failed to clear cart:', err);
+    }
   };
 
   const value = {
@@ -1738,83 +550,121 @@ const CartProvider = ({ children }) => {
     addToCart,
     updateQuantity,
     removeFromCart,
-    clearCart
+    clearCart,
+    refreshCart: fetchCart
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
-// Product Provider
+// ==================== PRODUCT PROVIDER ====================
 const ProductProvider = ({ children }) => {
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedBrands, setSelectedBrands] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 20000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 50000 });
   const [sortBy, setSortBy] = useState('featured');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
-
-  const priceLimits = {
-    min: Math.min(...products.map(p => p.price)),
-    max: Math.max(...products.map(p => p.price))
-  };
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    let result = [...products];
+    fetchCategories();
+    fetchBrands();
+  }, []);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(p => 
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
-        p.sku.toLowerCase().includes(query) ||
-        p.brand.toLowerCase().includes(query)
-      );
+  useEffect(() => {
+    fetchProducts();
+  }, [searchQuery, selectedCategory, selectedBrands, priceRange, sortBy, currentPage]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/categories');
+      if (response.data.success && response.data.data) {
+        setCategories(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
     }
+  };
 
-    if (selectedCategory) {
-      result = result.filter(p => p.categoryId === selectedCategory);
+  const fetchBrands = async () => {
+    try {
+      const response = await api.get('/brands');
+      if (response.data.success && response.data.data) {
+        setBrands(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch brands:', err);
     }
+  };
 
-    if (selectedBrands.length > 0) {
-      result = result.filter(p => selectedBrands.includes(p.brand));
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedBrands.length > 0) params.append('brands', selectedBrands.join(','));
+      params.append('min_price', priceRange.min);
+      params.append('max_price', priceRange.max);
+      params.append('sort_by', sortBy);
+      params.append('page', currentPage);
+      params.append('per_page', itemsPerPage);
+
+      const response = await api.get(`/products?${params.toString()}`);
+      
+      if (response.data.success && response.data.data) {
+        if (response.data.data.data) {
+          setProducts(response.data.data.data);
+          setFilteredProducts(response.data.data.data);
+          setTotalProducts(response.data.data.total || 0);
+          setTotalPages(response.data.data.last_page || 1);
+        } else {
+          setProducts(response.data.data);
+          setFilteredProducts(response.data.data);
+          setTotalProducts(response.data.data.length || 0);
+          setTotalPages(1);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    result = result.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
-
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-asc':
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'name-desc':
-        result.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      case 'rating':
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-      default:
-        result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  const getProduct = async (slug) => {
+    try {
+      const response = await api.get(`/products/${slug}`);
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error('Product not found');
+    } catch (err) {
+      console.error('Failed to fetch product:', err);
+      throw err;
     }
+  };
 
-    setFilteredProducts(result);
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory, selectedBrands, priceRange, sortBy]);
-
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const availableBrands = [...new Set(filteredProducts.map(p => p.brand))];
+  const getFeaturedProducts = async () => {
+    try {
+      const response = await api.get('/products/featured');
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      return [];
+    } catch (err) {
+      console.error('Failed to fetch featured products:', err);
+      return [];
+    }
+  };
 
   const toggleBrand = (brand) => {
     setSelectedBrands(prev =>
@@ -1826,17 +676,19 @@ const ProductProvider = ({ children }) => {
     setSearchQuery('');
     setSelectedCategory(null);
     setSelectedBrands([]);
-    setPriceRange({ min: priceLimits.min, max: priceLimits.max });
+    setPriceRange({ min: 0, max: 50000 });
     setSortBy('featured');
+    setCurrentPage(1);
   };
 
   const value = {
+    products,
     filteredProducts,
-    paginatedProducts,
-    totalProducts: filteredProducts.length,
+    totalProducts,
     totalPages,
     currentPage,
     setCurrentPage,
+    loading,
     searchQuery,
     setSearchQuery,
     selectedCategory,
@@ -1845,37 +697,124 @@ const ProductProvider = ({ children }) => {
     toggleBrand,
     priceRange,
     setPriceRange,
-    priceLimits,
     sortBy,
     setSortBy,
     clearFilters,
-    availableBrands,
-    categories
+    categories,
+    brands,
+    getProduct,
+    getFeaturedProducts,
+    refreshProducts: fetchProducts
   };
 
   return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
+};
+
+// ==================== COUPON PROVIDER ====================
+const CouponProvider = ({ children }) => {
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0);
+
+  const fetchCoupons = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/coupons');
+      if (response.data.success && response.data.data) {
+        setCoupons(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch coupons:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateCoupon = async (code, orderAmount) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/coupons/validate', {
+        code,
+        order_amount: orderAmount
+      });
+      
+      if (response.data.success && response.data.data) {
+        const { coupon, discount: discountAmount } = response.data.data;
+        setAppliedCoupon(coupon);
+        setDiscount(discountAmount);
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Invalid coupon');
+      }
+    } catch (err) {
+      console.error('Failed to validate coupon:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscount(0);
+  };
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  const value = {
+    coupons,
+    loading,
+    appliedCoupon,
+    discount,
+    validateCoupon,
+    removeCoupon,
+    refreshCoupons: fetchCoupons
+  };
+
+  return <CouponContext.Provider value={value}>{children}</CouponContext.Provider>;
 };
 
 // ==================== COMPONENTS ====================
 
 // Carousel Component
 const Carousel = () => {
+  const [offers, setOffers] = useState([
+    {
+      id: 1,
+      title: 'Livraison Gratuite',
+      subtitle: 'Pour toute commande > 1000DH',
+      image: 'https://www.teclab.ma/storage/products/generated-image-c96cf929-90af-4249-aced-bea1c63d6f5d.png',
+      bgColor: '#6d9eeb',
+      textColor: '#ffffff'
+    },
+    {
+      id: 2,
+      title: 'Promotion Spéciale',
+      subtitle: 'Jusqu\'à -25% sur une sélection',
+      image: 'https://www.teclab.ma/storage/products/generated-image-7aeac712-54fd-49ab-a84e-62610d086010.png',
+      bgColor: '#ff6b6b',
+      textColor: '#ffffff'
+    },
+    {
+      id: 3,
+      title: 'Nouveaux Produits',
+      subtitle: 'Découvrez notre nouvelle gamme',
+      image: 'https://www.teclab.ma/storage/products/generated-image-f19f78ff-6f6e-46de-9f9d-21a88cdea097.png',
+      bgColor: '#4ecdc4',
+      textColor: '#ffffff'
+    }
+  ]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % carouselOffers.length);
+      setCurrentIndex((prev) => (prev + 1) % offers.length);
     }, 5000);
     return () => clearInterval(timer);
   }, []);
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % carouselOffers.length);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + carouselOffers.length) % carouselOffers.length);
-  };
 
   return (
     <div className="carousel-container">
@@ -1883,7 +822,7 @@ const Carousel = () => {
         <motion.div
           key={currentIndex}
           className="carousel-slide"
-          style={{ backgroundColor: carouselOffers[currentIndex].bgColor }}
+          style={{ backgroundColor: offers[currentIndex].bgColor }}
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -100 }}
@@ -1894,17 +833,17 @@ const Carousel = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ color: carouselOffers[currentIndex].textColor }}
+              style={{ color: offers[currentIndex].textColor }}
             >
-              {carouselOffers[currentIndex].title}
+              {offers[currentIndex].title}
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              style={{ color: carouselOffers[currentIndex].textColor }}
+              style={{ color: offers[currentIndex].textColor }}
             >
-              {carouselOffers[currentIndex].subtitle}
+              {offers[currentIndex].subtitle}
             </motion.p>
             <motion.button 
               className="carousel-btn"
@@ -1923,39 +862,30 @@ const Carousel = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <img src={carouselOffers[currentIndex].image} alt={carouselOffers[currentIndex].title} />
+            <img src={offers[currentIndex].image} alt={offers[currentIndex].title} />
           </motion.div>
         </motion.div>
       </AnimatePresence>
       
-      <button className="carousel-nav carousel-prev" onClick={handlePrev}>
+      <button className="carousel-nav carousel-prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}>
         <Icons.ChevronLeft />
       </button>
-      <button className="carousel-nav carousel-next" onClick={handleNext}>
+      <button className="carousel-nav carousel-next" onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}>
         <Icons.ChevronRight />
       </button>
-
-      <div className="carousel-dots">
-        {carouselOffers.map((_, index) => (
-          <button
-            key={index}
-            className={`carousel-dot ${index === currentIndex ? 'active' : ''}`}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
-      </div>
     </div>
   );
 };
 
-// Product Card Component with optimized animations
-const ProductCard = ({ product, onAddToCart }) => {
+// Product Card Component
+const ProductCard = ({ product, onAddToCart, onViewDetails, onAddToWishlist, isFavorite }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
     onAddToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1000);
@@ -1972,30 +902,19 @@ const ProductCard = ({ product, onAddToCart }) => {
       transition={{ duration: 0.3 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
+      onClick={() => onViewDetails(product)}
     >
       <div className="product-image-container">
         <img src={product.image} alt={product.name} className="product-image" />
         
         {product.badge && (
-          <motion.span 
-            className="product-badge"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {product.badge}
-          </motion.span>
+          <span className="product-badge">{product.badge}</span>
         )}
         
-        {product.discount && (
-          <motion.span 
-            className="product-discount"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            {product.discount}
-          </motion.span>
+        {product.original_price && (
+          <span className="product-discount">
+            -{Math.round((1 - product.price / product.original_price) * 100)}%
+          </span>
         )}
 
         <motion.div 
@@ -2014,13 +933,15 @@ const ProductCard = ({ product, onAddToCart }) => {
           </motion.button>
           <motion.button 
             className="action-btn"
+            onClick={(e) => e.stopPropagation()}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <Icons.Eye />
           </motion.button>
           <motion.button 
-            className="action-btn"
+            className={`action-btn ${isFavorite ? 'favorite' : ''}`}
+            onClick={(e) => { e.stopPropagation(); onAddToWishlist && onAddToWishlist(product.id); }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
@@ -2048,15 +969,15 @@ const ProductCard = ({ product, onAddToCart }) => {
         
         <div className="product-rating">
           {[...Array(5)].map((_, i) => (
-            <span key={i} className={`star ${i < Math.floor(product.rating) ? 'filled' : ''}`}>★</span>
+            <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>★</span>
           ))}
-          <span className="rating-count">({product.reviews})</span>
+          <span className="rating-count">({product.reviews_count || 0})</span>
         </div>
 
         <div className="product-price">
           <span className="current-price">{product.price} MAD</span>
-          {product.originalPrice && (
-            <span className="original-price">{product.originalPrice} MAD</span>
+          {product.original_price && (
+            <span className="original-price">{product.original_price} MAD</span>
           )}
         </div>
       </div>
@@ -2064,14 +985,14 @@ const ProductCard = ({ product, onAddToCart }) => {
   );
 };
 
-// Header Component with blue navbar
+// Header Component
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
-  const { setSearchQuery } = useProducts();
+  const { setSearchQuery, categories } = useProducts();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -2079,8 +1000,8 @@ const Header = ({ currentPath, navigate }) => {
     navigate('/products');
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -2088,9 +1009,6 @@ const Header = ({ currentPath, navigate }) => {
     <>
       <div className="announcement-bar">
         <div className="marquee">
-          <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
-          <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
-          <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
           <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
         </div>
       </div>
@@ -2137,14 +1055,13 @@ const Header = ({ currentPath, navigate }) => {
 
             <div className="header-right">
               <motion.a 
-                href="/compare" 
+                href="/coupons" 
                 className="header-icon" 
-                onClick={(e) => { e.preventDefault(); navigate('/compare'); }}
+                onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
-                <Icons.Ticket />
-                <span className="count">0</span>
+                <Icons.Percent />
               </motion.a>
               
               <motion.a 
@@ -2155,7 +1072,6 @@ const Header = ({ currentPath, navigate }) => {
                 whileTap={{ scale: 0.9 }}
               >
                 <Icons.Heart />
-                <span className="count">0</span>
               </motion.a>
               
               <div className="ps-cart--mini">
@@ -2186,7 +1102,6 @@ const Header = ({ currentPath, navigate }) => {
                       <span className="user-name">{user?.name}</span>
                       <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
                       <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
-                      {user?.role === 'admin' && <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>Admin</a>}
                       <button onClick={handleLogout}>Déconnexion</button>
                     </>
                   ) : (
@@ -2215,14 +1130,15 @@ const Header = ({ currentPath, navigate }) => {
             <ul className="nav-menu">
               {[
                 { href: '/', icon: <Icons.Home />, text: 'Accueil', active: currentPath === '/' },
-                { href: '/products', icon: <Icons.RProject />, text: 'Produits', active: currentPath === '/products' },
+                { href: '/products', icon: <Icons.Package />, text: 'Produits', active: currentPath === '/products' },
+                { href: '/categories', icon: <Icons.Users />, text: 'Catégories', active: currentPath === '/categories' },
+                { href: '/coupons', icon: <Icons.Percent />, text: 'Coupons', active: currentPath === '/coupons' },
                 { href: '/about', icon: <Icons.Users />, text: 'À propos', active: currentPath === '/about' },
                 { href: '/contact', icon: <Icons.Phone />, text: 'Contact', active: currentPath === '/contact' },
-                { href: '/products?promo=1', icon: <Icons.Gift />, text: 'Promotions', active: false, promo: true },
               ].map((item, index) => (
                 <motion.li 
                   key={index}
-                  className={item.active ? 'active' : item.promo ? 'promo' : ''}
+                  className={item.active ? 'active' : ''}
                   whileHover={{ y: -2 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -2254,56 +1170,11 @@ const Header = ({ currentPath, navigate }) => {
                     whileHover={{ x: 5 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <span className="category-color" style={{ backgroundColor: cat.color }}></span>
-                    <span className="category-icon">{cat.icon}</span>
+                    <span className="category-color" style={{ backgroundColor: cat.color || '#6d9eeb' }}></span>
                     {cat.name}
                   </motion.a>
                 ))}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {showMobileMenu && (
-            <motion.div 
-              className="mobile-menu"
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="mobile-menu-header">
-                <h3>Menu</h3>
-                <motion.button 
-                  onClick={() => setShowMobileMenu(false)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Icons.X />
-                </motion.button>
-              </div>
-              <ul className="mobile-nav">
-                <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); setShowMobileMenu(false); }}>Accueil</a></li>
-                <li><a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); setShowMobileMenu(false); }}>Produits</a></li>
-                <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); setShowMobileMenu(false); }}>À propos</a></li>
-                <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); setShowMobileMenu(false); }}>Contact</a></li>
-                <li><a href="/products?promo=1" onClick={(e) => { e.preventDefault(); navigate('/products?promo=1'); setShowMobileMenu(false); }}>Promotions</a></li>
-                <li><a href="/compare" onClick={(e) => { e.preventDefault(); navigate('/compare'); setShowMobileMenu(false); }}>Comparer</a></li>
-                <li><a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); setShowMobileMenu(false); }}>Favoris</a></li>
-                {isAuthenticated ? (
-                  <>
-                    <li><a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); setShowMobileMenu(false); }}>Mon Compte</a></li>
-                    <li><a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); setShowMobileMenu(false); }}>Mes Commandes</a></li>
-                    <li><button onClick={() => { handleLogout(); setShowMobileMenu(false); }}>Déconnexion</button></li>
-                  </>
-                ) : (
-                  <>
-                    <li><a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); setShowMobileMenu(false); }}>Connexion</a></li>
-                    <li><a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); setShowMobileMenu(false); }}>Inscription</a></li>
-                  </>
-                )}
-              </ul>
             </motion.div>
           )}
         </AnimatePresence>
@@ -2318,81 +1189,20 @@ const Footer = ({ navigate }) => {
     <footer className="footer">
       <div className="container">
         <div className="footer-widgets">
-          <div className="widget contact-widget">
-            <h4>Nous contacter</h4>
-            <p className="phone">+212 8086 26102</p>
-            <p><Icons.MapPin /> Rue 7 N° 184/Q4, Fès, Maroc</p>
-            <p><Icons.Mail /> info@teclab.ma</p>
-            <div className="social-links">
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Icons.Facebook />
-              </motion.a>
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Icons.Twitter />
-              </motion.a>
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Icons.Youtube />
-              </motion.a>
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Icons.Linkedin />
-              </motion.a>
-            </div>
-          </div>
-
           <div className="widget">
             <h4>Liens rapides</h4>
             <ul>
               <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a></li>
               <li><a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a></li>
+              <li><a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); }}>Catégories</a></li>
               <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>À propos</a></li>
               <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}>Contact</a></li>
-            </ul>
-          </div>
-
-          <div className="widget">
-            <h4>Informations</h4>
-            <ul>
-              <li><a href="/livraison" onClick={(e) => { e.preventDefault(); navigate('/livraison'); }}>Livraison</a></li>
-              <li><a href="/paiement" onClick={(e) => { e.preventDefault(); navigate('/paiement'); }}>Paiement</a></li>
-              <li><a href="/retours" onClick={(e) => { e.preventDefault(); navigate('/retours'); }}>Retours</a></li>
-              <li><a href="/cgv" onClick={(e) => { e.preventDefault(); navigate('/cgv'); }}>CGV</a></li>
-            </ul>
-          </div>
-
-          <div className="widget">
-            <h4>Mon compte</h4>
-            <ul>
-              <li><a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a></li>
-              <li><a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a></li>
-              <li><a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Commandes</a></li>
-              <li><a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>Favoris</a></li>
             </ul>
           </div>
         </div>
 
         <div className="footer-bottom">
           <p>© 2026 TECLAB. Tous droits réservés.</p>
-          <div className="payments">
-            <img src="/assets/payment-mastercard.png" alt="Mastercard" />
-            <img src="/assets/payment-visa.png" alt="Visa" />
-            <img src="/assets/payment-cmi.png" alt="CMI" />
-          </div>
         </div>
       </div>
 
@@ -2400,11 +1210,11 @@ const Footer = ({ navigate }) => {
         href="https://wa.me/212666868091" 
         className="whatsapp-btn" 
         target="_blank"
+        rel="noopener noreferrer"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1, rotate: 10 }}
         whileTap={{ scale: 0.9 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         <Icons.WhatsApp />
         <span className="tooltip">Contactez-nous !</span>
@@ -2413,193 +1223,30 @@ const Footer = ({ navigate }) => {
   );
 };
 
-// Filter Sidebar Component
-const FilterSidebar = ({ onClose }) => {
-  const {
-    selectedCategory,
-    setSelectedCategory,
-    selectedBrands,
-    toggleBrand,
-    priceRange,
-    setPriceRange,
-    priceLimits,
-    availableBrands,
-    clearFilters,
-    categories
-  } = useProducts();
-
-  return (
-    <div className="filter-sidebar">
-      <div className="filter-header">
-        <h3>Filtres</h3>
-        {onClose && <button className="close-btn" onClick={onClose}><Icons.X /></button>}
-      </div>
-
-      <div className="filter-body">
-        <div className="filter-section">
-          <h4>Catégories</h4>
-          <div className="category-list">
-            {categories.map(cat => (
-              <label key={cat.id} className="category-item">
-                <input 
-                  type="radio" 
-                  name="category"
-                  checked={selectedCategory === cat.id}
-                  onChange={() => setSelectedCategory(cat.id)}
-                />
-                <span className="category-name">{cat.name}</span>
-                <span className="category-count">({cat.count})</span>
-              </label>
-            ))}
-            <label className="category-item">
-              <input 
-                type="radio" 
-                name="category"
-                checked={selectedCategory === null}
-                onChange={() => setSelectedCategory(null)}
-              />
-              <span className="category-name">Toutes les catégories</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h4>Prix</h4>
-          <div className="price-range">
-            <div className="price-inputs">
-              <input 
-                type="number" 
-                value={priceRange.min}
-                onChange={e => setPriceRange({ ...priceRange, min: Number(e.target.value) })}
-                min={priceLimits.min}
-                max={priceRange.max}
-              />
-              <span>-</span>
-              <input 
-                type="number" 
-                value={priceRange.max}
-                onChange={e => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
-                min={priceRange.min}
-                max={priceLimits.max}
-              />
-            </div>
-            <input 
-              type="range"
-              min={priceLimits.min}
-              max={priceLimits.max}
-              value={priceRange.max}
-              onChange={e => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
-              className="price-slider"
-            />
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h4>Marques</h4>
-          <div className="brand-list">
-            {availableBrands.map(brand => (
-              <label key={brand} className="brand-item">
-                <input 
-                  type="checkbox"
-                  checked={selectedBrands.includes(brand)}
-                  onChange={() => toggleBrand(brand)}
-                />
-                <span className="brand-name">{brand}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="filter-footer">
-        <button className="clear-btn" onClick={clearFilters}>
-          Effacer les filtres
-        </button>
-        {onClose && (
-          <button className="apply-btn" onClick={onClose}>
-            Appliquer
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ==================== PAGES ====================
 
 // Home Page
 const HomePage = ({ navigate }) => {
   const { addToCart } = useCart();
-  const featured = products.filter(p => p.featured).slice(0, 6);
+  const { getFeaturedProducts } = useProducts();
+  const [featured, setFeatured] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const features = [
-    { icon: <Icons.Truck />, title: 'Livraison gratuite', subtitle: 'Dès 1000DH d\'achat' },
-    { icon: <Icons.RefreshCw />, title: 'Retour 90 jours', subtitle: 'Si produit défectueux' },
-    { icon: <Icons.CreditCard />, title: 'Paiement sécurisé', subtitle: '100% sécurisé' },
-    { icon: <Icons.Headphones />, title: 'Support 24/7', subtitle: 'Service dédié' },
-  ];
+  useEffect(() => {
+    loadFeaturedProducts();
+  }, []);
+
+  const loadFeaturedProducts = async () => {
+    setLoading(true);
+    const products = await getFeaturedProducts();
+    setFeatured(products);
+    setLoading(false);
+  };
 
   return (
     <div className="home-page">
       <Carousel />
-
-      <motion.section 
-        className="features"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={fadeIn}
-      >
-        <div className="container">
-          <div className="features-grid">
-            {features.map((feat, i) => (
-              <motion.div 
-                key={i}
-                className="feature"
-                variants={slideUp}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -5 }}
-              >
-                <div className="feature-icon">{feat.icon}</div>
-                <h4>{feat.title}</h4>
-                <p>{feat.subtitle}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      // In the HomePage component, replace the categories-section with this:
-
-<motion.section 
-  className="categories-section"
-  initial="hidden"
-  whileInView="visible"
-  viewport={{ once: true, amount: 0.2 }}
-  variants={fadeIn}
->
-  <div className="container">
-    <h2 className="section-title">Catégories populaires</h2>
-    <div className="categories-grid">
-      {categories.map(cat => (
-        <motion.div 
-          key={cat.id}
-          className="category-card"
-          variants={slideUp}
-          whileHover={{ y: -8 }}
-          onClick={() => navigate(`/products?category=${cat.id}`)}
-        >
-          <div className="category-image-wrapper">
-            <img src={cat.image} alt={cat.name} className="category-product-image" />
-          </div>
-          <h3 className="category-name">{cat.name}</h3>
-          <span className="category-count">{cat.count} produits</span>
-        </motion.div>
-      ))}
-    </div>
-  </div>
-</motion.section>
-
+      
       <motion.section 
         className="featured-products"
         initial="hidden"
@@ -2609,40 +1256,20 @@ const HomePage = ({ navigate }) => {
       >
         <div className="container">
           <h2 className="section-title">Produits en vedette</h2>
-          <div className="products-grid">
-            {featured.map(product => (
-              <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      <motion.section 
-        className="partners-section"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={fadeIn}
-      >
-        <div className="container">
-          <h2 className="section-title">Nos Partenaires</h2>
-          <div className="partners-marquee">
-            <motion.div 
-              className="partners-track"
-              animate={{ x: [0, -1000] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              {[...partners, ...partners].map((partner, index) => (
-                <motion.div 
-                  key={`${partner.id}-${index}`} 
-                  className="partner"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <img src={partner.image} alt={partner.name} />
-                </motion.div>
+          {loading ? (
+            <div className="loading-spinner">Chargement...</div>
+          ) : (
+            <div className="products-grid">
+              {featured.map(product => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={addToCart}
+                  onViewDetails={(product) => navigate(`/product/${product.slug}`)}
+                />
               ))}
-            </motion.div>
-          </div>
+            </div>
+          )}
         </div>
       </motion.section>
     </div>
@@ -2650,9 +1277,11 @@ const HomePage = ({ navigate }) => {
 };
 
 // Products Page
+// Products Page - FIXED
+// Products Page - REDESIGNED
 const ProductsPage = ({ navigate }) => {
   const {
-    paginatedProducts,
+    filteredProducts,
     totalProducts,
     totalPages,
     currentPage,
@@ -2661,146 +1290,338 @@ const ProductsPage = ({ navigate }) => {
     setSearchQuery,
     sortBy,
     setSortBy,
-    clearFilters
+    clearFilters,
+    loading,
+    categories,
+    selectedCategory,
+    setSelectedCategory,
+    priceRange,
+    setPriceRange
   } = useProducts();
   const { addToCart } = useCart();
   const [showFilter, setShowFilter] = useState(false);
+  const [selectedCategoryName, setSelectedCategoryName] = useState('');
+
+  // Get category name from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categoryId = params.get('category');
+    
+    if (categoryId && categories.length > 0) {
+      const category = categories.find(c => c.id.toString() === categoryId);
+      if (category) {
+        setSelectedCategory(categoryId);
+        setSelectedCategoryName(category.name);
+      }
+    }
+  }, [categories]);
+
+  // Update selected category name when category changes
+  useEffect(() => {
+    if (selectedCategory && categories.length > 0) {
+      const category = categories.find(c => c.id.toString() === selectedCategory);
+      if (category) {
+        setSelectedCategoryName(category.name);
+      }
+    } else {
+      setSelectedCategoryName('');
+    }
+  }, [selectedCategory, categories]);
+
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    if (categoryId) {
+      navigate(`/products?category=${categoryId}`);
+    } else {
+      navigate('/products');
+    }
+  };
 
   return (
     <motion.div 
-      className="products-page"
+      className="products-page redesigned"
       initial="hidden"
       animate="visible"
       variants={fadeIn}
     >
-      <div className="page-header">
+      <div className="page-header modern">
         <div className="container">
-          <h1>Nos Produits</h1>
-          <p>{totalProducts} produits trouvés</p>
+          <h1>
+            {selectedCategoryName ? selectedCategoryName : 'Tous nos produits'}
+          </h1>
+          <p className="products-count">{totalProducts} produits trouvés</p>
         </div>
       </div>
 
       <div className="container">
-        <div className="products-layout">
-          <aside className="sidebar">
-            <FilterSidebar />
-          </aside>
-
-          <main className="products-main">
-            <div className="products-toolbar">
-              <div className="search-box">
-                <input 
-                  type="text"
-                  placeholder="Rechercher..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Icons.Search />
+        <div className="products-layout redesigned">
+          {/* Desktop Sidebar */}
+          <aside className="sidebar redesigned">
+            <div className="filter-sidebar redesigned">
+              <h3>Filtres</h3>
+              
+              <div className="filter-section">
+                <h4>Catégories</h4>
+                <div className="category-list">
+                  <button
+                    className={`category-btn ${!selectedCategory ? 'active' : ''}`}
+                    onClick={() => handleCategoryChange(null)}
+                  >
+                    Toutes les catégories
+                  </button>
+                  {categories.map(cat => (
+                    <button
+                      key={cat.id}
+                      className={`category-btn ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
+                      onClick={() => handleCategoryChange(cat.id.toString())}
+                    >
+                      {cat.name}
+                      <span className="category-count">{cat.products_count || 0}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="sort-box">
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                  <option value="featured">Trier par: En vedette</option>
+              <div className="filter-section">
+                <h4>Prix maximum</h4>
+                <div className="price-range">
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="50000" 
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                    className="price-slider"
+                  />
+                  <div className="price-display">
+                    <span>0 MAD</span>
+                    <span className="max-price">{priceRange.max} MAD</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="filter-section">
+                <h4>Trier par</h4>
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="sort-select"
+                >
+                  <option value="featured">En vedette</option>
                   <option value="price-asc">Prix: croissant</option>
                   <option value="price-desc">Prix: décroissant</option>
                   <option value="name-asc">Nom: A-Z</option>
                   <option value="name-desc">Nom: Z-A</option>
-                  <option value="rating">Meilleures notes</option>
                 </select>
               </div>
 
-              <motion.button 
-                className="mobile-filter-btn" 
+              <button className="clear-filters-btn" onClick={clearFilters}>
+                <Icons.X size={16} /> Effacer tous les filtres
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="products-main redesigned">
+            <div className="products-toolbar redesigned">
+              <div className="search-box redesigned">
+                <Icons.Search className="search-icon" />
+                <input 
+                  type="text"
+                  placeholder="Rechercher un produit..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="clear-search" onClick={() => setSearchQuery('')}>
+                    <Icons.X size={16} />
+                  </button>
+                )}
+              </div>
+
+              <button 
+                className="mobile-filter-btn redesigned" 
                 onClick={() => setShowFilter(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <Icons.Filter /> Filtrer
-              </motion.button>
+              </button>
             </div>
 
-            {paginatedProducts.length > 0 ? (
+            {loading ? (
+              <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Chargement des produits...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <>
-                <div className="products-grid">
-                  {paginatedProducts.map(product => (
+                <div className="products-grid redesigned">
+                  {filteredProducts.map(product => (
                     <ProductCard 
                       key={product.id} 
                       product={product} 
                       onAddToCart={addToCart}
+                      onViewDetails={(product) => navigate(`/product/${product.slug}`)}
                     />
                   ))}
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="pagination">
-                    <motion.button 
+                  <div className="pagination redesigned">
+                    <button 
+                      className="pagination-btn"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(currentPage - 1)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       <Icons.ChevronLeft />
-                    </motion.button>
+                    </button>
                     
-                    {[...Array(totalPages)].map((_, i) => (
-                      <motion.button 
-                        key={i}
-                        className={currentPage === i + 1 ? 'active' : ''}
-                        onClick={() => setCurrentPage(i + 1)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {i + 1}
-                      </motion.button>
-                    ))}
+                    <div className="page-numbers">
+                      {[...Array(totalPages)].map((_, i) => {
+                        const pageNum = i + 1;
+                        if (
+                          pageNum === 1 ||
+                          pageNum === totalPages ||
+                          (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                        ) {
+                          return (
+                            <button
+                              key={i}
+                              className={`page-number ${currentPage === pageNum ? 'active' : ''}`}
+                              onClick={() => setCurrentPage(pageNum)}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        } else if (
+                          pageNum === currentPage - 2 ||
+                          pageNum === currentPage + 2
+                        ) {
+                          return <span key={i} className="page-dots">...</span>;
+                        }
+                        return null;
+                      })}
+                    </div>
                     
-                    <motion.button 
+                    <button 
+                      className="pagination-btn"
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(currentPage + 1)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       <Icons.ChevronRight />
-                    </motion.button>
+                    </button>
                   </div>
                 )}
               </>
             ) : (
-              <div className="no-products">
-                <Icons.Package size={48} />
-                <h3>Aucun produit trouvé</h3>
-                <p>Essayez de modifier vos filtres</p>
-                <motion.button 
-                  onClick={clearFilters}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Effacer les filtres
-                </motion.button>
+              <div className="no-products redesigned">
+                <Icons.Package size={64} />
+                <h2>Aucun produit trouvé</h2>
+                <p>Essayez de modifier vos filtres ou d'effectuer une nouvelle recherche</p>
+                <button className="reset-filters-btn" onClick={clearFilters}>
+                  Réinitialiser les filtres
+                </button>
               </div>
             )}
           </main>
         </div>
       </div>
 
+      {/* Mobile Filter Modal */}
       <AnimatePresence>
         {showFilter && (
           <motion.div 
-            className="mobile-filter-modal"
+            className="mobile-filter-modal redesigned"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowFilter(false)}
           >
             <motion.div 
-              className="mobile-filter-content"
+              className="mobile-filter-content redesigned"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ duration: 0.3 }}
+              transition={{ type: 'spring', damping: 25 }}
               onClick={e => e.stopPropagation()}
             >
-              <FilterSidebar onClose={() => setShowFilter(false)} />
+              <div className="mobile-filter-header">
+                <h3>Filtres</h3>
+                <button className="close-btn" onClick={() => setShowFilter(false)}>
+                  <Icons.X />
+                </button>
+              </div>
+
+              <div className="mobile-filter-body">
+                <div className="filter-section">
+                  <h4>Catégories</h4>
+                  <div className="category-list mobile">
+                    <button
+                      className={`category-btn ${!selectedCategory ? 'active' : ''}`}
+                      onClick={() => {
+                        handleCategoryChange(null);
+                        setShowFilter(false);
+                      }}
+                    >
+                      Toutes les catégories
+                    </button>
+                    {categories.map(cat => (
+                      <button
+                        key={cat.id}
+                        className={`category-btn ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
+                        onClick={() => {
+                          handleCategoryChange(cat.id.toString());
+                          setShowFilter(false);
+                        }}
+                      >
+                        {cat.name}
+                        <span className="category-count">{cat.products_count || 0}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-section">
+                  <h4>Prix maximum</h4>
+                  <div className="price-range">
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="50000" 
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                      className="price-slider"
+                    />
+                    <div className="price-display">
+                      <span>0 MAD</span>
+                      <span className="max-price">{priceRange.max} MAD</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="filter-section">
+                  <h4>Trier par</h4>
+                  <select 
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="sort-select"
+                  >
+                    <option value="featured">En vedette</option>
+                    <option value="price-asc">Prix: croissant</option>
+                    <option value="price-desc">Prix: décroissant</option>
+                    <option value="name-asc">Nom: A-Z</option>
+                    <option value="name-desc">Nom: Z-A</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mobile-filter-footer">
+                <button className="clear-btn" onClick={clearFilters}>
+                  Effacer tout
+                </button>
+                <button className="apply-btn" onClick={() => setShowFilter(false)}>
+                  Appliquer
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -2808,35 +1629,68 @@ const ProductsPage = ({ navigate }) => {
     </motion.div>
   );
 };
-
-// Product Detail Page
+// Product Detail Page with Multiple Images
 const ProductDetailPage = ({ navigate }) => {
   const [product, setProduct] = useState(null);
+  const [related, setRelated] = useState([]);
   const [quantity, setQuantity] = useState(1);
-  const [selectedAttributes, setSelectedAttributes] = useState({});
-  const [activeTab, setActiveTab] = useState('description');
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
   const { addToCart } = useCart();
+  const { getProduct } = useProducts();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const path = window.location.pathname;
     const slug = path.split('/').pop();
-    const found = products.find(p => p.slug === slug || p.id === parseInt(slug));
-    setProduct(found);
-    
-    if (found?.attributes) {
-      const initial = {};
-      Object.keys(found.attributes).forEach(key => {
-        initial[key] = found.attributes[key][0];
-      });
-      setSelectedAttributes(initial);
-    }
+    loadProduct(slug);
   }, []);
 
-  if (!product) {
+  const loadProduct = async (slug) => {
+    setLoading(true);
+    try {
+      const data = await getProduct(slug);
+      if (data) {
+        setProduct(data.product || data);
+        setRelated(data.related || []);
+        setIsFavorite(data.is_favorite || false);
+      }
+    } catch (err) {
+      console.error('Failed to load product:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await api.delete(`/favorites/${product.id}`);
+        setIsFavorite(false);
+      } else {
+        await api.post(`/favorites/${product.id}`);
+        setIsFavorite(true);
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
+  };
+
+  if (loading) {
     return <div className="loading">Chargement...</div>;
   }
 
-  const related = products.filter(p => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 4);
+  if (!product) {
+    return <div className="not-found">Produit non trouvé</div>;
+  }
+
+  const productImages = product.images || [product.image];
 
   return (
     <motion.div 
@@ -2849,26 +1703,33 @@ const ProductDetailPage = ({ navigate }) => {
         <div className="breadcrumb">
           <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a> / 
           <a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a> / 
-          <a href={`/products?category=${product.categoryId}`} onClick={(e) => { e.preventDefault(); navigate(`/products?category=${product.categoryId}`); }}>
-            {product.category}
+          <a href={`/products?category=${product.category_id}`} onClick={(e) => { e.preventDefault(); navigate(`/products?category=${product.category_id}`); }}>
+            {product.category?.name || 'Catégorie'}
           </a> / 
           <span>{product.name}</span>
         </div>
 
         <div className="product-detail">
-          <motion.div 
-            className="product-gallery"
-            variants={slideInLeft}
-          >
+          <div className="product-gallery">
             <div className="main-image">
-              <img src={product.image} alt={product.name} />
+              <img src={productImages[selectedImage]} alt={product.name} />
             </div>
-          </motion.div>
+            {productImages.length > 1 && (
+              <div className="thumbnail-images">
+                {productImages.map((img, index) => (
+                  <div 
+                    key={index} 
+                    className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
+                    onClick={() => setSelectedImage(index)}
+                  >
+                    <img src={img} alt={`${product.name} ${index + 1}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          <motion.div 
-            className="product-info"
-            variants={slideInRight}
-          >
+          <div className="product-info">
             <h1>{product.name}</h1>
             
             <div className="product-meta">
@@ -2878,15 +1739,15 @@ const ProductDetailPage = ({ navigate }) => {
 
             <div className="product-rating">
               {[...Array(5)].map((_, i) => (
-                <span key={i} className={`star ${i < Math.floor(product.rating) ? 'filled' : ''}`}>★</span>
+                <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>★</span>
               ))}
-              <span>({product.reviews} avis)</span>
+              <span>({product.reviews_count || 0} avis)</span>
             </div>
 
             <div className="product-price">
               <span className="current">{product.price} MAD</span>
-              {product.originalPrice && (
-                <span className="original">{product.originalPrice} MAD</span>
+              {product.original_price && (
+                <span className="original">{product.original_price} MAD</span>
               )}
             </div>
 
@@ -2902,36 +1763,11 @@ const ProductDetailPage = ({ navigate }) => {
               <p>{product.description}</p>
             </div>
 
-            {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <div className="product-attributes">
-                {Object.entries(product.attributes).map(([key, values]) => (
-                  <div key={key} className="attribute-group">
-                    <label>{key}:</label>
-                    <div className="attribute-values">
-                      {values.map(value => (
-                        <button
-                          key={value}
-                          className={`attribute-btn ${selectedAttributes[key] === value ? 'active' : ''}`}
-                          onClick={() => setSelectedAttributes({ ...selectedAttributes, [key]: value })}
-                        >
-                          {value}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             <div className="product-actions">
               <div className="quantity-selector">
-                <motion.button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
                   <Icons.Minus />
-                </motion.button>
+                </button>
                 <input 
                   type="number" 
                   value={quantity}
@@ -2939,110 +1775,26 @@ const ProductDetailPage = ({ navigate }) => {
                   min="1"
                   max={product.stock}
                 />
-                <motion.button 
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
+                <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}>
                   <Icons.Plus />
-                </motion.button>
+                </button>
               </div>
 
-              <motion.button 
+              <button 
                 className="add-to-cart-btn"
-                onClick={() => addToCart(product, quantity, selectedAttributes)}
+                onClick={() => addToCart(product, quantity)}
                 disabled={product.stock === 0}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <Icons.ShoppingBag /> Ajouter au panier
-              </motion.button>
+              </button>
 
-              <motion.button 
-                className="buy-now-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button 
+                className={`wishlist-btn ${isFavorite ? 'active' : ''}`}
+                onClick={handleAddToWishlist}
               >
-                Acheter maintenant
-              </motion.button>
+                <Icons.Heart /> {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              </button>
             </div>
-
-            <div className="product-extra">
-              <motion.button 
-                className="wishlist-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Icons.Heart /> Ajouter aux favoris
-              </motion.button>
-              <motion.button 
-                className="compare-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Icons.Ticket /> Comparer
-              </motion.button>
-            </div>
-
-            {product.features && (
-              <div className="product-features">
-                <h4>Caractéristiques:</h4>
-                <ul>
-                  {product.features.map((f, i) => <li key={i}>{f}</li>)}
-                </ul>
-              </div>
-            )}
-          </motion.div>
-        </div>
-
-        <div className="product-tabs">
-          <div className="tabs-header">
-            <button 
-              className={activeTab === 'description' ? 'active' : ''}
-              onClick={() => setActiveTab('description')}
-            >
-              Description
-            </button>
-            <button 
-              className={activeTab === 'specs' ? 'active' : ''}
-              onClick={() => setActiveTab('specs')}
-            >
-              Spécifications
-            </button>
-            <button 
-              className={activeTab === 'reviews' ? 'active' : ''}
-              onClick={() => setActiveTab('reviews')}
-            >
-              Avis ({product.reviews})
-            </button>
-          </div>
-
-          <div className="tabs-content">
-            {activeTab === 'description' && (
-              <div className="tab-pane">
-                <p>{product.description}</p>
-              </div>
-            )}
-            {activeTab === 'specs' && (
-              <div className="tab-pane">
-                <table className="specs-table">
-                  <tbody>
-                    <tr><th>SKU</th><td>{product.sku}</td></tr>
-                    <tr><th>Marque</th><td>{product.brand}</td></tr>
-                    <tr><th>Catégorie</th><td>{product.category}</td></tr>
-                    <tr><th>Stock</th><td>{product.stock}</td></tr>
-                    {product.attributes && Object.entries(product.attributes).map(([key, values]) => (
-                      <tr key={key}><th>{key}</th><td>{values.join(', ')}</td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {activeTab === 'reviews' && (
-              <div className="tab-pane">
-                <p>Aucun avis pour le moment.</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -3051,7 +1803,14 @@ const ProductDetailPage = ({ navigate }) => {
             <h3>Produits similaires</h3>
             <div className="products-grid">
               {related.map(product => (
-                <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={addToCart}
+                  onViewDetails={(product) => navigate(`/product/${product.slug}`)}
+                  onAddToWishlist={() => {}}
+                  isFavorite={false}
+                />
               ))}
             </div>
           </div>
@@ -3060,15 +1819,369 @@ const ProductDetailPage = ({ navigate }) => {
     </motion.div>
   );
 };
+// Checkout Page
+// Checkout Page - FIXED (without coupon dependency)
+// Checkout Page
+const CheckoutPage = ({ navigate }) => {
+  const { cartItems, cartTotal, clearCart } = useCart();
+  const { user, isAuthenticated, isEmailVerified } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState(user?.address || '');
 
-// Cart Page
-const CartPage = ({ navigate }) => {
-  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!isEmailVerified) {
+      setError('Veuillez vérifier votre email avant de passer commande');
+      return;
+    }
+
+    if (!shippingAddress.trim()) {
+      setError('Veuillez entrer votre adresse de livraison');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const orderData = {
+        items: cartItems.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity
+        })),
+        shipping_address: shippingAddress,
+        payment_method: 'espèces'
+      };
+
+      const response = await api.post('/orders', orderData);
+      
+      if (response.data.success) {
+        setSuccess(true);
+        clearCart();
+        setTimeout(() => {
+          const orderId = response.data.data.order?.id || response.data.data.id;
+          navigate(`/orders/${orderId}`);
+        }, 3000);
+      } else {
+        throw new Error(response.data.error || 'Erreur lors de la création de la commande');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Erreur lors de la création de la commande');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (cartItems.length === 0) {
+    return (
+      <motion.div 
+        className="checkout-page empty-checkout"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <Icons.ShoppingBag size={64} />
+          <h2>Votre panier est vide</h2>
+          <p>Ajoutez des produits avant de passer commande</p>
+          <button className="btn-primary" onClick={() => navigate('/products')}>
+            Voir les produits
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (success) {
+    return (
+      <motion.div 
+        className="checkout-page success-checkout"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <Icons.Check size={64} />
+          <h2>Commande réussie !</h2>
+          <p>Votre commande a été créée avec succès. Vous allez être redirigé...</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   const shipping = cartTotal > 1000 ? 0 : 50;
   const tax = cartTotal * 0.2;
   const grandTotal = cartTotal + shipping + tax;
+
+  return (
+    <motion.div 
+      className="checkout-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <h1>Finaliser la commande</h1>
+
+        {!isEmailVerified && (
+          <div className="warning-message">
+            <Icons.Mail />
+            <span>Veuillez vérifier votre email avant de passer commande</span>
+          </div>
+        )}
+
+        {error && <div className="error-message">{error}</div>}
+
+        <div className="checkout-layout">
+          <div className="checkout-form">
+            <form onSubmit={handleSubmit}>
+              <div className="form-section">
+                <h2>Adresse de livraison</h2>
+                <div className="form-group">
+                  <label>Adresse complète</label>
+                  <textarea
+                    value={shippingAddress}
+                    onChange={(e) => setShippingAddress(e.target.value)}
+                    required
+                    rows="3"
+                    placeholder="Entrez votre adresse complète"
+                  />
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h2>Mode de paiement</h2>
+                <div className="payment-info">
+                  <div className="payment-method-selected">
+                    <Icons.Truck />
+                    <span>Paiement à la livraison (Espèces)</span>
+                  </div>
+                  <p className="payment-description">
+                    Vous paierez en espèces lors de la réception de votre commande.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="place-order-btn"
+                disabled={loading || !isEmailVerified}
+              >
+                {loading ? 'Traitement...' : `Confirmer la commande (${grandTotal.toFixed(2)} MAD)`}
+              </button>
+            </form>
+          </div>
+
+          <div className="checkout-summary">
+            <h3>Récapitulatif de la commande</h3>
+            
+            <div className="summary-items">
+              {cartItems.map((item, index) => (
+                <div key={index} className="summary-item">
+                  <span className="item-name">{item.name} x{item.quantity}</span>
+                  <span className="item-price">{(item.price * item.quantity).toFixed(2)} MAD</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="summary-totals">
+              <div className="summary-row">
+                <span>Sous-total</span>
+                <span>{cartTotal.toFixed(2)} MAD</span>
+              </div>
+              
+              <div className="summary-row">
+                <span>Livraison</span>
+                <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)} MAD`}</span>
+              </div>
+              <div className="summary-row">
+                <span>TVA (20%)</span>
+                <span>{tax.toFixed(2)} MAD</span>
+              </div>
+              <div className="summary-row total">
+                <span>Total</span>
+                <span>{grandTotal.toFixed(2)} MAD</span>
+              </div>
+            </div>
+
+            <div className="delivery-note">
+              <Icons.Truck />
+              <p>Livraison estimée: 2-3 jours ouvrés</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+// Categories Page
+// Categories Page - FIXED loading issue
+// Categories Page - REDESIGNED
+const CategoriesPage = ({ navigate }) => {
+  const { categories, loading: productsLoading } = useProducts();
+  const [loading, setLoading] = useState(true);
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      setLoading(false);
+    } else {
+      const timer = setTimeout(() => setLoading(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [categories]);
+
+  const getCategoryImage = (category) => {
+    const images = {
+      'Microscopes': 'https://images.unsplash.com/photo-1582719508461-905c673ccfd8?w=800&auto=format',
+      'Centrifugeuses': 'https://images.unsplash.com/photo-1576086213368-97a306c9e7ab?w=800&auto=format',
+      'Étuves': 'https://images.unsplash.com/photo-1579154204601-01588f4c2d3b?w=800&auto=format',
+      'Balances': 'https://images.unsplash.com/photo-1581093458791-9d15429632d8?w=800&auto=format',
+      'Instrumentation': 'https://images.unsplash.com/photo-1581093458791-9d15429632d8?w=800&auto=format',
+      'Réactifs': 'https://images.unsplash.com/photo-1582719508461-905c673ccfd8?w=800&auto=format',
+      'Verre': 'https://images.unsplash.com/photo-1576086213368-97a306c9e7ab?w=800&auto=format'
+    };
+    return images[category.name] || category.image || `https://source.unsplash.com/800x600/?laboratory,${encodeURIComponent(category.name)}`;
+  };
+
+  if (loading) {
+    return (
+      <motion.div 
+        className="categories-page redesigned"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="page-header modern">
+          <div className="container">
+            <h1>Catégories</h1>
+            <p>Explorez notre gamme complète de produits par catégorie</p>
+          </div>
+        </div>
+        <div className="container">
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Chargement des catégories...</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <motion.div 
+        className="categories-page redesigned"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="page-header modern">
+          <div className="container">
+            <h1>Catégories</h1>
+            <p>Explorez notre gamme complète de produits par catégorie</p>
+          </div>
+        </div>
+        <div className="container">
+          <div className="empty-state">
+            <Icons.Package size={64} />
+            <h2>Aucune catégorie trouvée</h2>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="categories-page redesigned"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="page-header modern">
+        <div className="container">
+          <h1>Catégories</h1>
+          <p>Explorez notre gamme complète de produits par catégorie</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="categories-grid modern">
+          {categories.map((category, index) => (
+            <motion.div
+              key={category.id}
+              className="category-card modern"
+              variants={slideUp}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -12 }}
+              onHoverStart={() => setHoveredCategory(category.id)}
+              onHoverEnd={() => setHoveredCategory(null)}
+              onClick={() => navigate(`/products?category=${category.id}`)}
+            >
+              <div className="card-inner">
+                <div className="card-front">
+                  <div className="category-image-container">
+                    <img 
+                      src={getCategoryImage(category)} 
+                      alt={category.name}
+                      className="category-image"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://via.placeholder.com/800x600?text=${encodeURIComponent(category.name)}`;
+                      }}
+                    />
+                    <div className="image-overlay"></div>
+                  </div>
+                  <div className="category-content">
+                    <h3>{category.name}</h3>
+                    <div className="category-stats">
+                      <span className="product-count">
+                        <Icons.Package size={14} />
+                        {category.products_count || 0} produits
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <motion.div 
+                  className="card-back"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: hoveredCategory === category.id ? 1 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <h4>{category.name}</h4>
+                  <p>{category.description || `Découvrez tous nos produits dans la catégorie ${category.name.toLowerCase()}`}</p>
+                  <div className="back-footer">
+                    <span className="explore-link">
+                      Explorer <Icons.ChevronRight size={16} />
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+// Cart Page
+const CartPage = ({ navigate }) => {
+  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   if (cartItems.length === 0) {
     return (
@@ -3082,14 +2195,9 @@ const CartPage = ({ navigate }) => {
           <Icons.ShoppingBag size={64} />
           <h2>Votre panier est vide</h2>
           <p>Découvrez nos produits et commencez vos achats</p>
-          <motion.button 
-            className="btn-primary" 
-            onClick={() => navigate('/products')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <button className="btn-primary" onClick={() => navigate('/products')}>
             Voir les produits
-          </motion.button>
+          </button>
         </div>
       </motion.div>
     );
@@ -3107,71 +2215,42 @@ const CartPage = ({ navigate }) => {
 
         <div className="cart-layout">
           <div className="cart-items">
-            {cartItems.map((item, index) => (
-              <motion.div 
-                key={`${item.id}-${index}`}
-                className="cart-item"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <img src={item.image} alt={item.name} />
+            {cartItems.map((item) => (
+              <div key={item.cart_item_id} className="cart-item">
+                <img src={item.image} alt={item.name} onClick={() => navigate(`/product/${item.slug}`)} style={{ cursor: 'pointer' }} />
                 
                 <div className="item-details">
-                  <h3>{item.name}</h3>
-                  {Object.entries(item.attributes).length > 0 && (
-                    <div className="item-attributes">
-                      {Object.entries(item.attributes).map(([key, value]) => (
-                        <span key={key}>{key}: {value}</span>
-                      ))}
-                    </div>
-                  )}
+                  <h3 onClick={() => navigate(`/product/${item.slug}`)} style={{ cursor: 'pointer' }}>{item.name}</h3>
                   <span className="item-price">{item.price} MAD</span>
                 </div>
 
                 <div className="item-quantity">
-                  <motion.button 
-                    onClick={() => updateQuantity(item.id, item.quantity - 1, item.attributes)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
+                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>
                     <Icons.Minus />
-                  </motion.button>
+                  </button>
                   <span>{item.quantity}</span>
-                  <motion.button 
-                    onClick={() => updateQuantity(item.id, item.quantity + 1, item.attributes)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
+                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
                     <Icons.Plus />
-                  </motion.button>
+                  </button>
                 </div>
 
                 <div className="item-total">
-                  {item.price * item.quantity} MAD
+                  {(item.price * item.quantity).toFixed(2)} MAD
                 </div>
 
-                <motion.button 
+                <button 
                   className="remove-item"
-                  onClick={() => removeFromCart(item.id, item.attributes)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  onClick={() => removeFromCart(item.id)}
                 >
                   <Icons.Trash />
-                </motion.button>
-              </motion.div>
+                </button>
+              </div>
             ))}
 
             <div className="cart-actions">
-              <motion.button 
-                onClick={clearCart} 
-                className="clear-cart"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <button onClick={clearCart} className="clear-cart">
                 <Icons.Trash /> Vider le panier
-              </motion.button>
+              </button>
             </div>
           </div>
 
@@ -3180,53 +2259,27 @@ const CartPage = ({ navigate }) => {
             
             <div className="summary-row">
               <span>Sous-total</span>
-              <span>{cartTotal} MAD</span>
-            </div>
-            
-            <div className="summary-row">
-              <span>Livraison</span>
-              <span>{shipping === 0 ? 'Gratuite' : `${shipping} MAD`}</span>
-            </div>
-            
-            <div className="summary-row">
-              <span>TVA (20%)</span>
-              <span>{tax} MAD</span>
+              <span>{cartTotal.toFixed(2)} MAD</span>
             </div>
             
             <div className="summary-row total">
               <span>Total</span>
-              <span>{grandTotal} MAD</span>
+              <span>{cartTotal.toFixed(2)} MAD</span>
             </div>
 
-            {cartTotal < 1000 && (
-              <div className="free-shipping-progress">
-                <p>Plus que {1000 - cartTotal} MAD pour la livraison gratuite</p>
-                <div className="progress-bar">
-                  <div className="progress" style={{ width: `${(cartTotal / 1000) * 100}%` }}></div>
-                </div>
-              </div>
-            )}
-
             {isAuthenticated ? (
-              <motion.button 
+              <button 
                 className="checkout-btn" 
                 onClick={() => navigate('/checkout')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 Passer la commande
-              </motion.button>
+              </button>
             ) : (
               <div className="checkout-login">
                 <p>Connectez-vous pour finaliser votre commande</p>
-                <motion.button 
-                  className="login-btn" 
-                  onClick={() => navigate('/login')}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <button className="login-btn" onClick={() => navigate('/login')}>
                   Se connecter
-                </motion.button>
+                </button>
                 <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Créer un compte</a>
               </div>
             )}
@@ -3254,7 +2307,7 @@ const LoginPage = ({ navigate }) => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError('Email ou mot de passe incorrect');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -3268,10 +2321,7 @@ const LoginPage = ({ navigate }) => {
       variants={fadeIn}
     >
       <div className="container">
-        <motion.div 
-          className="auth-box"
-          variants={slideUp}
-        >
+        <motion.div className="auth-box" variants={slideUp}>
           <h2>Connexion</h2>
           
           {error && <div className="error-message">{error}</div>}
@@ -3297,14 +2347,9 @@ const LoginPage = ({ navigate }) => {
               />
             </div>
 
-            <motion.button 
-              type="submit" 
-              disabled={loading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <button type="submit" disabled={loading}>
               {loading ? 'Connexion...' : 'Se connecter'}
-            </motion.button>
+            </button>
           </form>
 
           <p className="auth-link">
@@ -3322,9 +2367,7 @@ const RegisterPage = ({ navigate }) => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    phone: '',
-    address: ''
+    password_confirmation: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -3336,12 +2379,6 @@ const RegisterPage = ({ navigate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
-      return;
-    }
-
     setLoading(true);
     setError('');
     
@@ -3349,7 +2386,7 @@ const RegisterPage = ({ navigate }) => {
       await register(formData);
       navigate('/');
     } catch (err) {
-      setError('Erreur lors de l\'inscription');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -3363,10 +2400,7 @@ const RegisterPage = ({ navigate }) => {
       variants={fadeIn}
     >
       <div className="container">
-        <motion.div 
-          className="auth-box"
-          variants={slideUp}
-        >
+        <motion.div className="auth-box" variants={slideUp}>
           <h2>Inscription</h2>
           
           {error && <div className="error-message">{error}</div>}
@@ -3395,28 +2429,6 @@ const RegisterPage = ({ navigate }) => {
             </div>
 
             <div className="form-group">
-              <label>Téléphone</label>
-              <input 
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Adresse</label>
-              <input 
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
               <label>Mot de passe</label>
               <input 
                 type="password"
@@ -3431,21 +2443,16 @@ const RegisterPage = ({ navigate }) => {
               <label>Confirmer le mot de passe</label>
               <input 
                 type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
+                name="password_confirmation"
+                value={formData.password_confirmation}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <motion.button 
-              type="submit" 
-              disabled={loading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <button type="submit" disabled={loading}>
               {loading ? 'Inscription...' : "S'inscrire"}
-            </motion.button>
+            </button>
           </form>
 
           <p className="auth-link">
@@ -3458,22 +2465,100 @@ const RegisterPage = ({ navigate }) => {
 };
 
 // Dashboard Page
+// Dashboard Page - ORIGINAL VERSION
+// Dashboard Page - COMPLETE FIXED VERSION
 const DashboardPage = ({ navigate }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile, resendVerification } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [editMode, setEditMode] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
     address: user?.address || ''
   });
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
 
-  const userOrders = orders.filter(o => o.userId === user?.id);
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-  const handleUpdate = (e) => {
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/orders');
+      if (response.data.success && response.data.data) {
+        setOrders(response.data.data.data || response.data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    setEditMode(false);
+    setLoading(true);
+    try {
+      await updateProfile(formData);
+      setEditMode(false);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ const handleResendVerification = async () => {
+  setVerificationLoading(true);
+  setVerificationMessage('');
+  
+  try {
+    const response = await resendVerification();
+    console.log('Resend response:', response);
+    
+    // Check if response exists and has success flag
+    if (response && response.success) {
+      setVerificationMessage('Email de vérification renvoyé avec succès !');
+    } else {
+      // If we got here without error, assume success
+      setVerificationMessage('Email de vérification renvoyé avec succès !');
+    }
+  } catch (err) {
+    console.error('Resend error:', err);
+    
+    // Get error message from response if available
+    const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de l\'envoi';
+    setVerificationMessage(errorMessage);
+  } finally {
+    setVerificationLoading(false);
+    
+    // Clear message after 5 seconds
+    setTimeout(() => setVerificationMessage(''), 5000);
+  }
+};
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'en cours': return 'En cours';
+      case 'expédiée': return 'Expédiée';
+      case 'livré': return 'Livrée';
+      case 'annulée': return 'Annulée';
+      default: return status;
+    }
   };
 
   return (
@@ -3485,6 +2570,41 @@ const DashboardPage = ({ navigate }) => {
     >
       <div className="container">
         <h1>Mon Compte</h1>
+        
+{/* Debug - Remove after fixing */}
+<div style={{ background: '#f0f0f0', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
+  <h4>Debug Info</h4>
+  <p><strong>Email verified_at:</strong> {user?.email_verified_at || 'null'}</p>
+  <p><strong>isEmailVerified:</strong> {user?.email_verified_at !== null ? 'true' : 'false'}</p>
+  <button 
+    onClick={() => {
+      // Force refresh user data
+      api.get('/auth/me').then(res => {
+        if (res.data.success) {
+          const updatedUser = res.data.data;
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          window.location.reload();
+        }
+      });
+    }}
+    style={{ padding: '5px 10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+  >
+    🔄 Refresh User Data
+  </button>
+</div>
+        {!user?.email_verified_at && (
+          <div className="verification-banner">
+            <p>Votre email n'est pas vérifié. Veuillez vérifier votre boîte de réception.</p>
+            <button 
+              onClick={handleResendVerification}
+              disabled={verificationLoading}
+              className="resend-btn"
+            >
+              {verificationLoading ? 'Envoi...' : 'Renvoyer l\'email'}
+            </button>
+            {verificationMessage && <p className="verification-message">{verificationMessage}</p>}
+          </div>
+        )}
 
         <div className="dashboard-layout">
           <div className="dashboard-sidebar">
@@ -3503,9 +2623,6 @@ const DashboardPage = ({ navigate }) => {
               <li className={activeTab === 'orders' ? 'active' : ''}>
                 <button onClick={() => setActiveTab('orders')}>Mes Commandes</button>
               </li>
-              <li className={activeTab === 'address' ? 'active' : ''}>
-                <button onClick={() => setActiveTab('address')}>Adresses</button>
-              </li>
               <li>
                 <button onClick={logout}>Déconnexion</button>
               </li>
@@ -3518,14 +2635,12 @@ const DashboardPage = ({ navigate }) => {
                 <div className="tab-header">
                   <h2>Mon Profil</h2>
                   {!editMode && (
-                    <motion.button 
+                    <button 
                       className="edit-btn" 
                       onClick={() => setEditMode(true)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       Modifier
-                    </motion.button>
+                    </button>
                   )}
                 </div>
 
@@ -3537,6 +2652,7 @@ const DashboardPage = ({ navigate }) => {
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
                       />
                     </div>
 
@@ -3546,6 +2662,7 @@ const DashboardPage = ({ navigate }) => {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
                       />
                     </div>
 
@@ -3555,33 +2672,69 @@ const DashboardPage = ({ navigate }) => {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="Votre numéro de téléphone"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Adresse</label>
+                      <textarea
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        rows="3"
+                        placeholder="Votre adresse complète"
                       />
                     </div>
 
                     <div className="form-actions">
-                      <motion.button 
+                      <button 
                         type="submit"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="save-btn"
+                        disabled={loading}
                       >
-                        Enregistrer
-                      </motion.button>
-                      <motion.button 
+                        {loading ? 'Enregistrement...' : 'Enregistrer'}
+                      </button>
+                      <button 
                         type="button" 
-                        onClick={() => setEditMode(false)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="cancel-btn"
+                        onClick={() => {
+                          setEditMode(false);
+                          setFormData({
+                            name: user?.name || '',
+                            email: user?.email || '',
+                            phone: user?.phone || '',
+                            address: user?.address || ''
+                          });
+                        }}
                       >
                         Annuler
-                      </motion.button>
+                      </button>
                     </div>
                   </form>
                 ) : (
                   <div className="profile-info">
-                    <p><strong>Nom:</strong> {user?.name}</p>
-                    <p><strong>Email:</strong> {user?.email}</p>
-                    <p><strong>Téléphone:</strong> {user?.phone || 'Non renseigné'}</p>
-                    <p><strong>Adresse:</strong> {user?.address || 'Non renseignée'}</p>
+                    <div className="info-row">
+                      <strong>Nom:</strong>
+                      <span>{user?.name}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Email:</strong>
+                      <span>{user?.email}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Téléphone:</strong>
+                      <span>{user?.phone || 'Non renseigné'}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Adresse:</strong>
+                      <span>{user?.address || 'Non renseignée'}</span>
+                    </div>
+                    <div className="info-row">
+                      <strong>Email vérifié:</strong>
+                      <span className={user?.email_verified_at ? 'verified' : 'not-verified'}>
+                        {user?.email_verified_at ? 'Oui' : 'Non'}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -3591,44 +2744,77 @@ const DashboardPage = ({ navigate }) => {
               <div className="orders-tab">
                 <h2>Mes Commandes</h2>
                 
-                {userOrders.length === 0 ? (
-                  <p>Aucune commande pour le moment</p>
+                {loading ? (
+                  <div className="loading-spinner">Chargement de vos commandes...</div>
+                ) : orders.length === 0 ? (
+                  <div className="no-orders">
+                    <Icons.Package size={48} />
+                    <p>Aucune commande pour le moment</p>
+                    <button 
+                      className="btn-primary" 
+                      onClick={() => navigate('/products')}
+                    >
+                      Découvrir nos produits
+                    </button>
+                  </div>
                 ) : (
                   <div className="orders-list">
-                    {userOrders.map(order => (
+                    {orders.map(order => (
                       <motion.div 
                         key={order.id} 
                         className="order-card"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
+                        onClick={() => navigate(`/orders/${order.id}`)}
                       >
                         <div className="order-header">
-                          <span className="order-id">Commande #{order.id}</span>
-                          <span className={`order-status status-${order.status}`}>
-                            {order.status}
+                          <div className="order-header-left">
+                            <span className="order-id">Commande #{order.order_number}</span>
+                            <span className="order-date">
+                              {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          <span className={`order-status ${getStatusClass(order.status)}`}>
+                            {getStatusText(order.status)}
                           </span>
-                          <span className="order-date">{order.date}</span>
                         </div>
 
                         <div className="order-items">
-                          {order.items.map((item, i) => (
+                          {order.items && order.items.slice(0, 3).map((item, i) => (
                             <div key={i} className="order-item">
-                              <span>{item.name} x{item.quantity}</span>
-                              <span>{item.price * item.quantity} MAD</span>
+                              <span className="item-name">{item.product_name}</span>
+                              <span className="item-quantity">x{item.quantity}</span>
+                              <span className="item-price">{(item.price * item.quantity).toFixed(2)} MAD</span>
                             </div>
                           ))}
+                          {order.items && order.items.length > 3 && (
+                            <div className="more-items">
+                              + {order.items.length - 3} autre(s) article(s)
+                            </div>
+                          )}
                         </div>
 
                         <div className="order-footer">
-                          <span className="order-total">Total: {order.total} MAD</span>
-                          <motion.button 
-                            className="track-order"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Suivre
-                          </motion.button>
+                          <div className="order-total">
+                            <span>Total:</span>
+                            <strong>{order.total} MAD</strong>
+                          </div>
+                          {order.payment_method === 'espèces' && (
+                            <span className="payment-badge">
+                              <Icons.Truck size={14} />
+                              Paiement à la livraison
+                            </span>
+                          )}
+                          {order.coupon && (
+                            <span className="coupon-badge">
+                              Coupon: {order.coupon.code}
+                            </span>
+                          )}
                         </div>
                       </motion.div>
                     ))}
@@ -3636,471 +2822,920 @@ const DashboardPage = ({ navigate }) => {
                 )}
               </div>
             )}
-
-            {activeTab === 'address' && (
-              <div className="address-tab">
-                <h2>Mes Adresses</h2>
-                <div className="address-card">
-                  <h3>Adresse par défaut</h3>
-                  <p>{user?.address || 'Aucune adresse enregistrée'}</p>
-                  <motion.button 
-                    className="edit-address"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Modifier
-                  </motion.button>
-                </div>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
     </motion.div>
   );
 };
+// Order Detail Page
+const OrderDetailPage = ({ navigate }) => {
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-// Admin Page
-const AdminPage = ({ navigate }) => {
+  useEffect(() => {
+    const path = window.location.pathname;
+    const orderId = path.split('/').pop();
+    fetchOrder(orderId);
+  }, []);
+
+  const fetchOrder = async (orderId) => {
+  setLoading(true);
+  try {
+    console.log('Fetching order:', orderId);
+    const response = await api.get(`/orders/${orderId}`);
+    console.log('Order response:', response.data);
+    
+    if (response.data.success && response.data.data) {
+      setOrder(response.data.data);
+    } else {
+      console.error('Order not found in response');
+    }
+  } catch (err) {
+    console.error('Failed to fetch order:', err);
+    console.error('Error response:', err.response?.data);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const cancelOrder = async () => {
+    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) return;
+
+    try {
+      const response = await api.put(`/orders/${order.id}/cancel`);
+      if (response.data.success) {
+        fetchOrder(order.id);
+      }
+    } catch (err) {
+      console.error('Failed to cancel order:', err);
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  if (loading) {
+    return <div className="loading-spinner">Chargement...</div>;
+  }
+
+  if (!order) {
+    return <div className="not-found">Commande non trouvée</div>;
+  }
+
+  return (
+    <motion.div 
+      className="order-detail-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="order-detail-header">
+          <h1>Commande #{order.order_number}</h1>
+          <span className={`order-status ${getStatusClass(order.status)}`}>
+            {order.status}
+          </span>
+        </div>
+
+        <div className="order-info-grid">
+          <div className="info-card">
+            <h3>Date</h3>
+            <p>{new Date(order.created_at).toLocaleDateString()}</p>
+          </div>
+
+          <div className="info-card">
+            <h3>Adresse de livraison</h3>
+            <p>{order.shipping_address}</p>
+          </div>
+
+          <div className="info-card">
+            <h3>Mode de paiement</h3>
+            <p>{order.payment_method === 'carte' ? 'Carte bancaire' : 'Espèces à la livraison'}</p>
+          </div>
+
+          {order.coupon && (
+            <div className="info-card">
+              <h3>Coupon appliqué</h3>
+              <p>{order.coupon.code} - {order.discount_amount} MAD de réduction</p>
+            </div>
+          )}
+        </div>
+
+        <div className="order-items-section">
+          <h2>Articles commandés</h2>
+          <table className="order-items-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Prix unitaire</th>
+                <th>Quantité</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.product_name}</td>
+                  <td>{item.price} MAD</td>
+                  <td>{item.quantity}</td>
+                  <td>{(item.price * item.quantity).toFixed(2)} MAD</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="order-totals">
+            <div className="total-row">
+              <span>Sous-total</span>
+              <span>{order.subtotal} MAD</span>
+            </div>
+            {order.discount_amount > 0 && (
+              <div className="total-row discount">
+                <span>Réduction</span>
+                <span>-{order.discount_amount} MAD</span>
+              </div>
+            )}
+            <div className="total-row">
+              <span>Livraison</span>
+              <span>{order.shipping > 0 ? `${order.shipping} MAD` : 'Gratuite'}</span>
+            </div>
+            <div className="total-row">
+              <span>TVA (20%)</span>
+              <span>{order.tax} MAD</span>
+            </div>
+            <div className="total-row grand-total">
+              <span>Total</span>
+              <span>{order.total} MAD</span>
+            </div>
+          </div>
+        </div>
+
+        {order.status === 'en cours' && (
+          <div className="order-actions">
+            <button className="cancel-order-btn" onClick={cancelOrder}>
+              Annuler la commande
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+// Email Verification Success Page
+// Email Verification Success Page
+const VerificationSuccessPage = ({ navigate }) => {
+  const { checkVerification } = useAuth();
+  
+  useEffect(() => {
+    const refreshUser = async () => {
+      // Refresh user data from backend
+      if (checkVerification) {
+        await checkVerification();
+      }
+      
+      // Redirect after 3 seconds
+      const timer = setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    };
+    
+    refreshUser();
+  }, [navigate, checkVerification]);
+
+  return (
+    <motion.div 
+      className="verification-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="verification-box success">
+          <Icons.Check size={64} />
+          <h1>Email vérifié avec succès !</h1>
+          <p>Votre email a été vérifié. Vous allez être redirigé vers votre tableau de bord.</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Email Verification Error Page
+const VerificationErrorPage = ({ navigate }) => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const errorMessage = searchParams.get('message') || 'Le lien de vérification est invalide ou a expiré';
+
+  return (
+    <motion.div 
+      className="verification-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="verification-box error">
+          <Icons.X size={64} />
+          <h1>Vérification échouée</h1>
+          <p>{errorMessage}</p>
+          <p>Veuillez demander un nouveau lien de vérification depuis votre tableau de bord.</p>
+          <button 
+            className="btn-primary" 
+            onClick={() => navigate('/login')}
+          >
+            Aller à la connexion
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+// Orders Page
+const OrdersPage = ({ navigate }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    } else {
+      fetchOrders();
+    }
+  }, [isAuthenticated, navigate]);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/orders');
+      if (response.data.success && response.data.data) {
+        setOrders(response.data.data.data || response.data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'en cours': return 'En cours';
+      case 'expédiée': return 'Expédiée';
+      case 'livré': return 'Livrée';
+      case 'annulée': return 'Annulée';
+      default: return status;
+    }
+  };
+
+  if (loading) {
+    return (
+      <motion.div 
+        className="orders-page"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <h1>Mes Commandes</h1>
+          <div className="loading-spinner">Chargement de vos commandes...</div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="orders-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <h1>Mes Commandes</h1>
+
+        {orders.length === 0 ? (
+          <div className="no-orders">
+            <Icons.Package size={64} />
+            <h2>Aucune commande</h2>
+            <p>Vous n'avez pas encore passé de commande</p>
+            <button 
+              className="btn-primary" 
+              onClick={() => navigate('/products')}
+            >
+              Découvrir nos produits
+            </button>
+          </div>
+        ) : (
+          <div className="orders-grid">
+            {orders.map(order => (
+              <motion.div
+                key={order.id}
+                className="order-card"
+                variants={slideUp}
+                whileHover={{ y: -5 }}
+                onClick={() => navigate(`/orders/${order.id}`)}
+              >
+                <div className="order-header">
+                  <div className="order-header-left">
+                    <h3>Commande #{order.order_number}</h3>
+                    <span className="order-date">
+                      {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <span className={`order-status ${getStatusClass(order.status)}`}>
+                    {getStatusText(order.status)}
+                  </span>
+                </div>
+
+                <div className="order-items-preview">
+                  {order.items && order.items.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="order-item-preview">
+                      <span className="item-name">{item.product_name}</span>
+                      <span className="item-quantity">x{item.quantity}</span>
+                    </div>
+                  ))}
+                  {order.items && order.items.length > 3 && (
+                    <div className="more-items">
+                      + {order.items.length - 3} autre(s) article(s)
+                    </div>
+                  )}
+                </div>
+
+                <div className="order-footer">
+                  <div className="order-total">
+                    <span>Total:</span>
+                    <strong>{order.total} MAD</strong>
+                  </div>
+                  {order.payment_method === 'espèces' && (
+                    <span className="payment-badge">
+                      <Icons.Truck size={14} />
+                      Paiement à la livraison
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+// ==================== ADMIN PAGES ====================
+
+// Admin Dashboard Page
+const AdminDashboardPage = ({ navigate }) => {
+  const [stats, setStats] = useState(null);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const { user, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState('orders');
-  const [allOrders, setAllOrders] = useState(orders);
+
+  useEffect(() => {
+    // Wait for user to load
+    if (user === undefined) return;
+    
+    console.log('🔍 User loaded:', user);
+    
+    // Check if user is null (not logged in) or not admin
+    if (!user || user.role !== 'admin') {
+      console.log('🔍 Not admin or not logged in, redirecting');
+      navigate('/');
+      return;
+    }
+    
+    setCheckingAuth(false);
+    fetchDashboardData();
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [statsRes, ordersRes] = await Promise.all([
+        api.get('/admin/stats'),
+        api.get('/admin/orders?per_page=5')
+      ]);
+      
+      if (statsRes.data.success) {
+        setStats(statsRes.data.data);
+      }
+      if (ordersRes.data.success) {
+        setRecentOrders(ordersRes.data.data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loading while checking auth
+  if (checkingAuth || loading) {
+    return (
+      <div className="loading-spinner" style={{ textAlign: 'center', padding: '50px' }}>
+        <div className="spinner"></div>
+        <p>Chargement du tableau de bord...</p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="admin-dashboard"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <h1>Tableau de bord administrateur</h1>
+        
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icons.ShoppingBag size={32} />
+            </div>
+            
+            <div className="stat-content">
+              <h3>Commandes totales</h3>
+              <p className="stat-number">{stats?.total_orders || 0}</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icons.Truck size={32} />
+            </div>
+            <div className="stat-content">
+              <h3>Commandes en cours</h3>
+              <p className="stat-number">{stats?.pending_orders || 0}</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icons.Check size={32} />
+            </div>
+            <div className="stat-content">
+              <h3>Commandes livrées</h3>
+              <p className="stat-number">{stats?.completed_orders || 0}</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icons.Users size={32} />
+            </div>
+            <div className="stat-content">
+              <h3>Clients</h3>
+              <p className="stat-number">{stats?.total_customers || 0}</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icons.Package size={32} />
+            </div>
+            <div className="stat-content">
+              <h3>Produits</h3>
+              <p className="stat-number">{stats?.total_products || 0}</p>
+            </div>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icons.Percent size={32} />
+            </div>
+            <div className="stat-content">
+              <h3>Revenu total</h3>
+              <p className="stat-number">{stats?.total_revenue || 0} MAD</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="recent-orders-section">
+          <h2>Commandes récentes</h2>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>N° Commande</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map(order => (
+                <tr key={order.id}>
+                  <td>{order.order_number}</td>
+                  <td>{order.customer?.name}</td>
+                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td>{order.total} MAD</td>
+                  <td>
+                    <span className={`status-badge ${
+                      order.status === 'en cours' ? 'status-pending' : 
+                      order.status === 'expédiée' ? 'status-shipped' : 
+                      order.status === 'livré' ? 'status-delivered' : 'status-cancelled'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button 
+                      className="view-btn"
+                      onClick={() => navigate(`/admin/orders/${order.id}`)}
+                    >
+                      Voir
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="view-all">
+            <button onClick={() => navigate('/admin/orders')}>
+              Voir toutes les commandes
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+// Admin Orders Page
+const AdminOrdersPage = ({ navigate }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     if (!isAdmin) {
       navigate('/');
+      return;
     }
-  }, [isAdmin, navigate]);
+    fetchOrders();
+  }, [isAdmin, currentPage, statusFilter]);
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setAllOrders(prev => 
-      prev.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('page', currentPage);
+      if (statusFilter) params.append('status', statusFilter);
+      
+      const response = await api.get(`/admin/orders?${params.toString()}`);
+      if (response.data.success && response.data.data) {
+        setOrders(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <motion.div 
-      className="admin-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      <div className="container">
-        <h1>Administration</h1>
-
-        <div className="admin-layout">
-          <div className="admin-sidebar">
-            <ul className="admin-menu">
-              <li className={activeTab === 'orders' ? 'active' : ''}>
-                <button onClick={() => setActiveTab('orders')}>Commandes</button>
-              </li>
-              <li className={activeTab === 'products' ? 'active' : ''}>
-                <button onClick={() => setActiveTab('products')}>Produits</button>
-              </li>
-              <li className={activeTab === 'users' ? 'active' : ''}>
-                <button onClick={() => setActiveTab('users')}>Utilisateurs</button>
-              </li>
-              <li className={activeTab === 'stats' ? 'active' : ''}>
-                <button onClick={() => setActiveTab('stats')}>Statistiques</button>
-              </li>
-            </ul>
-          </div>
-
-          <div className="admin-content">
-            {activeTab === 'orders' && (
-              <div className="orders-management">
-                <h2>Gestion des commandes</h2>
-                
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Client</th>
-                      <th>Date</th>
-                      <th>Total</th>
-                      <th>Statut</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allOrders.map(order => (
-                      <tr key={order.id}>
-                        <td>{order.id}</td>
-                        <td>{users.find(u => u.id === order.userId)?.name}</td>
-                        <td>{order.date}</td>
-                        <td>{order.total} MAD</td>
-                        <td>
-                          <span className={`status-badge status-${order.status}`}>
-                            {order.status}
-                          </span>
-                        </td>
-                        <td>
-                          <select 
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                          >
-                            <option value="en cours">En cours</option>
-                            <option value="expédiée">Expédiée</option>
-                            <option value="livré">Livré</option>
-                            <option value="annulée">Annulée</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {activeTab === 'products' && (
-              <div className="products-management">
-                <h2>Gestion des produits</h2>
-                <motion.button 
-                  className="add-product-btn"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  + Ajouter un produit
-                </motion.button>
-                
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Image</th>
-                      <th>Nom</th>
-                      <th>Prix</th>
-                      <th>Stock</th>
-                      <th>Catégorie</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map(product => (
-                      <tr key={product.id}>
-                        <td>{product.id}</td>
-                        <td><img src={product.image} alt="" width="50" /></td>
-                        <td>{product.name}</td>
-                        <td>{product.price} MAD</td>
-                        <td>{product.stock}</td>
-                        <td>{product.category}</td>
-                        <td>
-                          <motion.button 
-                            className="edit-btn"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Modifier
-                          </motion.button>
-                          <motion.button 
-                            className="delete-btn"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Supprimer
-                          </motion.button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {activeTab === 'users' && (
-              <div className="users-management">
-                <h2>Gestion des utilisateurs</h2>
-                
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Nom</th>
-                      <th>Email</th>
-                      <th>Téléphone</th>
-                      <th>Rôle</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map(user => (
-                      <tr key={user.id}>
-                        <td>{user.id}</td>
-                        <td>{user.name}</td>
-                        <td>{user.email}</td>
-                        <td>{user.phone}</td>
-                        <td>{user.role}</td>
-                        <td>
-                          <motion.button 
-                            className="edit-btn"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Modifier
-                          </motion.button>
-                          <motion.button 
-                            className="delete-btn"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Supprimer
-                          </motion.button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {activeTab === 'stats' && (
-              <div className="stats-management">
-                <h2>Statistiques</h2>
-                
-                <div className="stats-grid">
-                  <motion.div 
-                    className="stat-card"
-                    whileHover={{ y: -5 }}
-                  >
-                    <h3>Commandes totales</h3>
-                    <p className="stat-value">{orders.length}</p>
-                  </motion.div>
-                  <motion.div 
-                    className="stat-card"
-                    whileHover={{ y: -5 }}
-                  >
-                    <h3>Chiffre d'affaires</h3>
-                    <p className="stat-value">
-                      {orders.reduce((sum, o) => sum + o.total, 0)} MAD
-                    </p>
-                  </motion.div>
-                  <motion.div 
-                    className="stat-card"
-                    whileHover={{ y: -5 }}
-                  >
-                    <h3>Produits</h3>
-                    <p className="stat-value">{products.length}</p>
-                  </motion.div>
-                  <motion.div 
-                    className="stat-card"
-                    whileHover={{ y: -5 }}
-                  >
-                    <h3>Clients</h3>
-                    <p className="stat-value">{users.length}</p>
-                  </motion.div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// About Page
-const AboutPage = ({ navigate }) => {
-  return (
-    <motion.div 
-      className="about-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      <div className="page-header">
-        <div className="container">
-          <h1>Qui sommes-nous</h1>
-        </div>
-      </div>
-
-      <div className="container">
-        <motion.div 
-          className="about-content"
-          variants={slideUp}
-        >
-          <div className="about-section">
-            <h2>Notre histoire</h2>
-            <p>
-              TECLAB est une entreprise marocaine spécialisée dans la fourniture d'équipements 
-              et consommables de laboratoire. Depuis notre création, nous nous engageons à 
-              fournir des produits de haute qualité aux professionnels de la santé et de la 
-              recherche au Maroc.
-            </p>
-          </div>
-
-          <div className="about-section">
-            <h2>Notre mission</h2>
-            <p>
-              Notre mission est de faciliter l'accès aux équipements de laboratoire de qualité 
-              pour tous les professionnels du secteur médical et scientifique au Maroc. Nous 
-              travaillons avec les meilleurs fabricants internationaux pour vous offrir des 
-              produits fiables et performants.
-            </p>
-          </div>
-
-          <div className="about-section">
-            <h2>Nos valeurs</h2>
-            <ul>
-              <li>Qualité irréprochable</li>
-              <li>Service client exceptionnel</li>
-              <li>Innovation constante</li>
-              <li>Intégrité et transparence</li>
-            </ul>
-          </div>
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
-
-// Contact Page
-const ContactPage = ({ navigate }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  const [sent, setSent] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
+  const updateStatus = async (orderId, newStatus) => {
+    try {
+      const response = await api.put(`/admin/orders/${orderId}/status`, {
+        status: newStatus
+      });
+      if (response.data.success) {
+        fetchOrders();
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Erreur lors de la mise à jour du statut');
+    }
   };
 
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  if (loading) return <div className="loading-spinner">Chargement...</div>;
+
   return (
     <motion.div 
-      className="contact-page"
+      className="admin-orders-page"
       initial="hidden"
       animate="visible"
       variants={fadeIn}
     >
-      <div className="page-header">
-        <div className="container">
-          <h1>Contactez-nous</h1>
-        </div>
-      </div>
-
       <div className="container">
-        <div className="contact-layout">
-          <div className="contact-info">
-            <motion.div 
-              className="info-card"
-              variants={slideUp}
-              whileHover={{ y: -5 }}
-            >
-              <Icons.MapPin />
-              <h3>Adresse</h3>
-              <p>Rue 7 N° 184/Q4, Lotis Hadika Tghat<br />30090 Fès, Maroc</p>
-            </motion.div>
+        <div className="page-header">
+          <h1>Gestion des commandes</h1>
+          <button onClick={() => navigate('/admin')} className="back-btn">
+            ← Retour
+          </button>
+        </div>
 
-            <motion.div 
-              className="info-card"
-              variants={slideUp}
-              whileHover={{ y: -5 }}
-            >
-              <Icons.Phone />
-              <h3>Téléphone</h3>
-              <p>+212 8086 26102</p>
-              <p>+212 6668 68091</p>
-            </motion.div>
-
-            <motion.div 
-              className="info-card"
-              variants={slideUp}
-              whileHover={{ y: -5 }}
-            >
-              <Icons.Mail />
-              <h3>Email</h3>
-              <p>info@teclab.ma</p>
-              <p>support@teclab.ma</p>
-            </motion.div>
-
-            <motion.div 
-              className="info-card"
-              variants={slideUp}
-              whileHover={{ y: -5 }}
-            >
-              <Icons.Headphones />
-              <h3>Horaires</h3>
-              <p>Lun-Ven: 9h - 18h</p>
-              <p>Sam: 9h - 13h</p>
-            </motion.div>
-          </div>
-
-          <motion.div 
-            className="contact-form"
-            variants={slideInRight}
+        <div className="filters">
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <h2>Envoyez-nous un message</h2>
-            
-            {sent && (
-              <div className="success-message">
-                Message envoyé avec succès !
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Nom</label>
-                <input 
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email</label>
-                <input 
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Sujet</label>
-                <input 
-                  type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Message</label>
-                <textarea 
-                  rows="5"
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  required
-                ></textarea>
-              </div>
-
-              <motion.button 
-                type="submit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Envoyer
-              </motion.button>
-            </form>
-          </motion.div>
+            <option value="">Tous les statuts</option>
+            <option value="en cours">En cours</option>
+            <option value="expédiée">Expédiée</option>
+            <option value="livré">Livrée</option>
+            <option value="annulée">Annulée</option>
+          </select>
         </div>
+
+        <div className="orders-table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>N° Commande</th>
+                <th>Client</th>
+                <th>Email</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order.id}>
+                  <td>{order.order_number}</td>
+                  <td>{order.customer?.name}</td>
+                  <td>{order.customer?.email}</td>
+                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td>{order.total} MAD</td>
+                  <td>
+                    <select 
+                      value={order.status}
+                      onChange={(e) => updateStatus(order.id, e.target.value)}
+                      className={`status-select ${getStatusClass(order.status)}`}
+                    >
+                      <option value="en cours">En cours</option>
+                      <option value="expédiée">Expédiée</option>
+                      <option value="livré">Livrée</option>
+                      <option value="annulée">Annulée</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button 
+                      className="view-btn"
+                      onClick={() => navigate(`/admin/orders/${order.id}`)}
+                    >
+                      Détails
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              <Icons.ChevronLeft />
+            </button>
+            <span>Page {currentPage} sur {totalPages}</span>
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              <Icons.ChevronRight />
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
 };
 
-// ==================== MAIN APP ====================
+// Admin Order Detail Page
+const AdminOrderDetailPage = ({ navigate }) => {
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
 
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+    const path = window.location.pathname;
+    const orderId = path.split('/').pop();
+    fetchOrder(orderId);
+  }, [isAdmin]);
+
+  const fetchOrder = async (orderId) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/orders/${orderId}`);
+      if (response.data.success && response.data.data) {
+        setOrder(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch order:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (newStatus) => {
+    try {
+      const response = await api.put(`/admin/orders/${order.id}/status`, {
+        status: newStatus
+      });
+      if (response.data.success) {
+        setOrder({...order, status: newStatus});
+        alert('Statut mis à jour avec succès');
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Erreur lors de la mise à jour');
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  if (loading) return <div className="loading-spinner">Chargement...</div>;
+  if (!order) return <div className="not-found">Commande non trouvée</div>;
+
+  return (
+    <motion.div 
+      className="admin-order-detail"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="page-header">
+          <button onClick={() => navigate('/admin/orders')} className="back-btn">
+            ← Retour aux commandes
+          </button>
+          <h1>Commande #{order.order_number}</h1>
+        </div>
+
+        <div className="order-status-section">
+          <span className={`status-badge-large ${getStatusClass(order.status)}`}>
+            {order.status}
+          </span>
+          <div className="status-actions">
+            <button 
+              onClick={() => updateStatus('en cours')}
+              className="status-btn pending"
+              disabled={order.status === 'en cours'}
+            >
+              En cours
+            </button>
+            <button 
+              onClick={() => updateStatus('expédiée')}
+              className="status-btn shipped"
+              disabled={order.status === 'expédiée'}
+            >
+              Expédiée
+            </button>
+            <button 
+              onClick={() => updateStatus('livré')}
+              className="status-btn delivered"
+              disabled={order.status === 'livré'}
+            >
+              Livrée
+            </button>
+            <button 
+              onClick={() => updateStatus('annulée')}
+              className="status-btn cancelled"
+              disabled={order.status === 'annulée'}
+            >
+              Annulée
+            </button>
+          </div>
+        </div>
+
+        <div className="order-details-grid">
+          <div className="detail-card">
+            <h3>Informations client</h3>
+            <p><strong>Nom:</strong> {order.customer?.name}</p>
+            <p><strong>Email:</strong> {order.customer?.email}</p>
+            <p><strong>Téléphone:</strong> {order.customer?.phone || 'Non renseigné'}</p>
+          </div>
+
+          <div className="detail-card">
+            <h3>Adresse de livraison</h3>
+            <p>{order.shipping_address}</p>
+          </div>
+
+          <div className="detail-card">
+            <h3>Informations de paiement</h3>
+            <p><strong>Méthode:</strong> {order.payment_method === 'carte' ? 'Carte bancaire' : 'Espèces (COD)'}</p>
+            <p><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</p>
+          </div>
+
+          {order.coupon && (
+            <div className="detail-card">
+              <h3>Coupon appliqué</h3>
+              <p><strong>Code:</strong> {order.coupon.code}</p>
+              <p><strong>Réduction:</strong> -{order.discount_amount} MAD</p>
+            </div>
+          )}
+        </div>
+
+        <div className="order-items-section">
+          <h2>Articles commandés</h2>
+          <table className="items-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Prix unitaire</th>
+                <th>Quantité</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.product_name}</td>
+                  <td>{item.price} MAD</td>
+                  <td>{item.quantity}</td>
+                  <td>{(item.price * item.quantity).toFixed(2)} MAD</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan="3" className="text-right">Sous-total:</td>
+                <td>{order.subtotal} MAD</td>
+              </tr>
+              {order.discount_amount > 0 && (
+                <tr>
+                  <td colSpan="3" className="text-right">Réduction:</td>
+                  <td>-{order.discount_amount} MAD</td>
+                </tr>
+              )}
+              <tr>
+                <td colSpan="3" className="text-right">Livraison:</td>
+                <td>{order.shipping > 0 ? order.shipping + ' MAD' : 'Gratuite'}</td>
+              </tr>
+              <tr>
+                <td colSpan="3" className="text-right">TVA (20%):</td>
+                <td>{order.tax} MAD</td>
+              </tr>
+              <tr className="total-row">
+                <td colSpan="3" className="text-right">Total:</td>
+                <td><strong>{order.total} MAD</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+// ==================== MAIN APP ====================
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -4123,12 +3758,12 @@ function App() {
       }
     };
 
-    window.addEventListener('popstate', handlePathChange);
-    document.addEventListener('click', handleClick);
-
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 500);
     };
+
+    window.addEventListener('popstate', handlePathChange);
+    document.addEventListener('click', handleClick);
     window.addEventListener('scroll', handleScroll);
 
     return () => {
@@ -4143,65 +3778,68 @@ function App() {
   };
 
   const renderPage = () => {
-    if (currentPath === '/') return <HomePage navigate={navigate} />;
-    if (currentPath === '/products') return <ProductsPage navigate={navigate} />;
-    if (currentPath.startsWith('/product/')) return <ProductDetailPage navigate={navigate} />;
-    if (currentPath === '/cart') return <CartPage navigate={navigate} />;
-    if (currentPath === '/checkout') return <div className="coming-soon">Page de paiement en cours de développement</div>;
-    if (currentPath === '/login') return <LoginPage navigate={navigate} />;
-    if (currentPath === '/register') return <RegisterPage navigate={navigate} />;
-    if (currentPath === '/dashboard') return <DashboardPage navigate={navigate} />;
-    if (currentPath === '/admin') return <AdminPage navigate={navigate} />;
-    if (currentPath === '/about') return <AboutPage navigate={navigate} />;
-    if (currentPath === '/contact') return <ContactPage navigate={navigate} />;
-    if (currentPath === '/orders') return <div className="coming-soon">Mes commandes</div>;
-    if (currentPath === '/compare') return <div className="coming-soon">Comparateur de produits</div>;
-    if (currentPath === '/wishlist') return <div className="coming-soon">Liste de souhaits</div>;
-    
-    return (
-      <div className="not-found">
-        <h1>404</h1>
-        <p>Page non trouvée</p>
-        <motion.button 
-          className="btn-primary" 
-          onClick={() => navigate('/')}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Retour à l'accueil
-        </motion.button>
-      </div>
-    );
-  };
-
+  // Get the base path without query parameters
+  const basePath = currentPath.split('?')[0];
+  
+  if (basePath === '/') return <HomePage navigate={navigate} />;
+  if (basePath === '/products') return <ProductsPage navigate={navigate} />;
+  if (basePath.startsWith('/product/')) return <ProductDetailPage navigate={navigate} />;
+  if (basePath === '/categories') return <CategoriesPage navigate={navigate} />;
+  if (basePath === '/cart') return <CartPage navigate={navigate} />;
+  if (basePath === '/checkout') return <CheckoutPage navigate={navigate} />;
+  if (basePath === '/login') return <LoginPage navigate={navigate} />;
+  if (basePath === '/register') return <RegisterPage navigate={navigate} />;
+  if (basePath === '/dashboard') return <DashboardPage navigate={navigate} />;
+  if (basePath === '/orders') return <OrdersPage navigate={navigate} />;
+  if (basePath.startsWith('/orders/')) return <OrderDetailPage navigate={navigate} />;
+  if (basePath === '/verify-email/success') return <VerificationSuccessPage navigate={navigate} />;
+  if (basePath === '/verify-email/error') return <VerificationErrorPage navigate={navigate} />;
+  
+  // Admin routes
+  if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
+  if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
+  if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
+  if (basePath === '/admin/emails') return <EmailCampaign />;
+  return (
+    <div className="not-found">
+      <h1>404</h1>
+      <p>Page non trouvée</p>
+      <button className="btn-primary" onClick={() => navigate('/')}>
+        Retour à l'accueil
+      </button>
+    </div>
+  );
+};
   return (
     <AuthProvider>
       <CartProvider>
         <ProductProvider>
-          <div className="App">
-            <Header currentPath={currentPath} navigate={navigate} />
-            <main className="main-content">
-              {renderPage()}
-            </main>
-            <Footer navigate={navigate} />
-            
-            <AnimatePresence>
-              {showBackToTop && (
-                <motion.div 
-                  className="back-to-top"
-                  onClick={scrollToTop}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Icons.ArrowUp />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <CouponProvider>
+            <div className="App">
+              <Header currentPath={currentPath} navigate={navigate} />
+              <main className="main-content">
+                {renderPage()}
+                
+              </main>
+              <Footer navigate={navigate} />
+              
+              <AnimatePresence>
+                {showBackToTop && (
+                  <motion.div 
+                    className="back-to-top"
+                    onClick={scrollToTop}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Icons.ArrowUp />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </CouponProvider>
         </ProductProvider>
       </CartProvider>
     </AuthProvider>
