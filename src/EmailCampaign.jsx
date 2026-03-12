@@ -36,13 +36,13 @@ import {
   Send as SendIcon,
   Email as EmailIcon,
   Preview as PreviewIcon,
+  Code as CodeIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   People as PeopleIcon,
   Person as PersonIcon,
   ShoppingBag as ShoppingBagIcon,
 } from '@mui/icons-material';
-import { Editor } from '@tinymce/tinymce-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
@@ -65,7 +65,7 @@ const EmailCampaign = () => {
   });
 
   // Preview state
-  const [previewMode, setPreviewMode] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false); // false = rendered HTML, true = raw HTML
   const [previewData, setPreviewData] = useState({
     customer_name: 'Client Test',
     customer_email: 'client@test.com',
@@ -100,9 +100,9 @@ const EmailCampaign = () => {
     setCampaign(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle editor change
-  const handleEditorChange = (content) => {
-    setCampaign(prev => ({ ...prev, body: content }));
+  // Handle body change (for raw HTML)
+  const handleBodyChange = (e) => {
+    setCampaign(prev => ({ ...prev, body: e.target.value }));
   };
 
   // Handle template selection
@@ -150,6 +150,44 @@ const EmailCampaign = () => {
 <p>Ne manquez pas cette occasion unique !</p>
 <p>Consultez notre site pour découvrir les produits en promotion.</p>
 <p>L'équipe TECLAB</p>`
+    },
+    custom: {
+      name: 'HTML Personnalisé',
+      subject: 'Campagne personnalisée',
+      body: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+    .content { padding: 20px; }
+    .footer { background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666; }
+    .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>TECLAB</h1>
+      <h2>Bonjour {{customer_name}} !</h2>
+    </div>
+    <div class="content">
+      <p>Ceci est un email HTML personnalisé.</p>
+      <p>Vous pouvez mettre tout le code HTML que vous voulez ici.</p>
+      <p>
+        <a href="#" class="button">Appel à l'action</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{year}} TECLAB. Tous droits réservés.</p>
+      <p>{{date}}</p>
+    </div>
+  </div>
+</body>
+</html>`
     }
   };
 
@@ -295,6 +333,14 @@ const EmailCampaign = () => {
     return html;
   };
 
+  // Insert variable at cursor position
+  const insertVariable = (variable) => {
+    setCampaign(prev => ({ 
+      ...prev, 
+      body: prev.body + variable 
+    }));
+  };
+
   // Steps for stepper
   const steps = [
     {
@@ -348,30 +394,58 @@ const EmailCampaign = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="subtitle2" gutterBottom>
-              Contenu de l'email
-            </Typography>
-            <Editor
-              apiKey="your-tinymce-api-key" // Get one from tiny.cloud
-              value={campaign.body}
-              onEditorChange={handleEditorChange}
-              init={{
-                height: 400,
-                menubar: true,
-                language: 'fr',
-                plugins: [
-                  'advlist', 'autolink', 'lists', 'link', 'charmap',
-                  'preview', 'anchor', 'searchreplace', 'visualblocks', 'code',
-                  'fullscreen', 'insertdatetime', 'table', 'code',
-                  'help', 'wordcount', 'emoticons'
-                ],
-                toolbar: 'undo redo | blocks | ' +
-                  'bold italic underline | alignleft aligncenter ' +
-                  'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'link | forecolor backcolor | emoticons | removeformat | help',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px; line-height:1.6; }'
-              }}
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle2">
+                Contenu HTML de l'email
+              </Typography>
+              <Tooltip title={previewMode ? "Voir le rendu HTML" : "Voir le code HTML"}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={previewMode}
+                      onChange={(e) => setPreviewMode(e.target.checked)}
+                      icon={<CodeIcon />}
+                      checkedIcon={<PreviewIcon />}
+                    />
+                  }
+                  label={previewMode ? "Code" : "Aperçu"}
+                />
+              </Tooltip>
+            </Box>
+
+            {previewMode ? (
+              <TextField
+                multiline
+                rows={20}
+                fullWidth
+                value={campaign.body}
+                onChange={handleBodyChange}
+                variant="outlined"
+                placeholder="Collez votre code HTML ici..."
+                InputProps={{ 
+                  sx: { fontFamily: 'monospace', fontSize: '14px' }
+                }}
+                helperText="Vous pouvez coller n'importe quel code HTML"
+              />
+            ) : (
+              <Paper
+                sx={{
+                  p: 3,
+                  bgcolor: '#f5f5f5',
+                  maxHeight: 500,
+                  overflow: 'auto',
+                  border: '1px solid #e0e0e0'
+                }}
+              >
+                {campaign.body ? (
+                  <div dangerouslySetInnerHTML={{ __html: getPreviewHtml() }} />
+                ) : (
+                  <Typography color="textSecondary" align="center">
+                    Aucun contenu à prévisualiser
+                  </Typography>
+                )}
+              </Paper>
+            )}
           </Grid>
 
           <Grid item xs={12}>
@@ -381,25 +455,25 @@ const EmailCampaign = () => {
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Chip 
                 label="{{customer_name}}" 
-                onClick={() => handleEditorChange(campaign.body + '{{customer_name}}')}
+                onClick={() => insertVariable('{{customer_name}}')}
                 color="primary"
                 variant="outlined"
               />
               <Chip 
                 label="{{customer_email}}" 
-                onClick={() => handleEditorChange(campaign.body + '{{customer_email}}')}
+                onClick={() => insertVariable('{{customer_email}}')}
                 color="primary"
                 variant="outlined"
               />
               <Chip 
                 label="{{date}}" 
-                onClick={() => handleEditorChange(campaign.body + '{{date}}')}
+                onClick={() => insertVariable('{{date}}')}
                 color="primary"
                 variant="outlined"
               />
               <Chip 
                 label="{{year}}" 
-                onClick={() => handleEditorChange(campaign.body + '{{year}}')}
+                onClick={() => insertVariable('{{year}}')}
                 color="primary"
                 variant="outlined"
               />
@@ -502,7 +576,7 @@ const EmailCampaign = () => {
       )
     },
     {
-      label: 'Test & Aperçu',
+      label: 'Test & Envoi',
       content: (
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
@@ -524,53 +598,31 @@ const EmailCampaign = () => {
               onClick={sendTestEmail}
               disabled={loading || !campaign.testEmail}
               fullWidth
-              sx={{ mb: 3 }}
             >
               Envoyer un test
             </Button>
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h6">Aperçu</Typography>
-              <Tooltip title="Voir le code HTML">
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={previewMode}
-                      onChange={(e) => setPreviewMode(e.target.checked)}
-                    />
-                  }
-                  label="HTML"
-                />
-              </Tooltip>
-            </Box>
-
-            {previewMode ? (
-              <TextField
-                multiline
-                rows={20}
-                fullWidth
-                value={campaign.body}
-                variant="outlined"
-                InputProps={{ 
-                  readOnly: true,
-                  sx: { fontFamily: 'monospace', fontSize: '12px' }
-                }}
-              />
-            ) : (
-              <Paper
-                sx={{
-                  p: 3,
-                  bgcolor: '#f5f5f5',
-                  maxHeight: 500,
-                  overflow: 'auto',
-                  border: '1px solid #e0e0e0'
-                }}
-              >
-                <div dangerouslySetInnerHTML={{ __html: getPreviewHtml() }} />
-              </Paper>
-            )}
+            <Typography variant="h6" gutterBottom>
+              Récapitulatif
+            </Typography>
+            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+              <Typography variant="subtitle2">Sujet:</Typography>
+              <Typography variant="body2" gutterBottom>
+                {campaign.subject || 'Non défini'}
+              </Typography>
+              <Typography variant="subtitle2" sx={{ mt: 2 }}>Type:</Typography>
+              <Typography variant="body2" gutterBottom>
+                {campaign.type}
+              </Typography>
+              <Typography variant="subtitle2" sx={{ mt: 2 }}>Cible:</Typography>
+              <Typography variant="body2">
+                {campaign.target === 'all' && 'Tous les clients'}
+                {campaign.target === 'selected' && `${selectedCustomers.length} client(s) sélectionné(s)`}
+                {campaign.target === 'active' && `Clients avec ≥ ${campaign.minOrders} commande(s)`}
+              </Typography>
+            </Paper>
           </Grid>
         </Grid>
       )
@@ -637,4 +689,4 @@ const EmailCampaign = () => {
   );
 };
 
-export default EmailCampaign;
+export default EmailCampaign; 

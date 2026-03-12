@@ -1,44 +1,10 @@
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import axios from 'axios';
+import api from './api';
+import { favoritesApi, couponsApi } from './api';
 import './App.css';
 import EmailCampaign from './EmailCampaign';
 // ==================== API CONFIGURATION ====================
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  withCredentials: true,
-});
-
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 // ==================== ICON COMPONENTS ====================
 const Icons = {
@@ -206,6 +172,14 @@ const slideUp = {
     transition: { duration: 0.5 }
   }
 };
+// ==================== FAVORITES CONTEXT ====================
+const FavoritesContext = createContext();
+const useFavorites = () => {
+  const context = useContext(FavoritesContext);
+  if (!context) throw new Error('useFavorites must be used within FavoritesProvider');
+  return context;
+};
+
 
 // ==================== CONTEXTS ====================
 
@@ -391,23 +365,120 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    updateProfile,
-    resendVerification,
-    checkVerification,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
-    isEmailVerified: user?.email_verified_at !== null,
-  };
+  // In the AuthProvider, update the value object:
 
+const value = {
+  user,
+  loading,
+  error,
+  login,
+  register,
+  logout,
+  updateProfile,
+  resendVerification,
+  checkVerification,
+  isAuthenticated: !!user,
+  isAdmin: user?.role === 'admin',
+  isPro: user?.tier === 'pro', // Add this
+  proDiscount: user?.pro_discount || 0, // Add this
+  companyName: user?.company_name, // Add this
+  isEmailVerified: user?.email_verified_at !== null,
+};
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };// ==================== CART PROVIDER ====================
+
+// ==================== FAVORITES PROVIDER ====================
+const FavoritesProvider = ({ children }) => {
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  // Fetch favorites when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchFavorites();
+    } else {
+      setFavorites([]);
+    }
+  }, [isAuthenticated]);
+
+  const fetchFavorites = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/favorites');
+      if (response.data.success && response.data.data) {
+        // Handle paginated response
+        const favoritesData = response.data.data.data || response.data.data || [];
+        setFavorites(favoritesData);
+      }
+    } catch (err) {
+      console.error('Failed to fetch favorites:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addToFavorites = async (productId) => {
+    if (!isAuthenticated) {
+      alert('Veuillez vous connecter pour ajouter aux favoris');
+      return false;
+    }
+
+    try {
+      const response = await api.post(`/favorites/${productId}`);
+      if (response.data.success) {
+        await fetchFavorites();
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to add to favorites:', err);
+      alert('Erreur lors de l\'ajout aux favoris');
+    }
+    return false;
+  };
+
+  const removeFromFavorites = async (productId) => {
+    try {
+      const response = await api.delete(`/favorites/${productId}`);
+      if (response.data.success) {
+        setFavorites(prev => prev.filter(p => p.id !== productId));
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to remove from favorites:', err);
+      alert('Erreur lors du retrait des favoris');
+    }
+    return false;
+  };
+
+  const toggleFavorite = async (productId, isFavorite) => {
+    if (isFavorite) {
+      return await removeFromFavorites(productId);
+    } else {
+      return await addToFavorites(productId);
+    }
+  };
+
+  const checkIsFavorite = (productId) => {
+    return favorites.some(p => p.id === productId);
+  };
+
+  // Add favorites count
+  const favoritesCount = favorites.length;
+
+  const value = {
+    favorites,
+    loading,
+    favoritesCount, // Add this
+    addToFavorites,
+    removeFromFavorites,
+    toggleFavorite,
+    checkIsFavorite,
+    refreshFavorites: fetchFavorites
+  };
+
+  return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
+};   
 const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -711,6 +782,7 @@ const ProductProvider = ({ children }) => {
 };
 
 // ==================== COUPON PROVIDER ====================
+// ==================== COUPON PROVIDER ====================
 const CouponProvider = ({ children }) => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -764,9 +836,13 @@ const CouponProvider = ({ children }) => {
     fetchCoupons();
   }, []);
 
+  // Add coupons count
+  const couponsCount = coupons.length;
+
   const value = {
     coupons,
     loading,
+    couponsCount, // Add this
     appliedCoupon,
     discount,
     validateCoupon,
@@ -775,7 +851,7 @@ const CouponProvider = ({ children }) => {
   };
 
   return <CouponContext.Provider value={value}>{children}</CouponContext.Provider>;
-};
+}; 
 
 // ==================== COMPONENTS ====================
 
@@ -878,18 +954,73 @@ const Carousel = () => {
 };
 
 // Product Card Component
-const ProductCard = ({ product, onAddToCart, onViewDetails, onAddToWishlist, isFavorite }) => {
+// Update the ProductCard component in your App.js
+// ==================== PRODUCT CARD COMPONENT (FIXED) ====================
+// ==================== PRODUCT CARD COMPONENT ====================
+const ProductCard = ({ 
+  product, 
+  onAddToCart, 
+  onViewDetails, 
+  onToggleFavorite, 
+  isFavorite,
+  isPro,
+  proDiscount
+}) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
+  // Calculate pro price
+  const calculateProPrice = (originalPrice) => {
+    if (isPro && proDiscount > 0) {
+      const discount = (originalPrice * proDiscount) / 100;
+      return Math.round(originalPrice - discount);
+    }
+    return originalPrice;
+  };
+
+  const displayPrice = calculateProPrice(product.price);
+  const hasProDiscount = isPro && proDiscount > 0 && displayPrice < product.price;
+
+  // Define handleAddToCart
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    onAddToCart(product);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1000);
+    if (onAddToCart && product) {
+      const productToAdd = {
+        ...product,
+        price: displayPrice,
+        original_price: hasProDiscount ? product.price : product.original_price
+      };
+      onAddToCart(productToAdd);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1000);
+    }
   };
+
+  // Define handleToggleFavorite
+  const handleToggleFavorite = async (e) => {
+    e.stopPropagation();
+    if (favoriteLoading || !onToggleFavorite || !product) return;
+    
+    setFavoriteLoading(true);
+    try {
+      await onToggleFavorite(product.id, isFavorite);
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  // Define handleViewDetails
+  const handleViewDetails = (e) => {
+    e.stopPropagation();
+    if (onViewDetails && product) {
+      onViewDetails(product);
+    }
+  };
+
+  if (!product) return null;
 
   return (
     <motion.div 
@@ -902,16 +1033,22 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onAddToWishlist, isF
       transition={{ duration: 0.3 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      onClick={() => onViewDetails(product)}
+      onClick={handleViewDetails}
     >
       <div className="product-image-container">
-        <img src={product.image} alt={product.name} className="product-image" />
+        <img src={product.image || '/placeholder.jpg'} alt={product.name || 'Product'} className="product-image" />
         
         {product.badge && (
           <span className="product-badge">{product.badge}</span>
         )}
         
-        {product.original_price && (
+        {hasProDiscount && (
+          <span className="product-discount pro-discount">
+            -{proDiscount}% PRO
+          </span>
+        )}
+        
+        {!isPro && product.original_price && (
           <span className="product-discount">
             -{Math.round((1 - product.price / product.original_price) * 100)}%
           </span>
@@ -928,24 +1065,26 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onAddToWishlist, isF
             onClick={handleAddToCart}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            disabled={product.stock === 0}
           >
             <Icons.ShoppingBag />
           </motion.button>
           <motion.button 
             className="action-btn"
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleViewDetails}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <Icons.Eye />
           </motion.button>
           <motion.button 
-            className={`action-btn ${isFavorite ? 'favorite' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onAddToWishlist && onAddToWishlist(product.id); }}
+            className={`action-btn ${isFavorite ? 'favorite active' : ''}`}
+            onClick={handleToggleFavorite}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            disabled={favoriteLoading}
           >
-            <Icons.Heart />
+            <Icons.Heart className={favoriteLoading ? 'loading' : ''} />
           </motion.button>
         </motion.div>
 
@@ -975,24 +1114,367 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onAddToWishlist, isF
         </div>
 
         <div className="product-price">
-          <span className="current-price">{product.price} MAD</span>
-          {product.original_price && (
+          <span className={`current-price ${hasProDiscount ? 'pro-price' : ''}`}>
+            {displayPrice} MAD
+          </span>
+          
+          {hasProDiscount && (
+            <span className="original-price">{product.price} MAD</span>
+          )}
+          
+          {!isPro && product.original_price && (
             <span className="original-price">{product.original_price} MAD</span>
           )}
+        </div>
+
+        {hasProDiscount && (
+          <div className="pro-badge-container">
+            <span className="pro-badge-small">
+              <Icons.Star size={12} /> Prix PRO
+            </span>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+// ==================== WISHLIST PAGE ====================
+// ==================== WISHLIST PAGE ====================
+const WishlistPage = ({ navigate }) => {
+  const { favorites, loading, removeFromFavorites, refreshFavorites } = useFavorites();
+  const { isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
+  const { isPro, proDiscount } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    } else {
+      refreshFavorites();
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Define handleAddToCart function
+  const handleAddToCart = (product) => {
+    // Calculate pro price if user is pro
+    let priceToUse = product.price;
+    if (isPro && proDiscount > 0) {
+      const discount = (product.price * proDiscount) / 100;
+      priceToUse = Math.round(product.price - discount);
+    }
+    
+    const productToAdd = {
+      ...product,
+      price: priceToUse
+    };
+    addToCart(productToAdd, 1);
+  };
+
+  // Define handleRemoveFromFavorites function
+  const handleRemoveFromFavorites = async (productId) => {
+    if (window.confirm('Voulez-vous retirer ce produit de vos favoris ?')) {
+      await removeFromFavorites(productId);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <motion.div 
+        className="wishlist-page"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <div className="auth-required">
+            <Icons.Heart size={64} />
+            <h2>Connectez-vous pour voir vos favoris</h2>
+            <p>Vous devez être connecté pour accéder à votre liste de favoris</p>
+            <div className="auth-buttons">
+              <button className="btn-primary" onClick={() => navigate('/login')}>
+                Se connecter
+              </button>
+              <button className="btn-secondary" onClick={() => navigate('/register')}>
+                Créer un compte
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Chargement de vos favoris...</p>
+      </div>
+    );
+  }
+
+  if (favorites.length === 0) {
+    return (
+      <motion.div 
+        className="wishlist-page empty-wishlist"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <Icons.Heart size={64} />
+          <h2>Votre wishlist est vide</h2>
+          <p>Découvrez nos produits et ajoutez-les à vos favoris</p>
+          <button className="btn-primary" onClick={() => navigate('/products')}>
+            Découvrir nos produits
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="wishlist-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="page-header">
+          <h1>Mes Favoris</h1>
+          <p className="favorites-count">{favorites.length} produit(s) dans votre wishlist</p>
+        </div>
+
+        <div className="wishlist-grid">
+          {favorites.map(product => (
+            <div key={product.id} className="wishlist-item">
+              <div className="wishlist-item-image" onClick={() => navigate(`/product/${product.slug}`)}>
+                <img src={product.image} alt={product.name} />
+              </div>
+              
+              <div className="wishlist-item-info">
+                <h3 onClick={() => navigate(`/product/${product.slug}`)}>{product.name}</h3>
+                <ProductPrice 
+                  price={product.price}
+                  originalPrice={product.original_price}
+                  isPro={isPro}
+                  proDiscount={proDiscount}
+                />
+                {product.stock > 0 ? (
+                  <span className="in-stock">En stock</span>
+                ) : (
+                  <span className="out-of-stock">Rupture de stock</span>
+                )}
+              </div>
+
+              <div className="wishlist-item-actions">
+                <button 
+                  className="add-to-cart-btn"
+                  onClick={() => handleAddToCart(product)}
+                  disabled={product.stock === 0}
+                >
+                  <Icons.ShoppingBag /> Ajouter au panier
+                </button>
+                <button 
+                  className="remove-favorite-btn"
+                  onClick={() => handleRemoveFromFavorites(product.id)}
+                >
+                  <Icons.Trash /> Retirer
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </motion.div>
   );
 };
+// ==================== COUPONS PAGE ====================
+const CouponsPage = ({ navigate }) => {
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState(null);
+  const { isAuthenticated } = useAuth();
 
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  const fetchCoupons = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/coupons');
+      if (response.data.success && response.data.data) {
+        setCoupons(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch coupons:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = (code) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const getCouponIcon = (type) => {
+    return type === 'percentage' ? <Icons.Percent /> : <Icons.Truck />;
+  };
+
+  const formatDate = (date) => {
+    if (!date) return 'Valable indéfiniment';
+    return new Date(date).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const getDiscountText = (coupon) => {
+    if (coupon.type === 'percentage') {
+      return `${coupon.value}% de réduction`;
+    } else {
+      return `${coupon.value} MAD de réduction`;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Chargement des coupons...</p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="coupons-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="page-header modern">
+        <div className="container">
+          <h1>Coupons & Promotions</h1>
+          <p>Profitez de nos offres exclusives et économisez sur vos achats</p>
+        </div>
+      </div>
+
+      <div className="container">
+        {coupons.length === 0 ? (
+          <div className="no-coupons">
+            <Icons.Percent size={64} />
+            <h2>Aucun coupon disponible</h2>
+            <p>Revenez plus tard pour découvrir nos prochaines offres</p>
+          </div>
+        ) : (
+          <div className="coupons-grid">
+            {coupons.map(coupon => (
+              <motion.div 
+                key={coupon.id}
+                className={`coupon-card ${coupon.type === 'percentage' ? 'percentage' : 'fixed'}`}
+                variants={slideUp}
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="coupon-header">
+                  <div className="coupon-icon">
+                    {getCouponIcon(coupon.type)}
+                  </div>
+                  <div className="coupon-code">
+                    <span className="code-label">Code</span>
+                    <span className="code-value">{coupon.code}</span>
+                  </div>
+                </div>
+
+                <div className="coupon-body">
+                  <h3 className="coupon-name">{coupon.name}</h3>
+                  <p className="coupon-description">{coupon.description || getDiscountText(coupon)}</p>
+                  
+                  <div className="coupon-details">
+                    <div className="coupon-detail">
+                      <span className="detail-label">Réduction</span>
+                      <span className="detail-value discount">{getDiscountText(coupon)}</span>
+                    </div>
+                    
+                    {coupon.min_order_amount && (
+                      <div className="coupon-detail">
+                        <span className="detail-label">Minimum de commande</span>
+                        <span className="detail-value">{coupon.min_order_amount} MAD</span>
+                      </div>
+                    )}
+                    
+                    <div className="coupon-detail">
+                      <span className="detail-label">Valable jusqu'au</span>
+                      <span className="detail-value">{formatDate(coupon.expires_at)}</span>
+                    </div>
+
+                    {coupon.usage_limit && (
+                      <div className="coupon-detail">
+                        <span className="detail-label">Utilisations restantes</span>
+                        <span className="detail-value">{coupon.usage_limit - (coupon.used_count || 0)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="coupon-footer">
+                  <button 
+                    className={`copy-btn ${copiedCode === coupon.code ? 'copied' : ''}`}
+                    onClick={() => copyToClipboard(coupon.code)}
+                  >
+                    {copiedCode === coupon.code ? (
+                      <>
+                        <Icons.Check /> Copié !
+                      </>
+                    ) : (
+                      <>
+                        Copier le code
+                      </>
+                    )}
+                  </button>
+                  
+                  {isAuthenticated && (
+                    <button 
+                      className="use-btn"
+                      onClick={() => navigate('/cart')}
+                    >
+                      Utiliser maintenant
+                    </button>
+                  )}
+                </div>
+
+                {!isAuthenticated && (
+                  <div className="coupon-login-note">
+                    <Icons.User size={14} />
+                    <span>Connectez-vous pour utiliser ce coupon</span>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 // Header Component
+// Header Component
+// Header Component - Complete fixed version
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
-  const { setSearchQuery, categories } = useProducts();
+  const { setSearchQuery, categories } = useProducts(); // Get categories from ProductContext
+  const { favoritesCount } = useFavorites();
+  const { couponsCount } = useCoupons();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -1003,6 +1485,11 @@ const Header = ({ currentPath, navigate }) => {
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  const handleCategoryClick = (categoryId, categoryName) => {
+    setShowCategoryMenu(false);
+    navigate(`/products?category=${categoryId}`);
   };
 
   return (
@@ -1054,26 +1541,51 @@ const Header = ({ currentPath, navigate }) => {
             </form>
 
             <div className="header-right">
+              {/* Coupons icon with counter */}
               <motion.a 
                 href="/coupons" 
-                className="header-icon" 
+                className="header-icon coupons-icon" 
                 onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Icons.Percent />
+                {isAuthenticated && couponsCount > 0 && (
+                  <motion.span 
+                    className="count coupons-count"
+                    key={couponsCount}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 500 }}
+                  >
+                    {couponsCount}
+                  </motion.span>
+                )}
               </motion.a>
               
+              {/* Wishlist icon with counter */}
               <motion.a 
                 href="/wishlist" 
-                className="header-icon" 
+                className="header-icon wishlist-icon" 
                 onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Icons.Heart />
+                {isAuthenticated && favoritesCount > 0 && (
+                  <motion.span 
+                    className="count wishlist-count"
+                    key={favoritesCount}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 500 }}
+                  >
+                    {favoritesCount}
+                  </motion.span>
+                )}
               </motion.a>
               
+              {/* Cart icon with counter */}
               <div className="ps-cart--mini">
                 <motion.a 
                   href="/cart" 
@@ -1084,7 +1596,7 @@ const Header = ({ currentPath, navigate }) => {
                 >
                   <Icons.ShoppingBag />
                   <motion.span 
-                    className="count"
+                    className="count cart-count"
                     key={cartCount}
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 0.3 }}
@@ -1102,6 +1614,9 @@ const Header = ({ currentPath, navigate }) => {
                       <span className="user-name">{user?.name}</span>
                       <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
                       <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
+                      <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
+                        Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
+                      </a>
                       <button onClick={handleLogout}>Déconnexion</button>
                     </>
                   ) : (
@@ -1125,56 +1640,211 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         </div>
 
-        <nav className="navigation">
-          <div className="container">
-            <ul className="nav-menu">
-              {[
-                { href: '/', icon: <Icons.Home />, text: 'Accueil', active: currentPath === '/' },
-                { href: '/products', icon: <Icons.Package />, text: 'Produits', active: currentPath === '/products' },
-                { href: '/categories', icon: <Icons.Users />, text: 'Catégories', active: currentPath === '/categories' },
-                { href: '/coupons', icon: <Icons.Percent />, text: 'Coupons', active: currentPath === '/coupons' },
-                { href: '/about', icon: <Icons.Users />, text: 'À propos', active: currentPath === '/about' },
-                { href: '/contact', icon: <Icons.Phone />, text: 'Contact', active: currentPath === '/contact' },
-              ].map((item, index) => (
-                <motion.li 
-                  key={index}
-                  className={item.active ? 'active' : ''}
-                  whileHover={{ y: -2 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <a href={item.href} onClick={(e) => { e.preventDefault(); navigate(item.href); }}>
-                    {item.icon} {item.text}
-                  </a>
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-        </nav>
-
+        {/* Categories Mega Menu */}
         <AnimatePresence>
           {showCategoryMenu && (
             <motion.div 
-              className="category-menu"
+              className="categories-mega-menu"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.2 }}
             >
               <div className="container">
-                {categories.map(cat => (
-                  <motion.a 
-                    key={cat.id} 
-                    href={`/products?category=${cat.id}`} 
-                    className="category-link"
-                    onClick={(e) => { e.preventDefault(); navigate(`/products?category=${cat.id}`); setShowCategoryMenu(false); }}
-                    whileHover={{ x: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <span className="category-color" style={{ backgroundColor: cat.color || '#6d9eeb' }}></span>
-                    {cat.name}
-                  </motion.a>
-                ))}
+                <div className="categories-grid-header">
+                  {categories.length > 0 ? (
+                    categories.map(category => (
+                      <motion.div 
+                        key={category.id}
+                        className="category-menu-item"
+                        whileHover={{ x: 5 }}
+                        onClick={() => handleCategoryClick(category.id, category.name)}
+                      >
+                        <div className="category-menu-icon">
+                          <Icons.Package size={20} />
+                        </div>
+                        <div className="category-menu-content">
+                          <h4>{category.name}</h4>
+                          <span className="category-menu-count">
+                            {category.products_count || 0} produits
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="loading-categories">Chargement des catégories...</div>
+                  )}
+                </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {showMobileMenu && (
+            <motion.div 
+              className="mobile-menu-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <motion.div 
+                className="mobile-menu-content"
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25 }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="mobile-menu-header">
+                  <h3>Menu</h3>
+                  <button className="close-btn" onClick={() => setShowMobileMenu(false)}>
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <div className="mobile-menu-body">
+                  <div className="mobile-menu-section">
+                    <h4>Catégories</h4>
+                    <div className="mobile-categories-list">
+                      <a 
+                        href="/products" 
+                        className="mobile-category-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/products');
+                        }}
+                      >
+                        Tous les produits
+                      </a>
+                      {categories.map(category => (
+                        <a 
+                          key={category.id}
+                          href={`/products?category=${category.id}`}
+                          className="mobile-category-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate(`/products?category=${category.id}`);
+                          }}
+                        >
+                          {category.name}
+                          <span className="category-count">{category.products_count || 0}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mobile-menu-section">
+                    <h4>Liens rapides</h4>
+                    <div className="mobile-links-list">
+                      <a 
+                        href="/" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/');
+                        }}
+                      >
+                        <Icons.Home size={18} /> Accueil
+                      </a>
+                      <a 
+                        href="/products" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/products');
+                        }}
+                      >
+                        <Icons.Package size={18} /> Produits
+                      </a>
+                      <a 
+                        href="/categories" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/categories');
+                        }}
+                      >
+                        <Icons.Filter size={18} /> Catégories
+                      </a>
+                      <a 
+                        href="/coupons" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/coupons');
+                        }}
+                      >
+                        <Icons.Percent size={18} /> Coupons
+                      </a>
+                      {isAuthenticated ? (
+                        <>
+                          <a 
+                            href="/dashboard" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowMobileMenu(false);
+                              navigate('/dashboard');
+                            }}
+                          >
+                            <Icons.User size={18} /> Mon Compte
+                          </a>
+                          <a 
+                            href="/orders" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowMobileMenu(false);
+                              navigate('/orders');
+                            }}
+                          >
+                            <Icons.Package size={18} /> Mes Commandes
+                          </a>
+                          <a 
+                            href="/wishlist" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowMobileMenu(false);
+                              navigate('/wishlist');
+                            }}
+                          >
+                            <Icons.Heart size={18} /> Mes Favoris
+                          </a>
+                          <button onClick={handleLogout} className="mobile-logout-btn">
+                            <Icons.LogOut size={18} /> Déconnexion
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <a 
+                            href="/login" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowMobileMenu(false);
+                              navigate('/login');
+                            }}
+                          >
+                            <Icons.User size={18} /> Connexion
+                          </a>
+                          <a 
+                            href="/register" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowMobileMenu(false);
+                              navigate('/register');
+                            }}
+                          >
+                            <Icons.User size={18} /> Inscription
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1182,24 +1852,25 @@ const Header = ({ currentPath, navigate }) => {
     </>
   );
 };
-
 // Footer Component
 const Footer = ({ navigate }) => {
   return (
     <footer className="footer">
       <div className="container">
-        <div className="footer-widgets">
-          <div className="widget">
-            <h4>Liens rapides</h4>
-            <ul>
-              <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a></li>
-              <li><a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a></li>
-              <li><a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); }}>Catégories</a></li>
-              <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>À propos</a></li>
-              <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}>Contact</a></li>
-            </ul>
-          </div>
-        </div>
+        // In Footer component, update the widget section:
+<div className="footer-widgets">
+  <div className="widget">
+    <h4>Liens rapides</h4>
+    <ul>
+      <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a></li>
+      <li><a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a></li>
+      <li><a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); }}>Catégories</a></li>
+      <li><a href="/coupons" onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}>Coupons</a></li>
+      <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>À propos</a></li>
+      <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}>Contact</a></li>
+    </ul>
+  </div>
+</div>
 
         <div className="footer-bottom">
           <p>© 2026 TECLAB. Tous droits réservés.</p>
@@ -1226,11 +1897,14 @@ const Footer = ({ navigate }) => {
 // ==================== PAGES ====================
 
 // Home Page
+// Home Page
 const HomePage = ({ navigate }) => {
   const { addToCart } = useCart();
   const { getFeaturedProducts } = useProducts();
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { toggleFavorite, checkIsFavorite } = useFavorites();
+  const { isPro, proDiscount } = useAuth(); // Add this line
 
   useEffect(() => {
     loadFeaturedProducts();
@@ -1266,6 +1940,10 @@ const HomePage = ({ navigate }) => {
                   product={product} 
                   onAddToCart={addToCart}
                   onViewDetails={(product) => navigate(`/product/${product.slug}`)}
+                  isFavorite={checkIsFavorite(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                  isPro={isPro}
+                  proDiscount={proDiscount}
                 />
               ))}
             </div>
@@ -1275,10 +1953,10 @@ const HomePage = ({ navigate }) => {
     </div>
   );
 };
-
 // Products Page
 // Products Page - FIXED
 // Products Page - REDESIGNED
+// Products Page
 const ProductsPage = ({ navigate }) => {
   const {
     filteredProducts,
@@ -1299,6 +1977,8 @@ const ProductsPage = ({ navigate }) => {
     setPriceRange
   } = useProducts();
   const { addToCart } = useCart();
+  const { toggleFavorite, checkIsFavorite } = useFavorites();
+  const { isPro, proDiscount } = useAuth();
   const [showFilter, setShowFilter] = useState(false);
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
@@ -1461,6 +2141,10 @@ const ProductsPage = ({ navigate }) => {
                       product={product} 
                       onAddToCart={addToCart}
                       onViewDetails={(product) => navigate(`/product/${product.slug}`)}
+                      isFavorite={checkIsFavorite(product.id)}
+                      onToggleFavorite={toggleFavorite}
+                      isPro={isPro}
+                      proDiscount={proDiscount}
                     />
                   ))}
                 </div>
@@ -1639,202 +2323,57 @@ const ProductDetailPage = ({ navigate }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { addToCart } = useCart();
   const { getProduct } = useProducts();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isPro, proDiscount } = useAuth(); // Add isPro, proDiscount
+  const { toggleFavorite, checkIsFavorite } = useFavorites();
 
-  useEffect(() => {
-    const path = window.location.pathname;
-    const slug = path.split('/').pop();
-    loadProduct(slug);
-  }, []);
-
-  const loadProduct = async (slug) => {
-    setLoading(true);
-    try {
-      const data = await getProduct(slug);
-      if (data) {
-        setProduct(data.product || data);
-        setRelated(data.related || []);
-        setIsFavorite(data.is_favorite || false);
-      }
-    } catch (err) {
-      console.error('Failed to load product:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddToWishlist = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      if (isFavorite) {
-        await api.delete(`/favorites/${product.id}`);
-        setIsFavorite(false);
-      } else {
-        await api.post(`/favorites/${product.id}`);
-        setIsFavorite(true);
-      }
-    } catch (err) {
-      console.error('Failed to toggle favorite:', err);
-    }
-  };
-
-  if (loading) {
-    return <div className="loading">Chargement...</div>;
-  }
-
-  if (!product) {
-    return <div className="not-found">Produit non trouvé</div>;
-  }
-
-  const productImages = product.images || [product.image];
+  // ... rest of your code
 
   return (
-    <motion.div 
-      className="product-detail-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      <div className="container">
-        <div className="breadcrumb">
-          <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a> / 
-          <a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a> / 
-          <a href={`/products?category=${product.category_id}`} onClick={(e) => { e.preventDefault(); navigate(`/products?category=${product.category_id}`); }}>
-            {product.category?.name || 'Catégorie'}
-          </a> / 
-          <span>{product.name}</span>
-        </div>
-
-        <div className="product-detail">
-          <div className="product-gallery">
-            <div className="main-image">
-              <img src={productImages[selectedImage]} alt={product.name} />
-            </div>
-            {productImages.length > 1 && (
-              <div className="thumbnail-images">
-                {productImages.map((img, index) => (
-                  <div 
-                    key={index} 
-                    className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
-                    onClick={() => setSelectedImage(index)}
-                  >
-                    <img src={img} alt={`${product.name} ${index + 1}`} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="product-info">
-            <h1>{product.name}</h1>
-            
-            <div className="product-meta">
-              <span className="sku">SKU: {product.sku}</span>
-              <span className="brand">Marque: {product.brand}</span>
-            </div>
-
-            <div className="product-rating">
-              {[...Array(5)].map((_, i) => (
-                <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>★</span>
-              ))}
-              <span>({product.reviews_count || 0} avis)</span>
-            </div>
-
-            <div className="product-price">
-              <span className="current">{product.price} MAD</span>
-              {product.original_price && (
-                <span className="original">{product.original_price} MAD</span>
-              )}
-            </div>
-
-            <div className="product-stock">
-              {product.stock > 0 ? (
-                <span className="in-stock">En stock ({product.stock} disponibles)</span>
-              ) : (
-                <span className="out-of-stock">Rupture de stock</span>
-              )}
-            </div>
-
-            <div className="product-description">
-              <p>{product.description}</p>
-            </div>
-
-            <div className="product-actions">
-              <div className="quantity-selector">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
-                  <Icons.Minus />
-                </button>
-                <input 
-                  type="number" 
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  min="1"
-                  max={product.stock}
-                />
-                <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}>
-                  <Icons.Plus />
-                </button>
-              </div>
-
-              <button 
-                className="add-to-cart-btn"
-                onClick={() => addToCart(product, quantity)}
-                disabled={product.stock === 0}
-              >
-                <Icons.ShoppingBag /> Ajouter au panier
-              </button>
-
-              <button 
-                className={`wishlist-btn ${isFavorite ? 'active' : ''}`}
-                onClick={handleAddToWishlist}
-              >
-                <Icons.Heart /> {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {related.length > 0 && (
-          <div className="related-products">
-            <h3>Produits similaires</h3>
-            <div className="products-grid">
-              {related.map(product => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={addToCart}
-                  onViewDetails={(product) => navigate(`/product/${product.slug}`)}
-                  onAddToWishlist={() => {}}
-                  isFavorite={false}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+    // ... your JSX
+    <div className="related-products">
+      <h3>Produits similaires</h3>
+      <div className="products-grid">
+        {related.map(product => (
+          <ProductCard 
+            key={product.id} 
+            product={product} 
+            onAddToCart={addToCart}
+            onViewDetails={(product) => navigate(`/product/${product.slug}`)}
+            isFavorite={checkIsFavorite(product.id)}
+            onToggleFavorite={toggleFavorite}
+            isPro={isPro}
+            proDiscount={proDiscount}
+          />
+        ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 // Checkout Page
 // Checkout Page - FIXED (without coupon dependency)
 // Checkout Page
+// Update CheckoutPage component
 const CheckoutPage = ({ navigate }) => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const { user, isAuthenticated, isEmailVerified } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [shippingAddress, setShippingAddress] = useState(user?.address || '');
+  const [formData, setFormData] = useState({
+    phone: user?.phone || '',
+    address: user?.address || '',
+    notes: ''
+  });
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1844,7 +2383,12 @@ const CheckoutPage = ({ navigate }) => {
       return;
     }
 
-    if (!shippingAddress.trim()) {
+    if (!formData.phone.trim()) {
+      setError('Veuillez entrer votre numéro de téléphone');
+      return;
+    }
+
+    if (!formData.address.trim()) {
       setError('Veuillez entrer votre adresse de livraison');
       return;
     }
@@ -1858,7 +2402,9 @@ const CheckoutPage = ({ navigate }) => {
           product_id: item.id,
           quantity: item.quantity
         })),
-        shipping_address: shippingAddress,
+        shipping_address: formData.address,
+        phone: formData.phone,
+        notes: formData.notes,
         payment_method: 'espèces'
       };
 
@@ -1945,15 +2491,40 @@ const CheckoutPage = ({ navigate }) => {
           <div className="checkout-form">
             <form onSubmit={handleSubmit}>
               <div className="form-section">
-                <h2>Adresse de livraison</h2>
+                <h2>Informations de contact</h2>
+                
                 <div className="form-group">
-                  <label>Adresse complète</label>
+                  <label>Numéro de téléphone <span className="required">*</span></label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ex: 06 12 34 56 78"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Adresse de livraison <span className="required">*</span></label>
                   <textarea
-                    value={shippingAddress}
-                    onChange={(e) => setShippingAddress(e.target.value)}
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
                     required
                     rows="3"
-                    placeholder="Entrez votre adresse complète"
+                    placeholder="Entrez votre adresse complète (rue, ville, code postal)"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Notes supplémentaires (optionnel)</label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    rows="2"
+                    placeholder="Instructions de livraison, etc."
                   />
                 </div>
               </div>
@@ -2003,10 +2574,12 @@ const CheckoutPage = ({ navigate }) => {
                 <span>Livraison</span>
                 <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)} MAD`}</span>
               </div>
+              
               <div className="summary-row">
                 <span>TVA (20%)</span>
                 <span>{tax.toFixed(2)} MAD</span>
               </div>
+              
               <div className="summary-row total">
                 <span>Total</span>
                 <span>{grandTotal.toFixed(2)} MAD</span>
@@ -2022,7 +2595,7 @@ const CheckoutPage = ({ navigate }) => {
       </div>
     </motion.div>
   );
-};
+}; 
 // Categories Page
 // Categories Page - FIXED loading issue
 // Categories Page - REDESIGNED
@@ -2178,6 +2751,41 @@ const CategoriesPage = ({ navigate }) => {
     </motion.div>
   );
 };
+// Add this component before the ProductCard
+const ProductPrice = ({ price, originalPrice, isPro, proDiscount }) => {
+  const calculateProPrice = () => {
+    if (isPro && proDiscount > 0) {
+      const discount = (price * proDiscount) / 100;
+      return Math.round(price - discount);
+    }
+    return price;
+  };
+
+  const displayPrice = calculateProPrice();
+  const hasProDiscount = isPro && proDiscount > 0 && displayPrice < price;
+
+  if (hasProDiscount) {
+    return (
+      <div className="product-price pro-price">
+        <span className="current-price pro">{displayPrice} MAD</span>
+        <span className="original-price">{price} MAD</span>
+        <span className="pro-badge">-{proDiscount}% PRO</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="product-price">
+      <span className="current-price">{price} MAD</span>
+      {originalPrice && originalPrice > price && (
+        <span className="original-price">{originalPrice} MAD</span>
+      )}
+    </div>
+  );
+};
+
+// In your ProductCard component, use it like this:
+
 // Cart Page
 const CartPage = ({ navigate }) => {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -2362,12 +2970,15 @@ const LoginPage = ({ navigate }) => {
 };
 
 // Register Page
+// Update the RegisterPage component to include phone and address fields
 const RegisterPage = ({ navigate }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    password_confirmation: ''
+    password_confirmation: '',
+    phone: '',
+    address: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -2429,6 +3040,28 @@ const RegisterPage = ({ navigate }) => {
             </div>
 
             <div className="form-group">
+              <label>Téléphone</label>
+              <input 
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Votre numéro de téléphone"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Adresse</label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                rows="3"
+                placeholder="Votre adresse complète"
+              />
+            </div>
+
+            <div className="form-group">
               <label>Mot de passe</label>
               <input 
                 type="password"
@@ -2462,8 +3095,7 @@ const RegisterPage = ({ navigate }) => {
       </div>
     </motion.div>
   );
-};
-
+}; 
 // Dashboard Page
 // Dashboard Page - ORIGINAL VERSION
 // Dashboard Page - COMPLETE FIXED VERSION
@@ -3778,7 +4410,6 @@ function App() {
   };
 
   const renderPage = () => {
-  // Get the base path without query parameters
   const basePath = currentPath.split('?')[0];
   
   if (basePath === '/') return <HomePage navigate={navigate} />;
@@ -3795,11 +4426,16 @@ function App() {
   if (basePath === '/verify-email/success') return <VerificationSuccessPage navigate={navigate} />;
   if (basePath === '/verify-email/error') return <VerificationErrorPage navigate={navigate} />;
   
+  // NEW PAGES
+  if (basePath === '/wishlist') return <WishlistPage navigate={navigate} />;
+  if (basePath === '/coupons') return <CouponsPage navigate={navigate} />;
+  
   // Admin routes
   if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
   if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
   if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
   if (basePath === '/admin/emails') return <EmailCampaign />;
+  
   return (
     <div className="not-found">
       <h1>404</h1>
@@ -3811,15 +4447,15 @@ function App() {
   );
 };
   return (
-    <AuthProvider>
-      <CartProvider>
-        <ProductProvider>
-          <CouponProvider>
+  <AuthProvider>
+    <CartProvider>
+      <ProductProvider>
+        <CouponProvider>
+          <FavoritesProvider> {/* Add this */}
             <div className="App">
               <Header currentPath={currentPath} navigate={navigate} />
               <main className="main-content">
                 {renderPage()}
-                
               </main>
               <Footer navigate={navigate} />
               
@@ -3839,11 +4475,12 @@ function App() {
                 )}
               </AnimatePresence>
             </div>
-          </CouponProvider>
-        </ProductProvider>
-      </CartProvider>
-    </AuthProvider>
-  );
+          </FavoritesProvider> {/* Add this */}
+        </CouponProvider>
+      </ProductProvider>
+    </CartProvider>
+  </AuthProvider>
+);
 }
 
 export default App;
