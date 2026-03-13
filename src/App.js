@@ -544,7 +544,7 @@ const CartProvider = ({ children }) => {
         setCartItems(cartData.items || []);
         setCartTotal(cartData.total || 0);
         setCartCount(cartData.count || 0);
-        alert('Produit ajouté au panier !');
+       
       }
     } catch (err) {
       console.error('Failed to add to cart:', err);
@@ -783,18 +783,38 @@ const ProductProvider = ({ children }) => {
 
 // ==================== COUPON PROVIDER ====================
 // ==================== COUPON PROVIDER ====================
+// ==================== COUPON PROVIDER ====================
 const CouponProvider = ({ children }) => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
+  const { isAuthenticated, user } = useAuth(); // Add user here
 
   const fetchCoupons = async () => {
     setLoading(true);
     try {
+      // If user is authenticated, we need to get their personal coupons
+      // The backend should filter based on the authenticated user
       const response = await api.get('/coupons');
       if (response.data.success && response.data.data) {
-        setCoupons(response.data.data);
+        // The backend should already filter based on the authenticated user
+        // But if it doesn't, we can filter here
+        let couponsData = response.data.data;
+        
+        // If backend returns all coupons, filter for current user only
+        if (isAuthenticated && user) {
+          // Filter coupons that belong to this user OR are public
+          // But since you want only personal coupons visible, filter by customer_id
+          couponsData = couponsData.filter(coupon => 
+            coupon.customer_id === user.id
+          );
+        } else {
+          // If not authenticated, show no coupons (since all are private)
+          couponsData = [];
+        }
+        
+        setCoupons(couponsData);
       }
     } catch (err) {
       console.error('Failed to fetch coupons:', err);
@@ -802,6 +822,15 @@ const CouponProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  // Fetch coupons when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCoupons();
+    } else {
+      setCoupons([]);
+    }
+  }, [isAuthenticated, user?.id]);
 
   const validateCoupon = async (code, orderAmount) => {
     setLoading(true);
@@ -832,17 +861,13 @@ const CouponProvider = ({ children }) => {
     setDiscount(0);
   };
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
-
   // Add coupons count
   const couponsCount = coupons.length;
 
   const value = {
     coupons,
     loading,
-    couponsCount, // Add this
+    couponsCount,
     appliedCoupon,
     discount,
     validateCoupon,
@@ -851,8 +876,7 @@ const CouponProvider = ({ children }) => {
   };
 
   return <CouponContext.Provider value={value}>{children}</CouponContext.Provider>;
-}; 
-
+};
 // ==================== COMPONENTS ====================
 
 // Carousel Component
@@ -1140,6 +1164,7 @@ const ProductCard = ({
 };
 // ==================== WISHLIST PAGE ====================
 // ==================== WISHLIST PAGE ====================
+// ==================== WISHLIST PAGE ====================
 const WishlistPage = ({ navigate }) => {
   const { favorites, loading, removeFromFavorites, refreshFavorites } = useFavorites();
   const { isAuthenticated } = useAuth();
@@ -1154,7 +1179,6 @@ const WishlistPage = ({ navigate }) => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Define handleAddToCart function
   const handleAddToCart = (product) => {
     // Calculate pro price if user is pro
     let priceToUse = product.price;
@@ -1170,7 +1194,6 @@ const WishlistPage = ({ navigate }) => {
     addToCart(productToAdd, 1);
   };
 
-  // Define handleRemoveFromFavorites function
   const handleRemoveFromFavorites = async (productId) => {
     if (window.confirm('Voulez-vous retirer ce produit de vos favoris ?')) {
       await removeFromFavorites(productId);
@@ -1291,29 +1314,16 @@ const WishlistPage = ({ navigate }) => {
   );
 };
 // ==================== COUPONS PAGE ====================
+// Update the CouponsPage component
+// ==================== COUPONS PAGE ====================
 const CouponsPage = ({ navigate }) => {
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { coupons, loading, refreshCoupons } = useCoupons();
   const [copiedCode, setCopiedCode] = useState(null);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    fetchCoupons();
-  }, []);
-
-  const fetchCoupons = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get('/coupons');
-      if (response.data.success && response.data.data) {
-        setCoupons(response.data.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch coupons:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    refreshCoupons();
+  }, [isAuthenticated]);
 
   const copyToClipboard = (code) => {
     navigator.clipboard.writeText(code);
@@ -1346,8 +1356,35 @@ const CouponsPage = ({ navigate }) => {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
-        <p>Chargement des coupons...</p>
+        <p>Chargement de vos coupons...</p>
       </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <motion.div 
+        className="coupons-page"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <div className="auth-required-coupons">
+            <Icons.User size={64} />
+            <h2>Connectez-vous</h2>
+            <p>Vous devez être connecté pour voir vos coupons personnels</p>
+            <div className="auth-buttons">
+              <button className="btn-primary" onClick={() => navigate('/login')}>
+                Se connecter
+              </button>
+              <button className="btn-secondary" onClick={() => navigate('/register')}>
+                Créer un compte
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 
@@ -1358,10 +1395,25 @@ const CouponsPage = ({ navigate }) => {
       animate="visible"
       variants={fadeIn}
     >
-      <div className="page-header modern">
+      <div className="coupons-header">
         <div className="container">
-          <h1>Coupons & Promotions</h1>
-          <p>Profitez de nos offres exclusives et économisez sur vos achats</p>
+          <div className="coupons-header-content">
+            <div className="coupons-header-left">
+              <h1>
+                <Icons.Percent size={32} />
+                Mes Coupons Personnels
+              </h1>
+              <p className="coupons-subtitle">
+                Profitez de vos avantages exclusifs et économisez sur vos achats
+              </p>
+            </div>
+            <div className="coupons-header-right">
+              <div className="coupons-count-badge">
+                <span className="count-number">{coupons.length}</span>
+                <span className="count-text">coupon(s) disponible(s)</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1370,94 +1422,113 @@ const CouponsPage = ({ navigate }) => {
           <div className="no-coupons">
             <Icons.Percent size={64} />
             <h2>Aucun coupon disponible</h2>
-            <p>Revenez plus tard pour découvrir nos prochaines offres</p>
+            <p>Vous n'avez pas de coupons personnels pour le moment</p>
+            <p className="coupon-note">Les coupons sont attribués individuellement à chaque client</p>
+            <button className="btn-primary" onClick={() => navigate('/products')}>
+              Découvrir nos produits
+            </button>
           </div>
         ) : (
-          <div className="coupons-grid">
-            {coupons.map(coupon => (
-              <motion.div 
-                key={coupon.id}
-                className={`coupon-card ${coupon.type === 'percentage' ? 'percentage' : 'fixed'}`}
-                variants={slideUp}
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="coupon-header">
-                  <div className="coupon-icon">
-                    {getCouponIcon(coupon.type)}
-                  </div>
-                  <div className="coupon-code">
-                    <span className="code-label">Code</span>
-                    <span className="code-value">{coupon.code}</span>
-                  </div>
-                </div>
+          <>
+            <div className="coupons-stats">
+              <div className="stat-item">
+                <span className="stat-value">{coupons.length}</span>
+                <span className="stat-label">Total coupons</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">
+                  {coupons.filter(c => c.type === 'percentage').length}
+                </span>
+                <span className="stat-label">% Réductions</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">
+                  {coupons.filter(c => c.type === 'fixed').length}
+                </span>
+                <span className="stat-label">MAD fixes</span>
+              </div>
+            </div>
 
-                <div className="coupon-body">
-                  <h3 className="coupon-name">{coupon.name}</h3>
-                  <p className="coupon-description">{coupon.description || getDiscountText(coupon)}</p>
-                  
-                  <div className="coupon-details">
-                    <div className="coupon-detail">
-                      <span className="detail-label">Réduction</span>
-                      <span className="detail-value discount">{getDiscountText(coupon)}</span>
+            <div className="coupons-grid">
+              {coupons.map(coupon => (
+                <motion.div 
+                  key={coupon.id}
+                  className={`coupon-card ${coupon.type === 'percentage' ? 'percentage' : 'fixed'}`}
+                  variants={slideUp}
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="coupon-header">
+                    <div className="coupon-icon">
+                      {getCouponIcon(coupon.type)}
                     </div>
+                    <div className="coupon-code">
+                      <span className="code-label">Code</span>
+                      <span className="code-value">{coupon.code}</span>
+                    </div>
+                  </div>
+
+                  <div className="coupon-body">
+                    <h3 className="coupon-name">{coupon.name}</h3>
+                    <p className="coupon-description">{coupon.description || getDiscountText(coupon)}</p>
                     
-                    {coupon.min_order_amount && (
+                    <div className="coupon-details">
                       <div className="coupon-detail">
-                        <span className="detail-label">Minimum de commande</span>
-                        <span className="detail-value">{coupon.min_order_amount} MAD</span>
+                        <span className="detail-label">Réduction</span>
+                        <span className="detail-value discount">{getDiscountText(coupon)}</span>
                       </div>
-                    )}
-                    
-                    <div className="coupon-detail">
-                      <span className="detail-label">Valable jusqu'au</span>
-                      <span className="detail-value">{formatDate(coupon.expires_at)}</span>
-                    </div>
+                      
+                      {coupon.min_order_amount && (
+                        <div className="coupon-detail">
+                          <span className="detail-label">Minimum de commande</span>
+                          <span className="detail-value">{coupon.min_order_amount} MAD</span>
+                        </div>
+                      )}
+                      
+                      <div className="coupon-detail">
+                        <span className="detail-label">Valable jusqu'au</span>
+                        <span className="detail-value">{formatDate(coupon.expires_at)}</span>
+                      </div>
 
-                    {coupon.usage_limit && (
                       <div className="coupon-detail">
                         <span className="detail-label">Utilisations restantes</span>
-                        <span className="detail-value">{coupon.usage_limit - (coupon.used_count || 0)}</span>
+                        <span className="detail-value">{coupon.max_uses - (coupon.used_count || 0)}</span>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="coupon-footer">
-                  <button 
-                    className={`copy-btn ${copiedCode === coupon.code ? 'copied' : ''}`}
-                    onClick={() => copyToClipboard(coupon.code)}
-                  >
-                    {copiedCode === coupon.code ? (
-                      <>
-                        <Icons.Check /> Copié !
-                      </>
-                    ) : (
-                      <>
-                        Copier le code
-                      </>
-                    )}
-                  </button>
-                  
-                  {isAuthenticated && (
+                  <div className="coupon-footer">
+                    <button 
+                      className={`copy-btn ${copiedCode === coupon.code ? 'copied' : ''}`}
+                      onClick={() => copyToClipboard(coupon.code)}
+                    >
+                      {copiedCode === coupon.code ? (
+                        <>
+                          <Icons.Check /> Copié !
+                        </>
+                      ) : (
+                        <>
+                          Copier le code
+                        </>
+                      )}
+                    </button>
+                    
                     <button 
                       className="use-btn"
                       onClick={() => navigate('/cart')}
                     >
                       Utiliser maintenant
                     </button>
-                  )}
-                </div>
-
-                {!isAuthenticated && (
-                  <div className="coupon-login-note">
-                    <Icons.User size={14} />
-                    <span>Connectez-vous pour utiliser ce coupon</span>
                   </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
+
+                  <div className="coupon-personal-note">
+                    <Icons.User size={14} />
+                    <span>Coupon personnel - Réservé à votre compte</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </motion.div>
@@ -2314,6 +2385,8 @@ const ProductsPage = ({ navigate }) => {
   );
 };
 // Product Detail Page with Multiple Images
+// Product Detail Page with Multiple Images - COMPLETE FIXED VERSION
+// Product Detail Page with Multiple Images - COMPLETE FIXED VERSION
 const ProductDetailPage = ({ navigate }) => {
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -2323,39 +2396,327 @@ const ProductDetailPage = ({ navigate }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { addToCart } = useCart();
   const { getProduct } = useProducts();
-  const { isAuthenticated, isPro, proDiscount } = useAuth(); // Add isPro, proDiscount
+  const { isAuthenticated, isPro, proDiscount } = useAuth();
   const { toggleFavorite, checkIsFavorite } = useFavorites();
 
-  // ... rest of your code
+  useEffect(() => {
+    const path = window.location.pathname;
+    const slug = path.split('/').pop();
+    loadProduct(slug);
+  }, []);
+
+  const loadProduct = async (slug) => {
+    setLoading(true);
+    try {
+      const data = await getProduct(slug);
+      console.log('Product data:', data); // Debug log
+      if (data) {
+        setProduct(data.product || data);
+        setRelated(data.related || []);
+        setIsFavorite(data.is_favorite || false);
+      }
+    } catch (err) {
+      console.error('Failed to load product:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await api.delete(`/favorites/${product.id}`);
+        setIsFavorite(false);
+      } else {
+        await api.post(`/favorites/${product.id}`);
+        setIsFavorite(true);
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    // Calculate pro price if user is pro
+    let priceToUse = product.price;
+    if (isPro && proDiscount > 0 && product.original_price) {
+      priceToUse = product.price; // Price already has pro discount applied from backend
+    }
+    
+    const productToAdd = {
+      ...product,
+      price: priceToUse
+    };
+    
+    addToCart(productToAdd, quantity);
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Chargement du produit...</p>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="not-found">
+        <Icons.Package size={64} />
+        <h2>Produit non trouvé</h2>
+        <p>Le produit que vous recherchez n'existe pas ou a été supprimé.</p>
+        <button className="btn-primary" onClick={() => navigate('/products')}>
+          Voir tous les produits
+        </button>
+      </div>
+    );
+  }
+
+  // Get all images - use images_array from API or fallback to single image
+  const productImages = product.images_array || (product.images ? product.images.map(img => img.image_path) : [product.image]);
+  const hasProDiscount = isPro && proDiscount > 0 && product.original_price && product.original_price > product.price;
 
   return (
-    // ... your JSX
-    <div className="related-products">
-      <h3>Produits similaires</h3>
-      <div className="products-grid">
-        {related.map(product => (
-          <ProductCard 
-            key={product.id} 
-            product={product} 
-            onAddToCart={addToCart}
-            onViewDetails={(product) => navigate(`/product/${product.slug}`)}
-            isFavorite={checkIsFavorite(product.id)}
-            onToggleFavorite={toggleFavorite}
-            isPro={isPro}
-            proDiscount={proDiscount}
-          />
-        ))}
+    <motion.div 
+      className="product-detail-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        {/* Breadcrumb */}
+        <div className="breadcrumb">
+          <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a>
+          <span className="separator">/</span>
+          <a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a>
+          <span className="separator">/</span>
+          {product.category && (
+            <>
+              <a 
+                href={`/products?category=${product.category_id}`} 
+                onClick={(e) => { e.preventDefault(); navigate(`/products?category=${product.category_id}`); }}
+              >
+                {product.category.name}
+              </a>
+              <span className="separator">/</span>
+            </>
+          )}
+          <span className="current">{product.name}</span>
+        </div>
+
+        {/* Product Detail */}
+        <div className="product-detail">
+          {/* Image Gallery */}
+          <div className="product-gallery">
+            <div className="main-image">
+              <img src={productImages[selectedImage] || product.image} alt={product.name} />
+              {hasProDiscount && (
+                <span className="product-discount pro-discount">
+                  -{proDiscount}% PRO
+                </span>
+              )}
+              {product.badge && (
+                <span className="product-badge">{product.badge}</span>
+              )}
+            </div>
+            
+            {/* Thumbnail Images - Show if more than 1 image */}
+            {productImages.length > 1 && (
+              <div className="thumbnail-images">
+                {productImages.map((img, index) => (
+                  <div 
+                    key={index} 
+                    className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
+                    onClick={() => setSelectedImage(index)}
+                  >
+                    <img src={img} alt={`${product.name} ${index + 1}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Product Info */}
+          <div className="product-info">
+            <h1>{product.name}</h1>
+            
+            <div className="product-meta">
+              {product.sku && <span className="sku">SKU: {product.sku}</span>}
+              {product.brand && <span className="brand">Marque: {product.brand}</span>}
+            </div>
+
+            <div className="product-rating">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>★</span>
+              ))}
+              <span className="rating-count">({product.reviews_count || 0} avis)</span>
+            </div>
+
+            <div className="product-price">
+              <span className={`current-price ${hasProDiscount ? 'pro-price' : ''}`}>
+                {product.price} MAD
+              </span>
+              {product.original_price && product.original_price > product.price && (
+                <span className="original-price">{product.original_price} MAD</span>
+              )}
+              {hasProDiscount && (
+                <span className="pro-badge">Prix PRO -{proDiscount}%</span>
+              )}
+            </div>
+
+            <div className="product-stock">
+              {product.stock > 0 ? (
+                <span className="in-stock">
+                  <Icons.Check size={16} /> En stock ({product.stock} disponibles)
+                </span>
+              ) : (
+                <span className="out-of-stock">
+                  <Icons.X size={16} /> Rupture de stock
+                </span>
+              )}
+            </div>
+
+            <div className="product-description">
+              <h3>Description</h3>
+              <p>{product.description}</p>
+            </div>
+
+           // In ProductDetailPage, update the features section:
+
+{product.features && (
+  <div className="product-features">
+    <h3>Caractéristiques</h3>
+    <ul>
+      {(() => {
+        // Handle different types of features
+        let featuresList = [];
+        
+        if (Array.isArray(product.features)) {
+          // If it's already an array
+          featuresList = product.features;
+        } else if (typeof product.features === 'string') {
+          try {
+            // Try to parse JSON string
+            const parsed = JSON.parse(product.features);
+            featuresList = Array.isArray(parsed) ? parsed : [parsed];
+          } catch {
+            // If not valid JSON, treat as single string
+            featuresList = [product.features];
+          }
+        } else if (product.features) {
+          // If it's something else, convert to string
+          featuresList = [String(product.features)];
+        }
+        
+        return featuresList.map((feature, index) => (
+          <li key={index}>
+            <Icons.Check size={14} /> {feature}
+          </li>
+        ));
+      })()}
+    </ul>
+  </div>
+)}
+            <div className="product-actions">
+              <div className="quantity-selector">
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={product.stock === 0}
+                >
+                  <Icons.Minus />
+                </button>
+                <input 
+                  type="number" 
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                  min="1"
+                  max={product.stock}
+                  disabled={product.stock === 0}
+                />
+                <button 
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  disabled={product.stock === 0 || quantity >= product.stock}
+                >
+                  <Icons.Plus />
+                </button>
+              </div>
+
+              <button 
+                className="add-to-cart-btn"
+                onClick={handleAddToCart}
+                disabled={product.stock === 0}
+              >
+                <Icons.ShoppingBag /> Ajouter au panier
+              </button>
+
+              <button 
+                className={`wishlist-btn ${isFavorite ? 'active' : ''}`}
+                onClick={handleAddToWishlist}
+              >
+                <Icons.Heart /> {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              </button>
+            </div>
+
+            {/* Additional Info */}
+            <div className="product-additional">
+              <div className="info-item">
+                <Icons.Truck size={18} />
+                <span>Livraison gratuite à partir de 1000 MAD</span>
+              </div>
+              <div className="info-item">
+                <Icons.Check size={18} />
+                <span>Paiement sécurisé</span>
+              </div>
+              <div className="info-item">
+                <Icons.Phone size={18} />
+                <span>Support client: +212 600-000000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Related Products */}
+        {related && related.length > 0 && (
+          <div className="related-products">
+            <h3>Produits similaires</h3>
+            <div className="products-grid">
+              {related.map(product => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={addToCart}
+                  onViewDetails={(product) => navigate(`/product/${product.slug}`)}
+                  isFavorite={checkIsFavorite(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                  isPro={isPro}
+                  proDiscount={proDiscount}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 // Checkout Page
 // Checkout Page - FIXED (without coupon dependency)
 // Checkout Page
 // Update CheckoutPage component
+// In CheckoutPage, add coupon display
+// Checkout Page - COMPLETE FIXED VERSION
 const CheckoutPage = ({ navigate }) => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const { user, isAuthenticated, isEmailVerified } = useAuth();
+  const { appliedCoupon, discount, removeCoupon } = useCoupons();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -2370,6 +2731,19 @@ const CheckoutPage = ({ navigate }) => {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  // Calculate totals with coupon
+  const subtotal = typeof cartTotal === 'number' ? cartTotal : parseFloat(cartTotal) || 0;
+  const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
+  const subtotalAfterDiscount = subtotal - discountAmount;
+  const shipping = subtotalAfterDiscount > 1000 ? 0 : 50;
+  const tax = subtotalAfterDiscount * 0.2;
+  const grandTotal = subtotalAfterDiscount + shipping + tax;
+
+  const formatPrice = (value) => {
+    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return num.toFixed(2);
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -2405,14 +2779,18 @@ const CheckoutPage = ({ navigate }) => {
         shipping_address: formData.address,
         phone: formData.phone,
         notes: formData.notes,
-        payment_method: 'espèces'
+        payment_method: 'espèces',
+        coupon_code: appliedCoupon?.code
       };
+
+      console.log('📦 Submitting order:', orderData);
 
       const response = await api.post('/orders', orderData);
       
       if (response.data.success) {
         setSuccess(true);
         clearCart();
+        removeCoupon();
         setTimeout(() => {
           const orderId = response.data.data.order?.id || response.data.data.id;
           navigate(`/orders/${orderId}`);
@@ -2421,11 +2799,39 @@ const CheckoutPage = ({ navigate }) => {
         throw new Error(response.data.error || 'Erreur lors de la création de la commande');
       }
     } catch (err) {
+      console.error('❌ Order error:', err);
       setError(err.response?.data?.error || err.message || 'Erreur lors de la création de la commande');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <motion.div 
+        className="checkout-page"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <div className="auth-required">
+            <Icons.User size={64} />
+            <h2>Connexion requise</h2>
+            <p>Vous devez être connecté pour passer commande</p>
+            <div className="auth-buttons">
+              <button className="btn-primary" onClick={() => navigate('/login')}>
+                Se connecter
+              </button>
+              <button className="btn-secondary" onClick={() => navigate('/register')}>
+                Créer un compte
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -2464,10 +2870,6 @@ const CheckoutPage = ({ navigate }) => {
     );
   }
 
-  const shipping = cartTotal > 1000 ? 0 : 50;
-  const tax = cartTotal * 0.2;
-  const grandTotal = cartTotal + shipping + tax;
-
   return (
     <motion.div 
       className="checkout-page"
@@ -2482,6 +2884,20 @@ const CheckoutPage = ({ navigate }) => {
           <div className="warning-message">
             <Icons.Mail />
             <span>Veuillez vérifier votre email avant de passer commande</span>
+          </div>
+        )}
+
+        {/* Show applied coupon */}
+        {appliedCoupon && (
+          <div className="applied-coupon-checkout">
+            <div className="coupon-info">
+              <Icons.Percent size={16} />
+              <span>Coupon appliqué: <strong>{appliedCoupon.code}</strong></span>
+              <span className="discount-amount">-{formatPrice(discountAmount)} MAD</span>
+            </div>
+            <button onClick={removeCoupon} className="remove-coupon-small">
+              <Icons.X size={14} /> Retirer
+            </button>
           </div>
         )}
 
@@ -2547,7 +2963,7 @@ const CheckoutPage = ({ navigate }) => {
                 className="place-order-btn"
                 disabled={loading || !isEmailVerified}
               >
-                {loading ? 'Traitement...' : `Confirmer la commande (${grandTotal.toFixed(2)} MAD)`}
+                {loading ? 'Traitement...' : `Confirmer la commande (${formatPrice(grandTotal)} MAD)`}
               </button>
             </form>
           </div>
@@ -2559,7 +2975,7 @@ const CheckoutPage = ({ navigate }) => {
               {cartItems.map((item, index) => (
                 <div key={index} className="summary-item">
                   <span className="item-name">{item.name} x{item.quantity}</span>
-                  <span className="item-price">{(item.price * item.quantity).toFixed(2)} MAD</span>
+                  <span className="item-price">{formatPrice(item.price * item.quantity)} MAD</span>
                 </div>
               ))}
             </div>
@@ -2567,22 +2983,29 @@ const CheckoutPage = ({ navigate }) => {
             <div className="summary-totals">
               <div className="summary-row">
                 <span>Sous-total</span>
-                <span>{cartTotal.toFixed(2)} MAD</span>
+                <span>{formatPrice(subtotal)} MAD</span>
               </div>
+              
+              {discountAmount > 0 && (
+                <div className="summary-row discount">
+                  <span>Réduction ({appliedCoupon?.code})</span>
+                  <span>-{formatPrice(discountAmount)} MAD</span>
+                </div>
+              )}
               
               <div className="summary-row">
                 <span>Livraison</span>
-                <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)} MAD`}</span>
+                <span>{shipping === 0 ? 'Gratuite' : `${formatPrice(shipping)} MAD`}</span>
               </div>
               
               <div className="summary-row">
                 <span>TVA (20%)</span>
-                <span>{tax.toFixed(2)} MAD</span>
+                <span>{formatPrice(tax)} MAD</span>
               </div>
               
               <div className="summary-row total">
                 <span>Total</span>
-                <span>{grandTotal.toFixed(2)} MAD</span>
+                <span>{formatPrice(grandTotal)} MAD</span>
               </div>
             </div>
 
@@ -2595,10 +3018,9 @@ const CheckoutPage = ({ navigate }) => {
       </div>
     </motion.div>
   );
-}; 
-// Categories Page
-// Categories Page - FIXED loading issue
-// Categories Page - REDESIGNED
+};
+
+
 const CategoriesPage = ({ navigate }) => {
   const { categories, loading: productsLoading } = useProducts();
   const [loading, setLoading] = useState(true);
@@ -2787,9 +3209,67 @@ const ProductPrice = ({ price, originalPrice, isPro, proDiscount }) => {
 // In your ProductCard component, use it like this:
 
 // Cart Page
+// Update CartPage component
+// Update CartPage component with proper number handling
+// Cart Page - COMPLETE FIXED VERSION
 const CartPage = ({ navigate }) => {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { validateCoupon, appliedCoupon, discount, removeCoupon } = useCoupons();
   const { isAuthenticated } = useAuth();
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  // Ensure discount is a number
+  const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
+  const subtotal = typeof cartTotal === 'number' ? cartTotal : parseFloat(cartTotal) || 0;
+  
+  // Calculate totals with discount
+  const subtotalAfterDiscount = subtotal - discountAmount;
+  const shipping = subtotalAfterDiscount > 1000 ? 0 : 50;
+  const tax = subtotalAfterDiscount * 0.2;
+  const grandTotal = subtotalAfterDiscount + shipping + tax;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Veuillez entrer un code promo');
+      return;
+    }
+
+    setApplyingCoupon(true);
+    setCouponError('');
+    setCouponSuccess('');
+
+    try {
+      console.log('🔍 Applying coupon:', couponCode);
+      console.log('🔍 Cart subtotal:', subtotal);
+      
+      await validateCoupon(couponCode, subtotal);
+      setCouponCode('');
+      setCouponSuccess('✅ Coupon appliqué avec succès!');
+      setTimeout(() => setCouponSuccess(''), 3000);
+    } catch (err) {
+      console.error('❌ Coupon error:', err);
+      // Display the specific error message from the backend
+      const errorMessage = err.response?.data?.error || err.message || 'Code promo invalide';
+      setCouponError(errorMessage);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    removeCoupon();
+    setCouponSuccess('');
+    setCouponError('');
+  };
+
+  // Format number to 2 decimal places safely
+  const formatPrice = (value) => {
+    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return num.toFixed(2);
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -2825,25 +3305,38 @@ const CartPage = ({ navigate }) => {
           <div className="cart-items">
             {cartItems.map((item) => (
               <div key={item.cart_item_id} className="cart-item">
-                <img src={item.image} alt={item.name} onClick={() => navigate(`/product/${item.slug}`)} style={{ cursor: 'pointer' }} />
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  onClick={() => navigate(`/product/${item.slug}`)} 
+                  style={{ cursor: 'pointer' }} 
+                />
                 
                 <div className="item-details">
-                  <h3 onClick={() => navigate(`/product/${item.slug}`)} style={{ cursor: 'pointer' }}>{item.name}</h3>
-                  <span className="item-price">{item.price} MAD</span>
+                  <h3 onClick={() => navigate(`/product/${item.slug}`)} style={{ cursor: 'pointer' }}>
+                    {item.name}
+                  </h3>
+                  <span className="item-price">{formatPrice(item.price)} MAD</span>
                 </div>
 
                 <div className="item-quantity">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                  <button 
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                  >
                     <Icons.Minus />
                   </button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                  <button 
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    disabled={item.quantity >= item.stock}
+                  >
                     <Icons.Plus />
                   </button>
                 </div>
 
                 <div className="item-total">
-                  {(item.price * item.quantity).toFixed(2)} MAD
+                  {formatPrice(item.price * item.quantity)} MAD
                 </div>
 
                 <button 
@@ -2865,14 +3358,87 @@ const CartPage = ({ navigate }) => {
           <div className="cart-summary">
             <h3>Récapitulatif</h3>
             
+            {/* Coupon Section */}
+            <div className="coupon-section">
+              {!appliedCoupon ? (
+                <>
+                  <div className="coupon-input-group">
+                    <input
+                      type="text"
+                      placeholder="Code promo"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={applyingCoupon}
+                    />
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={applyingCoupon || !couponCode.trim()}
+                      className="apply-coupon-btn"
+                    >
+                      {applyingCoupon ? '...' : 'Appliquer'}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <div className="coupon-error-message">
+                      <Icons.X size={14} />
+                      <span>{couponError}</span>
+                    </div>
+                  )}
+                  {couponSuccess && (
+                    <div className="coupon-success-message">
+                      <Icons.Check size={14} />
+                      <span>{couponSuccess}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="applied-coupon">
+                  <div className="coupon-info">
+                    <span className="coupon-tag">
+                      <Icons.Percent size={14} />
+                      {appliedCoupon.code}
+                    </span>
+                    <span className="coupon-discount">
+                      -{formatPrice(discountAmount)} MAD
+                    </span>
+                  </div>
+                  <button onClick={handleRemoveCoupon} className="remove-coupon" title="Retirer le coupon">
+                    <Icons.X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="summary-row">
               <span>Sous-total</span>
-              <span>{cartTotal.toFixed(2)} MAD</span>
+              <span>{formatPrice(subtotal)} MAD</span>
+            </div>
+            
+            {discountAmount > 0 && (
+              <div className="summary-row discount">
+                <span>Réduction ({appliedCoupon?.code})</span>
+                <span>-{formatPrice(discountAmount)} MAD</span>
+              </div>
+            )}
+            
+            <div className="summary-row">
+              <span>Sous-total après réduction</span>
+              <span>{formatPrice(subtotalAfterDiscount)} MAD</span>
+            </div>
+            
+            <div className="summary-row">
+              <span>Livraison</span>
+              <span>{shipping === 0 ? 'Gratuite' : `${formatPrice(shipping)} MAD`}</span>
+            </div>
+
+            <div className="summary-row">
+              <span>TVA (20%)</span>
+              <span>{formatPrice(tax)} MAD</span>
             </div>
             
             <div className="summary-row total">
               <span>Total</span>
-              <span>{cartTotal.toFixed(2)} MAD</span>
+              <span>{formatPrice(grandTotal)} MAD</span>
             </div>
 
             {isAuthenticated ? (
@@ -4367,6 +4933,623 @@ const AdminOrderDetailPage = ({ navigate }) => {
     </motion.div>
   );
 };
+// ==================== ABOUT PAGE ====================
+// ==================== ABOUT PAGE ====================
+const AboutPage = () => {
+  const stats = [
+    { icon: Icons.Star, value: '20+', label: "Années d'expérience" },
+    { icon: Icons.Users, value: '500+', label: 'Clients professionnels' },
+    { icon: Icons.Package, value: '1200+', label: 'Produits disponibles' },
+    { icon: Icons.Truck, value: '48h', label: 'Délai de livraison' }
+  ];
+
+  const categories = [
+    {
+      title: '🧪 Tubes de Prélèvement',
+      description: 'Tubes PRP, tubes gel, tubes secs et toute la gamme de tubes vacutainer pour l\'analyse biologique et la médecine régénérative.',
+      icon: '🧪'
+    },
+    {
+      title: '💉 Aiguilles & Accessoires',
+      description: 'Aiguilles de prélèvement, systèmes de collecte sécurisés, lancettes et accessoires pour chaque protocole clinique.',
+      icon: '💉'
+    },
+    {
+      title: '🏺 Consommables de Laboratoire',
+      description: 'Pipettes, embouts, plaques, tubes Eppendorf, milieux de culture et tout le consommable quotidien de vos laboratoires.',
+      icon: '🏺'
+    },
+    {
+      title: '⚗️ Réactifs de Laboratoire',
+      description: 'Réactifs pour biochimie, hématologie, immunologie, sérologie et microbiologie, compatibles avec les automates du marché.',
+      icon: '⚗️'
+    },
+    {
+      title: '🔬 Analyseurs de Laboratoire',
+      description: 'Automates d\'hématologie, biochimie, immunologie et urines. Installation, maintenance et formation incluses.',
+      icon: '🔬'
+    },
+    {
+      title: '⚙️ Équipements de Laboratoire',
+      description: 'Centrifugeuses, réfrigérateurs médicaux, hottes, autoclaves, microscopes et équipements de protection individuelle.',
+      icon: '⚙️'
+    }
+  ];
+
+  const whyChooseUs = [
+    {
+      title: '🏅 Produits Certifiés & Homologués',
+      description: 'Tous nos produits sont conformes aux normes CE, ISO et aux exigences du Ministère de la Santé marocain.'
+    },
+    {
+      title: '🚚 Livraison Rapide Partout au Maroc',
+      description: 'Réseau logistique couvrant l\'ensemble du territoire national avec un délai garanti de 24 à 48 heures.'
+    },
+    {
+      title: '💰 Tarifs Professionnels Exclusifs',
+      description: 'Programme de tarification dédié aux professionnels agréés avec remises progressives selon le volume de commande.'
+    },
+    {
+      title: '🎓 Expertise & Conseil Technique',
+      description: 'Une équipe de techniciens qualifiés disponible pour vous conseiller, former et assurer la maintenance de vos équipements.'
+    },
+    {
+      title: '🔄 Stock Permanent & Disponibilité',
+      description: 'Plus de 1 200 références disponibles en stock permanent pour garantir la continuité de vos activités sans interruption.'
+    },
+    {
+      title: '🤝 Relation Durable & Service Après-Vente',
+      description: 'Un interlocuteur dédié pour chaque client professionnel, un SAV réactif et un accompagnement sur le long terme.'
+    }
+  ];
+
+  const values = [
+    {
+      title: 'Notre Mission',
+      description: 'Fournir aux professionnels de santé marocains des équipements, réactifs et consommables de laboratoire de haute qualité, avec un service client réactif et des délais de livraison fiables sur l\'ensemble du territoire national.',
+      icon: '🎯'
+    },
+    {
+      title: 'Notre Vision',
+      description: 'Devenir la référence incontournable pour l\'approvisionnement en matériel médico-laboratoire au Maroc, en construisant des partenariats durables fondés sur la confiance, l\'expertise et l\'innovation continue.',
+      icon: '🔭'
+    },
+    {
+      title: 'Nos Valeurs',
+      description: 'Qualité sans compromis, intégrité dans chaque transaction, réactivité face aux besoins de nos clients, et engagement constant pour l\'amélioration de la santé au Maroc.',
+      icon: '💎'
+    }
+  ];
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
+  const scaleVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 15
+      }
+    }
+  };
+
+  const fadeInVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.8 }
+    }
+  };
+
+  return (
+    <motion.div 
+      className="about-page-enhanced"
+      initial="hidden"
+      animate="visible"
+      variants={fadeInVariants}
+    >
+      {/* Hero Section with Parallax */}
+      <motion.section 
+        className="about-hero-enhanced"
+        variants={containerVariants}
+      >
+        <div className="hero-overlay"></div>
+        <div className="container">
+          <motion.div 
+            className="hero-content-enhanced"
+            variants={containerVariants}
+          >
+            <motion.span 
+              className="hero-badge-enhanced"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+            >
+              🧬 À Propos de Nous
+            </motion.span>
+            
+            <motion.h1 
+              variants={itemVariants}
+            >
+              Votre Partenaire de
+              <motion.span 
+                className="highlight-text"
+                animate={{ 
+                  textShadow: ["0 0 0 rgba(109, 158, 235, 0)", "0 0 20px rgba(109, 158, 235, 0.5)", "0 0 0 rgba(109, 158, 235, 0)"]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                Confiance
+              </motion.span>
+              <br />en Laboratoire
+            </motion.h1>
+            
+            <motion.p 
+              className="hero-subtitle-enhanced"
+              variants={itemVariants}
+            >
+              Depuis notre création, TECLAB accompagne les professionnels de la santé avec des 
+              solutions de qualité supérieure pour les laboratoires, cliniques et établissements 
+              médicaux au Maroc.
+            </motion.p>
+          </motion.div>
+        </div>
+        
+        {/* Animated floating elements */}
+        <motion.div 
+          className="floating-element element-1"
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 5, 0]
+          }}
+          transition={{ duration: 6, repeat: Infinity }}
+        />
+        <motion.div 
+          className="floating-element element-2"
+          animate={{ 
+            y: [0, 20, 0],
+            rotate: [0, -5, 0]
+          }}
+          transition={{ duration: 7, repeat: Infinity }}
+        />
+        <motion.div 
+          className="floating-element element-3"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{ duration: 5, repeat: Infinity }}
+        />
+      </motion.section>
+
+      {/* Stats Section with Counter Animation */}
+      <motion.section 
+        className="about-stats-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="container">
+          <div className="stats-grid-enhanced">
+            {stats.map((stat, index) => (
+              <motion.div 
+                key={index}
+                className="stat-item-enhanced"
+                variants={scaleVariants}
+                whileHover={{ 
+                  y: -10,
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
+                }}
+              >
+                <motion.div 
+                  className="stat-icon-enhanced"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <stat.icon size={40} />
+                </motion.div>
+                <motion.div 
+                  className="stat-value-enhanced"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 100,
+                    delay: 0.2 + index * 0.1
+                  }}
+                >
+                  {stat.value}
+                </motion.div>
+                <div className="stat-label-enhanced">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* History Section with Reveal Animation */}
+      <motion.section 
+        className="about-history-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="container">
+          <div className="history-grid-enhanced">
+            <motion.div 
+              className="history-text-enhanced"
+              variants={itemVariants}
+            >
+              <motion.h2
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100 }}
+              >
+                Notre Histoire
+              </motion.h2>
+              
+              <motion.h3
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.1 }}
+              >
+                Qui sommes-nous ?
+              </motion.h3>
+              
+              <motion.p
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
+              >
+                TECLAB est une entreprise marocaine spécialisée dans la distribution de matériel 
+                et de consommables pour les laboratoires d'analyse médicale, les cliniques, les 
+                cabinets médicaux et les établissements de santé.
+              </motion.p>
+              
+              <motion.p
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
+              >
+                Fondée avec une ambition claire — rendre accessible aux professionnels de santé 
+                marocains des produits de haute qualité à des prix compétitifs — TECLAB s'est 
+                imposée comme un acteur incontournable du secteur médical au Maroc.
+              </motion.p>
+              
+              <motion.p
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
+              >
+                Notre équipe est composée de spécialistes passionnés qui comprennent les exigences 
+                du monde médical et s'engagent à fournir un service irréprochable, du conseil à 
+                la livraison.
+              </motion.p>
+            </motion.div>
+            
+            <motion.div 
+              className="history-badge-enhanced"
+              variants={scaleVariants}
+              whileHover={{ 
+                scale: 1.1,
+                rotate: 5,
+                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
+              }}
+            >
+              <motion.span 
+                className="badge-icon-enhanced"
+                animate={{ 
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                🔬
+              </motion.span>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Quality Commitment Section */}
+      <motion.section 
+        className="about-quality-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="container">
+          <motion.div 
+            className="quality-content-enhanced"
+            variants={itemVariants}
+          >
+            <motion.h2
+              animate={{ 
+                color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
+              }}
+              transition={{ duration: 5, repeat: Infinity }}
+            >
+              Notre Engagement Qualité
+            </motion.h2>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              Chaque produit que nous distribuons est rigoureusement sélectionné auprès de 
+              fournisseurs certifiés, garantissant fiabilité, précision et conformité aux 
+              normes internationales en vigueur.
+            </motion.p>
+            
+            <motion.div 
+              className="quality-badge-enhanced"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 10px 30px rgba(109, 158, 235, 0.3)"
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.span 
+                className="check-icon-enhanced"
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                ✅
+              </motion.span>
+              <span>Fournisseurs certifiés ISO & CE</span>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Values Section with Card Flip Effect */}
+      <motion.section 
+        className="about-values-section-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="container">
+          <div className="values-grid-enhanced">
+            {values.map((value, index) => (
+              <motion.div 
+                key={index}
+                className="value-card-enhanced"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -15,
+                  boxShadow: "0 30px 60px rgba(109, 158, 235, 0.2)"
+                }}
+              >
+                <motion.div 
+                  className="value-icon-enhanced"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 3, delay: index * 0.2, repeat: Infinity }}
+                >
+                  {value.icon}
+                </motion.div>
+                <h3>{value.title}</h3>
+                <p>{value.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Categories Section */}
+      <motion.section 
+        className="about-categories-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+      >
+        <div className="container">
+          <motion.h2 
+            className="section-title-enhanced"
+            variants={itemVariants}
+          >
+            Ce que nous proposons
+          </motion.h2>
+          
+          <motion.p 
+            className="section-subtitle-enhanced"
+            variants={itemVariants}
+          >
+            Une gamme complète de produits et services pour répondre à tous vos besoins 
+            en laboratoire et équipements médicaux.
+          </motion.p>
+
+          <div className="categories-grid-enhanced">
+            {categories.map((category, index) => (
+              <motion.div 
+                key={index}
+                className="category-card-enhanced"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -10,
+                  scale: 1.02,
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
+                }}
+                custom={index}
+              >
+                <motion.div 
+                  className="category-icon-enhanced"
+                  animate={{ 
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 4, delay: index * 0.1, repeat: Infinity }}
+                >
+                  {category.icon}
+                </motion.div>
+                <h3>{category.title}</h3>
+                <p>{category.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Why Choose Us Section */}
+      <motion.section 
+        className="why-choose-us-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+      >
+        <div className="container">
+          <motion.h2 
+            className="section-title-enhanced"
+            variants={itemVariants}
+          >
+            Pourquoi choisir TECLAB ?
+          </motion.h2>
+          
+          <motion.p 
+            className="section-subtitle-enhanced"
+            variants={itemVariants}
+          >
+            Nous ne sommes pas de simples distributeurs — nous sommes vos partenaires 
+            dans l'excellence médicale.
+          </motion.p>
+
+          <div className="why-choose-grid-enhanced">
+            {whyChooseUs.map((item, index) => (
+              <motion.div 
+                key={index}
+                className="why-choose-card-enhanced"
+                variants={itemVariants}
+                whileHover={{ 
+                  x: 10,
+                  boxShadow: "0 15px 30px rgba(109, 158, 235, 0.2)"
+                }}
+              >
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Contact Info - ONLY MAIL AND PHONE, NO LINKS TO OTHER PAGES */}
+      <motion.section 
+        className="about-contact-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="container">
+          <div className="contact-info-grid-enhanced">
+            <motion.div 
+              className="contact-info-card-enhanced"
+              variants={itemVariants}
+              whileHover={{ y: -10 }}
+            >
+              <motion.h3
+                animate={{ 
+                  color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
+                }}
+                transition={{ duration: 5, repeat: Infinity }}
+              >
+                Besoin d'un conseil technique ?
+              </motion.h3>
+              <p>
+                Notre équipe spécialisée vous accompagne dans le choix de vos équipements 
+                et consommables de laboratoire.
+              </p>
+            </motion.div>
+            
+            <motion.div 
+              className="contact-info-card-enhanced highlight"
+              variants={itemVariants}
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
+              }}
+            >
+              <motion.div 
+                className="phone-icon-enhanced"
+                animate={{ 
+                  rotate: [0, 15, -15, 0],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                📞
+              </motion.div>
+              
+              <h4>Appelez-nous 24/7</h4>
+              
+              <motion.a 
+                href="tel:+212808626102" 
+                className="phone-number-enhanced"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                +212 808 626 102
+              </motion.a>
+              
+              <motion.p 
+                className="address-enhanced"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                654 LOT TGHAT II RTE MEKNES VILLA 30000 SECTEUR 0601, Fez, MAROC
+              </motion.p>
+              
+              <motion.a 
+                href="mailto:info@teclab.ma" 
+                className="email-enhanced"
+                whileHover={{ scale: 1.05, color: "#ff6b6b" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                info@teclab.ma
+              </motion.a>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+    </motion.div>
+  );
+};
 // ==================== MAIN APP ====================
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -4412,7 +5595,9 @@ function App() {
   const renderPage = () => {
   const basePath = currentPath.split('?')[0];
   
+  // Public routes
   if (basePath === '/') return <HomePage navigate={navigate} />;
+  if (basePath === '/about') return <AboutPage navigate={navigate} />;
   if (basePath === '/products') return <ProductsPage navigate={navigate} />;
   if (basePath.startsWith('/product/')) return <ProductDetailPage navigate={navigate} />;
   if (basePath === '/categories') return <CategoriesPage navigate={navigate} />;
@@ -4426,16 +5611,17 @@ function App() {
   if (basePath === '/verify-email/success') return <VerificationSuccessPage navigate={navigate} />;
   if (basePath === '/verify-email/error') return <VerificationErrorPage navigate={navigate} />;
   
-  // NEW PAGES
+  // User pages
   if (basePath === '/wishlist') return <WishlistPage navigate={navigate} />;
   if (basePath === '/coupons') return <CouponsPage navigate={navigate} />;
   
-  // Admin routes
+  // Admin routes - THESE SHOULD BE HERE
   if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
   if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
   if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
   if (basePath === '/admin/emails') return <EmailCampaign />;
   
+  // 404
   return (
     <div className="not-found">
       <h1>404</h1>
