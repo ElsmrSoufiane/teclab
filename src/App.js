@@ -3,8 +3,110 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
 import './App.css';
+import { BrowserRouter , Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
 // ==================== API CONFIGURATION ====================
+// Add this modal component
+// ==================== LOGIN PROMPT MODAL COMPONENT ====================
+const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) => {
+  // Don't render anything if modal is not open
+  if (!isOpen) return null;
+
+  return (
+    <motion.div 
+      className="modal-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div 
+        className="modal-content login-prompt-modal"
+        initial={{ scale: 0.8, y: 50, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.8, y: 50, opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button className="modal-close-btn" onClick={onClose}>
+          <Icons.X size={20} />
+        </button>
+
+        {/* Icon */}
+        <div className="modal-icon">
+          <Icons.User size={48} />
+        </div>
+
+        {/* Title */}
+        <h3 className="modal-title">Connexion requise</h3>
+
+        {/* Message */}
+        <div className="modal-message">
+          {productName ? (
+            <p>
+              Pour ajouter <strong>« {productName} »</strong> à votre panier, 
+              vous devez d'abord vous connecter à votre compte.
+            </p>
+          ) : (
+            <p>
+              Vous devez être connecté pour ajouter des articles à votre panier.
+            </p>
+          )}
+        </div>
+
+        {/* Options */}
+        <div className="modal-options">
+          <p className="modal-option-text">
+            <Icons.Check size={16} /> 
+            <span>Conservez vos articles pour plus tard</span>
+          </p>
+          <p className="modal-option-text">
+            <Icons.Check size={16} /> 
+            <span>Bénéficiez de vos prix personnalisés</span>
+          </p>
+          <p className="modal-option-text">
+            <Icons.Check size={16} /> 
+            <span>Accédez à vos coupons et réductions</span>
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="modal-actions">
+          <button 
+            className="btn-secondary" 
+            onClick={onClose}
+          >
+            Continuer sans compte
+          </button>
+          <button 
+            className="btn-primary" 
+            onClick={onConfirm}
+          >
+            Se connecter
+          </button>
+        </div>
+
+        {/* Register link */}
+        <p className="modal-footer-text">
+          Pas encore de compte ? 
+          <button 
+            className="register-link"
+            onClick={() => {
+              onClose();
+              // You'll need to pass navigate as prop or use useNavigate
+              if (onConfirm.register) {
+                onConfirm.register();
+              }
+            }}
+          >
+            Créer un compte
+          </button>
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 // ==================== ICON COMPONENTS ====================
 const Icons = {
@@ -479,12 +581,19 @@ const FavoritesProvider = ({ children }) => {
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
 };   
+// ==================== CART PROVIDER ====================
+// ==================== CART PROVIDER ====================
+// ==================== CART PROVIDER ====================
+// ==================== CART PROVIDER ====================
+// ==================== CART PROVIDER ====================
 const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState(null);
+  const { isAuthenticated } = useAuth();
   
   // Guest session management
   const [sessionId, setSessionId] = useState(() => {
@@ -529,10 +638,17 @@ const CartProvider = ({ children }) => {
   // Load cart on mount and when auth changes
   useEffect(() => {
     fetchCart();
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated]);
 
-  // Add to cart
-  const addToCart = async (product, quantity = 1) => {
+  // Add to cart with auth check
+  const addToCart = async (product, quantity = 1, navigate) => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setPendingProduct({ product, quantity });
+      setShowLoginModal(true);
+      return false;
+    }
+
     try {
       const response = await api.post('/cart/add', {
         product_id: product.id,
@@ -544,12 +660,19 @@ const CartProvider = ({ children }) => {
         setCartItems(cartData.items || []);
         setCartTotal(cartData.total || 0);
         setCartCount(cartData.count || 0);
-       
+        
+        // Show success message (could also use a toast notification)
+        alert('Produit ajouté au panier !');
+        
+        // Clear any pending cart item
+        localStorage.removeItem('pending_cart_item');
+        return true;
       }
     } catch (err) {
       console.error('Failed to add to cart:', err);
       alert('Erreur lors de l\'ajout au panier');
     }
+    return false;
   };
 
   // Update quantity
@@ -613,6 +736,26 @@ const CartProvider = ({ children }) => {
     }
   };
 
+  // Handle modal confirm (login)
+  const handleLoginConfirm = (navigate) => {
+    if (pendingProduct) {
+      // Save the product they wanted to add
+      localStorage.setItem('pending_cart_item', JSON.stringify({
+        product_id: pendingProduct.product.id,
+        quantity: pendingProduct.quantity,
+        product: pendingProduct.product
+      }));
+    }
+    setShowLoginModal(false);
+    navigate('/login');
+  };
+
+  // Handle modal close (continue without login)
+  const handleModalClose = () => {
+    setShowLoginModal(false);
+    setPendingProduct(null);
+  };
+
   const value = {
     cartItems,
     cartCount,
@@ -625,7 +768,17 @@ const CartProvider = ({ children }) => {
     refreshCart: fetchCart
   };
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+      <LoginPromptModal 
+        isOpen={showLoginModal}
+        onClose={handleModalClose}
+        onConfirm={(navigate) => handleLoginConfirm(navigate)}
+        productName={pendingProduct?.product?.name}
+      />
+    </CartContext.Provider>
+  );
 };
 
 // ==================== PRODUCT PROVIDER ====================
@@ -981,49 +1134,27 @@ const Carousel = () => {
 // Update the ProductCard component in your App.js
 // ==================== PRODUCT CARD COMPONENT (FIXED) ====================
 // ==================== PRODUCT CARD COMPONENT ====================
-const ProductCard = ({ 
-  product, 
-  onAddToCart, 
-  onViewDetails, 
-  onToggleFavorite, 
-  isFavorite,
-  isPro,
-  proDiscount
-}) => {
+// ==================== PRODUCT CARD COMPONENT ====================
+// ==================== PRODUCT CARD COMPONENT ====================
+// ==================== PRODUCT CARD COMPONENT ====================
+const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const navigate = useNavigate(); // You need to get navigate from somewhere
 
-  // Calculate pro price
-  const calculateProPrice = (originalPrice) => {
-    if (isPro && proDiscount > 0) {
-      const discount = (originalPrice * proDiscount) / 100;
-      return Math.round(originalPrice - discount);
-    }
-    return originalPrice;
-  };
-
-  const displayPrice = calculateProPrice(product.price);
-  const hasProDiscount = isPro && proDiscount > 0 && displayPrice < product.price;
-
-  // Define handleAddToCart
   const handleAddToCart = (e) => {
     e.stopPropagation();
     if (onAddToCart && product) {
-      const productToAdd = {
-        ...product,
-        price: displayPrice,
-        original_price: hasProDiscount ? product.price : product.original_price
-      };
-      onAddToCart(productToAdd);
+      // Pass navigate to the addToCart function
+      onAddToCart(product, 1, navigate);
       setAdded(true);
       setTimeout(() => setAdded(false), 1000);
     }
   };
 
-  // Define handleToggleFavorite
   const handleToggleFavorite = async (e) => {
     e.stopPropagation();
     if (favoriteLoading || !onToggleFavorite || !product) return;
@@ -1036,7 +1167,6 @@ const ProductCard = ({
     }
   };
 
-  // Define handleViewDetails
   const handleViewDetails = (e) => {
     e.stopPropagation();
     if (onViewDetails && product) {
@@ -1044,6 +1174,7 @@ const ProductCard = ({
     }
   };
 
+  // Don't render if no product
   if (!product) return null;
 
   return (
@@ -1066,13 +1197,7 @@ const ProductCard = ({
           <span className="product-badge">{product.badge}</span>
         )}
         
-        {hasProDiscount && (
-          <span className="product-discount pro-discount">
-            -{proDiscount}% PRO
-          </span>
-        )}
-        
-        {!isPro && product.original_price && (
+        {product.original_price && (
           <span className="product-discount">
             -{Math.round((1 - product.price / product.original_price) * 100)}%
           </span>
@@ -1138,26 +1263,11 @@ const ProductCard = ({
         </div>
 
         <div className="product-price">
-          <span className={`current-price ${hasProDiscount ? 'pro-price' : ''}`}>
-            {displayPrice} MAD
-          </span>
-          
-          {hasProDiscount && (
-            <span className="original-price">{product.price} MAD</span>
-          )}
-          
-          {!isPro && product.original_price && (
+          <span className="current-price">{product.price} MAD</span>
+          {product.original_price && (
             <span className="original-price">{product.original_price} MAD</span>
           )}
         </div>
-
-        {hasProDiscount && (
-          <div className="pro-badge-container">
-            <span className="pro-badge-small">
-              <Icons.Star size={12} /> Prix PRO
-            </span>
-          </div>
-        )}
       </div>
     </motion.div>
   );
@@ -1537,13 +1647,15 @@ const CouponsPage = ({ navigate }) => {
 // Header Component
 // Header Component
 // Header Component - Complete fixed version
+// Header Component - Optimized for Mobile
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
-  const { setSearchQuery, categories } = useProducts(); // Get categories from ProductContext
+  const { setSearchQuery, categories } = useProducts();
   const { favoritesCount } = useFavorites();
   const { couponsCount } = useCoupons();
 
@@ -1551,21 +1663,25 @@ const Header = ({ currentPath, navigate }) => {
     e.preventDefault();
     setSearchQuery(searchInput);
     navigate('/products');
+    setShowSearch(false);
   };
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
+    setShowMobileMenu(false);
   };
 
   const handleCategoryClick = (categoryId, categoryName) => {
     setShowCategoryMenu(false);
+    setShowMobileMenu(false);
     navigate(`/products?category=${categoryId}`);
   };
 
   return (
     <>
-      <div className="announcement-bar">
+      {/* Announcement Bar - Hidden on very small screens */}
+      <div className="announcement-bar hide-mobile">
         <div className="marquee">
           <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
         </div>
@@ -1579,9 +1695,24 @@ const Header = ({ currentPath, navigate }) => {
       >
         <div className="header-top">
           <div className="container">
+            {/* Left Section: Menu Toggle + Logo */}
             <div className="header-left">
               <motion.button 
-                className="menu-toggle" 
+                className="menu-toggle mobile-only" 
+                onClick={() => setShowMobileMenu(true)}
+                whileHover={{ backgroundColor: 'var(--primary-dark)' }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Menu"
+              >
+                <Icons.Menu />
+              </motion.button>
+
+              <a href="/" className="logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+                <img src="https://www.teclab.ma/storage/products/partenaires/teclab-logo-320px.png" alt="TECLAB" />
+              </a>
+
+              <motion.button 
+                className="menu-toggle desktop-only" 
                 onClick={() => setShowCategoryMenu(!showCategoryMenu)}
                 whileHover={{ backgroundColor: 'var(--primary-dark)' }}
                 whileTap={{ scale: 0.95 }}
@@ -1589,13 +1720,10 @@ const Header = ({ currentPath, navigate }) => {
                 <Icons.Menu />
                 <span>Catégories</span>
               </motion.button>
-
-              <a href="/" className="logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-                <img src="https://www.teclab.ma/storage/products/partenaires/teclab-logo-320px.png" alt="TECLAB" />
-              </a>
             </div>
 
-            <form className="search-form" onSubmit={handleSearch}>
+            {/* Search Form - Desktop */}
+            <form className="search-form desktop-only" onSubmit={handleSearch}>
               <input 
                 type="text"
                 placeholder="Rechercher un produit..."
@@ -1606,19 +1734,33 @@ const Header = ({ currentPath, navigate }) => {
                 type="submit"
                 whileHover={{ backgroundColor: 'var(--primary-dark)' }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Rechercher"
               >
                 <Icons.Search />
               </motion.button>
             </form>
 
+            {/* Right Section: Icons */}
             <div className="header-right">
-              {/* Coupons icon with counter */}
+              {/* Search Icon - Mobile Only */}
+              <motion.button 
+                className="header-icon mobile-search-toggle"
+                onClick={() => setShowSearch(!showSearch)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Rechercher"
+              >
+                <Icons.Search />
+              </motion.button>
+
+              {/* Coupons Icon */}
               <motion.a 
                 href="/coupons" 
                 className="header-icon coupons-icon" 
                 onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
+                aria-label="Coupons"
               >
                 <Icons.Percent />
                 {isAuthenticated && couponsCount > 0 && (
@@ -1634,13 +1776,14 @@ const Header = ({ currentPath, navigate }) => {
                 )}
               </motion.a>
               
-              {/* Wishlist icon with counter */}
+              {/* Wishlist Icon */}
               <motion.a 
                 href="/wishlist" 
                 className="header-icon wishlist-icon" 
                 onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
+                aria-label="Favoris"
               >
                 <Icons.Heart />
                 {isAuthenticated && favoritesCount > 0 && (
@@ -1656,7 +1799,7 @@ const Header = ({ currentPath, navigate }) => {
                 )}
               </motion.a>
               
-              {/* Cart icon with counter */}
+              {/* Cart Icon */}
               <div className="ps-cart--mini">
                 <motion.a 
                   href="/cart" 
@@ -1664,6 +1807,7 @@ const Header = ({ currentPath, navigate }) => {
                   onClick={(e) => { e.preventDefault(); navigate('/cart'); }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
+                  aria-label="Panier"
                 >
                   <Icons.ShoppingBag />
                   <motion.span 
@@ -1677,7 +1821,8 @@ const Header = ({ currentPath, navigate }) => {
                 </motion.a>
               </div>
 
-              <div className="user-menu">
+              {/* User Menu - Desktop */}
+              <div className="user-menu desktop-only">
                 <Icons.User />
                 <div className="user-dropdown">
                   {isAuthenticated ? (
@@ -1698,24 +1843,49 @@ const Header = ({ currentPath, navigate }) => {
                   )}
                 </div>
               </div>
-
-              <motion.button 
-                className="mobile-menu-toggle" 
-                onClick={() => setShowMobileMenu(true)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Icons.Menu />
-              </motion.button>
             </div>
           </div>
         </div>
 
-        {/* Categories Mega Menu */}
+        {/* Mobile Search Bar */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div 
+              className="mobile-search-bar"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <form onSubmit={handleSearch}>
+                <input 
+                  type="text"
+                  placeholder="Rechercher un produit..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  autoFocus
+                />
+                <button type="submit" aria-label="Rechercher">
+                  <Icons.Search />
+                </button>
+                <button 
+                  type="button" 
+                  className="close-search"
+                  onClick={() => setShowSearch(false)}
+                  aria-label="Fermer"
+                >
+                  <Icons.X />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Categories Mega Menu - Desktop */}
         <AnimatePresence>
           {showCategoryMenu && (
             <motion.div 
-              className="categories-mega-menu"
+              className="categories-mega-menu desktop-only"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -1770,47 +1940,59 @@ const Header = ({ currentPath, navigate }) => {
                 onClick={e => e.stopPropagation()}
               >
                 <div className="mobile-menu-header">
-                  <h3>Menu</h3>
-                  <button className="close-btn" onClick={() => setShowMobileMenu(false)}>
+                  <div className="mobile-user-info">
+                    {isAuthenticated ? (
+                      <>
+                        <div className="mobile-user-avatar">
+                          <Icons.User />
+                        </div>
+                        <div className="mobile-user-details">
+                          <span className="mobile-user-name">{user?.name}</span>
+                          <span className="mobile-user-email">{user?.email}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mobile-guest">
+                        <span>Bonjour !</span>
+                        <div className="mobile-auth-links">
+                          <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); setShowMobileMenu(false); }}>
+                            Connexion
+                          </a>
+                          <span className="separator">|</span>
+                          <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); setShowMobileMenu(false); }}>
+                            Inscription
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <button className="close-btn" onClick={() => setShowMobileMenu(false)} aria-label="Fermer">
                     <Icons.X />
                   </button>
                 </div>
 
                 <div className="mobile-menu-body">
-                  <div className="mobile-menu-section">
-                    <h4>Catégories</h4>
-                    <div className="mobile-categories-list">
-                      <a 
-                        href="/products" 
-                        className="mobile-category-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/products');
-                        }}
-                      >
-                        Tous les produits
-                      </a>
-                      {categories.map(category => (
-                        <a 
-                          key={category.id}
-                          href={`/products?category=${category.id}`}
-                          className="mobile-category-link"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate(`/products?category=${category.id}`);
-                          }}
-                        >
-                          {category.name}
-                          <span className="category-count">{category.products_count || 0}</span>
-                        </a>
-                      ))}
+                  {/* Quick Stats */}
+                  {isAuthenticated && (
+                    <div className="mobile-stats">
+                      <div className="stat-item">
+                        <Icons.Heart />
+                        <span>{favoritesCount} Favoris</span>
+                      </div>
+                      <div className="stat-item">
+                        <Icons.Percent />
+                        <span>{couponsCount} Coupons</span>
+                      </div>
+                      <div className="stat-item">
+                        <Icons.ShoppingBag />
+                        <span>{cartCount} Articles</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
+                  {/* Main Navigation */}
                   <div className="mobile-menu-section">
-                    <h4>Liens rapides</h4>
+                    <h4>Navigation</h4>
                     <div className="mobile-links-list">
                       <a 
                         href="/" 
@@ -1830,7 +2012,7 @@ const Header = ({ currentPath, navigate }) => {
                           navigate('/products');
                         }}
                       >
-                        <Icons.Package size={18} /> Produits
+                        <Icons.Package size={18} /> Tous les produits
                       </a>
                       <a 
                         href="/categories" 
@@ -1842,78 +2024,126 @@ const Header = ({ currentPath, navigate }) => {
                       >
                         <Icons.Filter size={18} /> Catégories
                       </a>
-                      <a 
-                        href="/coupons" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/coupons');
-                        }}
-                      >
-                        <Icons.Percent size={18} /> Coupons
-                      </a>
-                      {isAuthenticated ? (
-                        <>
-                          <a 
-                            href="/dashboard" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowMobileMenu(false);
-                              navigate('/dashboard');
-                            }}
-                          >
-                            <Icons.User size={18} /> Mon Compte
-                          </a>
-                          <a 
-                            href="/orders" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowMobileMenu(false);
-                              navigate('/orders');
-                            }}
-                          >
-                            <Icons.Package size={18} /> Mes Commandes
-                          </a>
-                          <a 
-                            href="/wishlist" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowMobileMenu(false);
-                              navigate('/wishlist');
-                            }}
-                          >
-                            <Icons.Heart size={18} /> Mes Favoris
-                          </a>
-                          <button onClick={handleLogout} className="mobile-logout-btn">
-                            <Icons.LogOut size={18} /> Déconnexion
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <a 
-                            href="/login" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowMobileMenu(false);
-                              navigate('/login');
-                            }}
-                          >
-                            <Icons.User size={18} /> Connexion
-                          </a>
-                          <a 
-                            href="/register" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowMobileMenu(false);
-                              navigate('/register');
-                            }}
-                          >
-                            <Icons.User size={18} /> Inscription
-                          </a>
-                        </>
+                    </div>
+                  </div>
+
+                  {/* Categories Section */}
+                  <div className="mobile-menu-section">
+                    <h4>Catégories populaires</h4>
+                    <div className="mobile-categories-list">
+                      {categories.slice(0, 8).map(category => (
+                        <a 
+                          key={category.id}
+                          href={`/products?category=${category.id}`}
+                          className="mobile-category-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate(`/products?category=${category.id}`);
+                          }}
+                        >
+                          <span className="category-name">{category.name}</span>
+                          <span className="category-count">{category.products_count || 0}</span>
+                        </a>
+                      ))}
+                      {categories.length > 8 && (
+                        <a 
+                          href="/categories"
+                          className="view-all-categories"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate('/categories');
+                          }}
+                        >
+                          Voir toutes les catégories <Icons.ChevronRight size={14} />
+                        </a>
                       )}
                     </div>
                   </div>
+
+                  {/* User Menu Links */}
+                  {isAuthenticated && (
+                    <div className="mobile-menu-section">
+                      <h4>Mon compte</h4>
+                      <div className="mobile-links-list">
+                        <a 
+                          href="/dashboard" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate('/dashboard');
+                          }}
+                        >
+                          <Icons.User size={18} /> Tableau de bord
+                        </a>
+                        <a 
+                          href="/orders" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate('/orders');
+                          }}
+                        >
+                          <Icons.Package size={18} /> Mes commandes
+                        </a>
+                        <a 
+                          href="/wishlist" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate('/wishlist');
+                          }}
+                        >
+                          <Icons.Heart size={18} /> Mes favoris
+                        </a>
+                        <a 
+                          href="/coupons" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowMobileMenu(false);
+                            navigate('/coupons');
+                          }}
+                        >
+                          <Icons.Percent size={18} /> Mes coupons
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Help & Info */}
+                  <div className="mobile-menu-section">
+                    <h4>Informations</h4>
+                    <div className="mobile-links-list">
+                      <a 
+                        href="/about" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/about');
+                        }}
+                      >
+                        À propos
+                      </a>
+                      <a 
+                        href="/contact" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/contact');
+                        }}
+                      >
+                        Contact
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Logout Button */}
+                  {isAuthenticated && (
+                    <button onClick={handleLogout} className="mobile-logout-btn">
+                      <Icons.LogOut size={18} /> Déconnexion
+                    </button>
+                  )}
                 </div>
               </motion.div>
             </motion.div>
@@ -1924,24 +2154,25 @@ const Header = ({ currentPath, navigate }) => {
   );
 };
 // Footer Component
+// Footer Component
 const Footer = ({ navigate }) => {
   return (
     <footer className="footer">
       <div className="container">
-        // In Footer component, update the widget section:
-<div className="footer-widgets">
-  <div className="widget">
-    <h4>Liens rapides</h4>
-    <ul>
-      <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a></li>
-      <li><a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a></li>
-      <li><a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); }}>Catégories</a></li>
-      <li><a href="/coupons" onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}>Coupons</a></li>
-      <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>À propos</a></li>
-      <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}>Contact</a></li>
-    </ul>
-  </div>
-</div>
+        {/* In Footer component, update the widget section: */}
+        <div className="footer-widgets">
+          <div className="widget">
+            <h4>Liens rapides</h4>
+            <ul>
+              <li><a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Accueil</a></li>
+              <li><a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); }}>Produits</a></li>
+              <li><a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); }}>Catégories</a></li>
+              <li><a href="/coupons" onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}>Coupons</a></li>
+              <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>À propos</a></li>
+              <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}>Contact</a></li>
+            </ul>
+          </div>
+        </div>
 
         <div className="footer-bottom">
           <p>© 2026 TECLAB. Tous droits réservés.</p>
@@ -1964,7 +2195,6 @@ const Footer = ({ navigate }) => {
     </footer>
   );
 };
-
 // ==================== PAGES ====================
 
 // Home Page
@@ -2015,6 +2245,7 @@ const HomePage = ({ navigate }) => {
                   onToggleFavorite={toggleFavorite}
                   isPro={isPro}
                   proDiscount={proDiscount}
+                    navigate={navigate}
                 />
               ))}
             </div>
@@ -2216,6 +2447,7 @@ const ProductsPage = ({ navigate }) => {
                       onToggleFavorite={toggleFavorite}
                       isPro={isPro}
                       proDiscount={proDiscount}
+                        navigate={navigate}
                     />
                   ))}
                 </div>
@@ -3465,12 +3697,14 @@ const CartPage = ({ navigate }) => {
 };
 
 // Login Page
+// ==================== LOGIN PAGE ====================
 const LoginPage = ({ navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const { addToCart } = useCart();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -3479,7 +3713,28 @@ const LoginPage = ({ navigate }) => {
     
     try {
       await login(email, password);
-      navigate('/');
+      
+      // Check if there's a pending cart item
+      const pendingItem = localStorage.getItem('pending_cart_item');
+      if (pendingItem) {
+        try {
+          const item = JSON.parse(pendingItem);
+          // Add the item to cart after login
+          await addToCart(item.product, item.quantity, navigate);
+          localStorage.removeItem('pending_cart_item');
+          
+          // Show message
+          alert('Article ajouté à votre panier !');
+          
+          // Redirect to cart
+          navigate('/cart');
+        } catch (err) {
+          console.error('Failed to add pending item:', err);
+          navigate('/');
+        }
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -5633,6 +5888,9 @@ function App() {
   );
 };
   return (
+    <>
+    <BrowserRouter>
+    
   <AuthProvider>
     <CartProvider>
       <ProductProvider>
@@ -5666,6 +5924,9 @@ function App() {
       </ProductProvider>
     </CartProvider>
   </AuthProvider>
+  
+  </BrowserRouter>
+  </>
 );
 }
 

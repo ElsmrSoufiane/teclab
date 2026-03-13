@@ -8619,3 +8619,1201 @@ body {
     font-size: 1.2rem;
   }
 }
+/* ==================== MOBILE OPTIMIZED HEADER ==================== */
+
+/* Hide/Show classes */
+.hide-mobile {
+  display: block;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: flex !important;
+}
+
+/* Header adjustments for mobile */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .header-top .container {
+    padding: 10px 15px;
+  }
+
+  .header-left {
+    gap: 10px;
+  }
+
+  .logo img {
+    max-height: 35px;
+  }
+
+  .menu-toggle {
+    padding: 8px;
+    min-width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+
+  .menu-toggle span {
+    display: none;
+  }
+
+  .menu-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-right {
+    gap: 12px;
+  }
+
+  .header-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .header-icon .count {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    top: -5px;
+    right: -5px;
+  }
+
+  .mobile-search-toggle {
+    display: flex !important;
+  }
+
+  .user-menu {
+    display: none !important;
+  }
+}
+
+/* Mobile Search Bar */
+.mobile-search-bar {
+  background: white;
+  padding: 10px 15px;
+  border-top: 1px solid var(--border-color);
+  position: relative;
+}
+
+.mobile-search-bar form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-search-bar input {
+  flex: 1;
+  height: 40px;
+  padding: 0 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.mobile-search-bar input:focus {
+  border-color: var(--primary-color);
+}
+
+.mobile-search-bar button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.mobile-search-bar button:hover {
+  background: var(--primary-dark);
+}
+
+.mobile-search-bar .close-search {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.mobile-search-bar .close-search:hover {
+  background: #e0e0e0;
+}
+
+/* Mobile Menu Enhanced */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.mobile-menu-content {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 85%;
+  max-width: 380px;
+  background: white;
+  box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu-header {
+  padding: 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.mobile-user-info {
+  flex: 1;
+}
+
+.mobile-user-avatar {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.mobile-user-avatar svg {
+  width: 30px;
+  height: 30px;
+  stroke: white;
+}
+
+.mobile-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.mobile-user-email {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.mobile-guest {
+  padding: 10px 0;
+}
+
+.mobile-guest span {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.mobile-auth-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-auth-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.mobile-auth-links a:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mobile-auth-links .separator {
+  opacity: 0.3;
+}
+
+.mobile-menu-header .close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.mobile-menu-header .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mobile-menu-header .close-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+}
+
+.mobile-menu-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+/* Mobile Stats */
+.mobile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.mobile-stats .stat-item {
+  background: white;
+  padding: 12px 5px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.mobile-stats .stat-item svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+.mobile-stats .stat-item span {
+  display: block;
+  font-size: 11px;
+  color: #666;
+}
+
+/* Mobile Menu Sections */
+.mobile-menu-section {
+  margin-bottom: 25px;
+}
+
+.mobile-menu-section h4 {
+  font-size: 14px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 15px;
+  padding-left: 5px;
+}
+
+.mobile-links-list {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.mobile-links-list a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  text-decoration: none;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.3s;
+  font-size: 14px;
+}
+
+.mobile-links-list a:last-child {
+  border-bottom: none;
+}
+
+.mobile-links-list a:hover {
+  background: #f8f9fa;
+}
+
+.mobile-links-list a svg {
+  stroke: #666;
+  transition: stroke 0.3s;
+}
+
+.mobile-links-list a:hover svg {
+  stroke: var(--primary-color);
+}
+
+/* Mobile Categories */
+.mobile-categories-list {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.mobile-category-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.3s;
+}
+
+.mobile-category-link:last-child {
+  border-bottom: none;
+}
+
+.mobile-category-link:hover {
+  background: #f8f9fa;
+}
+
+.category-name {
+  color: #333;
+  font-size: 14px;
+}
+
+.category-count {
+  color: #999;
+  font-size: 12px;
+  background: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.view-all-categories {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 15px;
+  text-decoration: none;
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 13px;
+  border-top: 1px solid #f0f0f0;
+  transition: background 0.3s;
+}
+
+.view-all-categories:hover {
+  background: #f8f9fa;
+}
+
+.view-all-categories svg {
+  stroke: var(--primary-color);
+}
+
+/* Mobile Logout Button */
+.mobile-logout-btn {
+  width: 100%;
+  padding: 15px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 10px;
+}
+
+.mobile-logout-btn:hover {
+  background: #ff6666;
+}
+
+.mobile-logout-btn svg {
+  stroke: white;
+}
+
+/* Small phone adjustments */
+@media (max-width: 480px) {
+  .mobile-menu-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .header-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-stats {
+    gap: 5px;
+  }
+
+  .mobile-stats .stat-item {
+    padding: 8px 3px;
+  }
+
+  .mobile-stats .stat-item svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .mobile-stats .stat-item span {
+    font-size: 10px;
+  }
+
+  .mobile-links-list a,
+  .mobile-category-link {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .mobile-categories-list .category-count {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .header-top .container {
+    padding: 15px 20px;
+  }
+
+  .logo img {
+    max-height: 40px;
+  }
+
+  .search-form {
+    max-width: 300px;
+  }
+
+  .header-right {
+    gap: 15px;
+  }
+}
+
+/* Animation for mobile menu */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+  .mobile-links-list a,
+  .mobile-category-link,
+  .mobile-logout-btn,
+  .close-btn,
+  .mobile-search-toggle {
+    min-height: 44px; /* Apple's recommended minimum touch target size */
+  }
+
+  .mobile-links-list a svg,
+  .mobile-category-link svg {
+    min-width: 20px;
+  }
+}
+/* ==================== MOBILE HEADER FIXES - ADD THIS AT THE END ==================== */
+
+/* Mobile Search Toggle Button - Force show on mobile */
+@media (max-width: 768px) {
+  .mobile-search-toggle {
+    display: flex !important;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mobile-search-toggle svg {
+    width: 22px;
+    height: 22px;
+    stroke: white !important;
+    stroke-width: 2;
+  }
+
+  .mobile-search-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Hide desktop search form on mobile */
+  .search-form.desktop-only {
+    display: none !important;
+  }
+
+  /* Ensure all header icons are white */
+  .header-icon svg,
+  .menu-toggle svg,
+  .user-menu svg {
+    stroke: white !important;
+  }
+
+  /* Adjust header spacing for mobile */
+  .header-top .container {
+    padding: 10px 15px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .header-icon {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Fix count badge positioning */
+  .header-icon .count {
+    top: -2px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    border: 2px solid var(--primary-color);
+  }
+
+  /* Hide user menu on mobile */
+  .user-menu {
+    display: none !important;
+  }
+}
+
+/* Mobile Search Bar Styling */
+.mobile-search-bar {
+  background: white;
+  padding: 12px 15px;
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-search-bar form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-search-bar input {
+  flex: 1;
+  height: 44px;
+  padding: 0 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  background: #f8f9fa;
+}
+
+.mobile-search-bar input:focus {
+  border-color: var(--primary-color);
+  background: white;
+}
+
+.mobile-search-bar button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-search-bar button svg {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+}
+
+.mobile-search-bar .close-search {
+  background: #f0f0f0;
+}
+
+.mobile-search-bar .close-search svg {
+  stroke: #666;
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .mobile-search-toggle svg,
+  .header-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .header-icon .count {
+    min-width: 15px;
+    height: 15px;
+    font-size: 9px;
+  }
+
+  .mobile-search-bar input {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .mobile-search-bar button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Very small devices */
+@media (max-width: 360px) {
+  .mobile-search-toggle svg,
+  .header-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .header-icon .count {
+    min-width: 14px;
+    height: 14px;
+    font-size: 8px;
+  }
+}
+
+/* Touch target improvements */
+@media (max-width: 768px) {
+  .mobile-search-toggle,
+  .header-icon {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-search-toggle:active,
+  .header-icon:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Ensure header background stays consistent */
+.header {
+  background: var(--primary-color);
+}
+
+/* Force all header icons to be white */
+.header svg,
+.header-icon svg,
+.menu-toggle svg,
+.mobile-search-toggle svg {
+  stroke: white !important;
+}
+/* ==================== FIX DUPLICATE SEARCH ICONS ON DESKTOP ==================== */
+
+/* Hide mobile search icon on desktop */
+@media (min-width: 769px) {
+  .mobile-search-toggle {
+    display: none !important;
+  }
+}
+
+/* Keep mobile search icon visible on mobile */
+@media (max-width: 768px) {
+  .mobile-search-toggle {
+    display: flex !important;
+  }
+  
+  /* Hide desktop search form on mobile */
+  .search-form {
+    display: none !important;
+  }
+}
+
+/* For tablets - adjust as needed */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .mobile-search-toggle {
+    display: none !important;
+  }
+  
+  .search-form {
+    display: flex !important;
+  }
+}
+
+/* Add to your App.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal-content h3 {
+  margin-bottom: 15px;
+  color: var(--text-dark);
+}
+
+.modal-content p {
+  margin-bottom: 20px;
+  color: var(--text-light);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.modal-actions .btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.modal-actions .btn-secondary {
+  background: #f0f0f0;
+  color: var(--text-dark);
+}
+/* ==================== LOGIN PROMPT MODAL STYLES ==================== */
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal Container */
+.login-prompt-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 450px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(109, 158, 235, 0.2);
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Close Button */
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f0f0f0;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.modal-close-btn:hover {
+  background: #e0e0e0;
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.modal-close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Modal Icon */
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #6d9eeb20, #6d9eeb40);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: #6d9eeb;
+}
+
+.modal-icon svg {
+  width: 48px;
+  height: 48px;
+  stroke: #6d9eeb;
+}
+
+/* Modal Title */
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  margin-bottom: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Modal Message */
+.modal-message {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.modal-message p {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.modal-message strong {
+  color: #6d9eeb;
+  font-weight: 600;
+}
+
+/* Options Section */
+.modal-options {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 28px;
+  border: 1px solid #e2e8f0;
+}
+
+.modal-option-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #475569;
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+.modal-option-text:last-child {
+  margin-bottom: 0;
+}
+
+.modal-option-text svg {
+  color: #10b981;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+/* Action Buttons */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.modal-actions .btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.modal-actions .btn-secondary:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.modal-actions .btn-primary {
+  background: linear-gradient(135deg, #6d9eeb 0%, #4a7fc9 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(109, 158, 235, 0.3);
+}
+
+.modal-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(109, 158, 235, 0.4);
+}
+
+.modal-actions .btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Footer Text */
+.modal-footer-text {
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.register-link {
+  background: none;
+  border: none;
+  color: #6d9eeb;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 5px;
+  padding: 0;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  transition: color 0.2s ease;
+}
+
+.register-link:hover {
+  color: #4a7fc9;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Styles */
+@media (max-width: 480px) {
+  .login-prompt-modal {
+    padding: 24px;
+    margin: 16px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-actions button {
+    width: 100%;
+    padding: 12px 16px;
+  }
+
+  .modal-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+  }
+
+  .modal-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .modal-options {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .modal-option-text {
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .modal-option-text svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .login-prompt-modal {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .modal-title {
+    color: #f1f5f9;
+  }
+
+  .modal-message p {
+    color: #94a3b8;
+  }
+
+  .modal-options {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  .modal-option-text {
+    color: #cbd5e1;
+  }
+
+  .modal-close-btn {
+    background: #334155;
+    color: #94a3b8;
+  }
+
+  .modal-close-btn:hover {
+    background: #475569;
+    color: #f1f5f9;
+  }
+
+  .modal-actions .btn-secondary {
+    background: #334155;
+    color: #f1f5f9;
+    border-color: #475569;
+  }
+
+  .modal-actions .btn-secondary:hover {
+    background: #475569;
+  }
+
+  .modal-footer-text {
+    color: #94a3b8;
+  }
+}
+
+/* Optional: Add a subtle pulse animation to the icon */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.modal-icon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Optional: Add a shimmer effect to the primary button */
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.modal-actions .btn-primary {
+  background: linear-gradient(135deg, #6d9eeb 0%, #4a7fc9 50%, #6d9eeb 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
