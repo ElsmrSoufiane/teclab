@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // ==================== API CONFIGURATION ====================
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.REACT_APP_API_URL || 'https://techlabbackend-master-mtobwx.laravel.cloud/api/v1';
 console.log('🔧 API URL configured as:', API_URL);
 
 const api = axios.create({
