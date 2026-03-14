@@ -5,6 +5,7 @@ import { favoritesApi, couponsApi } from './api';
 import './App.css';
 import { BrowserRouter , Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
+import PropTypes from 'prop-types'; // Add this import 
 // ==================== API CONFIGURATION ====================
 // Add this modal component
 // ==================== LOGIN PROMPT MODAL COMPONENT ====================
@@ -1822,27 +1823,40 @@ const Header = ({ currentPath, navigate }) => {
               </div>
 
               {/* User Menu - Desktop */}
-              <div className="user-menu desktop-only">
-                <Icons.User />
-                <div className="user-dropdown">
-                  {isAuthenticated ? (
-                    <>
-                      <span className="user-name">{user?.name}</span>
-                      <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
-                      <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
-                      <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
-                        Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
-                      </a>
-                      <button onClick={handleLogout}>Déconnexion</button>
-                    </>
-                  ) : (
-                    <>
-                      <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a>
-                      <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a>
-                    </>
-                  )}
-                </div>
-              </div>
+              {/* User Menu - Desktop */}
+<div className="user-menu desktop-only">
+  <Icons.User />
+  <div className="user-dropdown">
+    {isAuthenticated ? (
+      <>
+        <span className="user-name">{user?.name}</span>
+        <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
+        <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
+        <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
+          Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
+        </a>
+        
+        {/* ADMIN LINK - Make sure this is here */}
+        {user?.role === 'admin' && (
+          <>
+            <div className="dropdown-divider"></div>
+            <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
+              <Icons.User size={16} style={{ marginRight: '8px' }} /> Administration
+            </a>
+          </>
+        )}
+        
+        <div className="dropdown-divider"></div>
+        <button onClick={handleLogout} className="logout-btn">Déconnexion</button>
+      </>
+    ) : (
+      <>
+        <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a>
+        <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a>
+      </>
+    )}
+  </div>
+</div>
             </div>
           </div>
         </div>
@@ -1941,6 +1955,18 @@ const Header = ({ currentPath, navigate }) => {
               >
                 <div className="mobile-menu-header">
                   <div className="mobile-user-info">
+                   
+{isAuthenticated && user?.role === 'admin' && (
+  <>
+    <div className="dropdown-divider"></div>
+    <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
+      <Icons.User size={16} /> Administration
+    </a>
+  </>
+)}
+
+
+
                     {isAuthenticated ? (
                       <>
                         <div className="mobile-user-avatar">
@@ -4659,25 +4685,544 @@ const OrdersPage = ({ navigate }) => {
     </motion.div>
   );
 };
+
+
+// Simple Products Table Component
+// ==================== ORDERS TABLE COMPONENT ====================
+const OrdersTable = ({ orders, onStatusChange, onRefresh, onView, onBack, currentPage, totalPages, onPageChange }) => {
+  const [statusFilter, setStatusFilter] = useState('');
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des commandes</h2>
+        <div className="table-filters">
+          <select 
+            value={statusFilter} 
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              // You would need to implement filter logic here
+            }}
+          >
+            <option value="">Tous les statuts</option>
+            <option value="en cours">En cours</option>
+            <option value="expédiée">Expédiée</option>
+            <option value="livré">Livrée</option>
+            <option value="annulée">Annulée</option>
+          </select>
+        </div>
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>N° Commande</th>
+            <th>Client</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.length === 0 ? (
+            <tr>
+              <td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>
+                Aucune commande trouvée
+              </td>
+            </tr>
+          ) : (
+            orders.map(order => (
+              <tr key={order.id}>
+                <td>#{order.order_number}</td>
+                <td>
+                  <div className="customer-info">
+                    <strong>{order.customer?.name}</strong>
+                    <small>{order.customer?.email}</small>
+                  </div>
+                </td>
+                <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                <td><strong>{order.total} MAD</strong></td>
+                <td>
+                  <select 
+                    value={order.status}
+                    onChange={(e) => onStatusChange(order.id, e.target.value)}
+                    className={`status-select ${getStatusClass(order.status)}`}
+                  >
+                    <option value="en cours">En cours</option>
+                    <option value="expédiée">Expédiée</option>
+                    <option value="livré">Livrée</option>
+                    <option value="annulée">Annulée</option>
+                  </select>
+                </td>
+                <td>
+                  <button 
+                    className="view-btn"
+                    onClick={() => onView(order)}
+                  >
+                    Détails
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            <Icons.ChevronLeft />
+          </button>
+          <span>Page {currentPage} sur {totalPages}</span>
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            <Icons.ChevronRight />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==================== PRODUCTS TABLE COMPONENT ====================
+const ProductsTable = ({ products, categories, onAdd, onEdit, onDelete, onRefresh, onBack, currentPage, totalPages, onPageChange }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredProducts = products.filter(p => 
+    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des produits</h2>
+        <button onClick={onAdd} className="add-btn">
+          <Icons.Plus size={16} /> Nouveau produit
+        </button>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher un produit..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Nom</th>
+            <th>SKU</th>
+            <th>Prix</th>
+            <th>Stock</th>
+            <th>Catégorie</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredProducts.length === 0 ? (
+            <tr>
+              <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
+                Aucun produit trouvé
+              </td>
+            </tr>
+          ) : (
+            filteredProducts.map(product => (
+              <tr key={product.id}>
+                <td>
+                  <img 
+                    src={product.image || 'https://via.placeholder.com/50'} 
+                    alt={product.name} 
+                    className="product-thumb"
+                    onError={(e) => e.target.src = 'https://via.placeholder.com/50'}
+                  />
+                </td>
+                <td>{product.name}</td>
+                <td><code>{product.sku}</code></td>
+                <td><strong>{product.price} MAD</strong></td>
+                <td>
+                  <span className={`stock-badge ${
+                    product.stock < 5 ? 'critical' : 
+                    product.stock < 10 ? 'warning' : 'good'
+                  }`}>
+                    {product.stock}
+                  </span>
+                </td>
+                <td>{product.category?.name || '-'}</td>
+                <td>
+                  <button onClick={() => onEdit(product)} className="edit-btn">
+                    <Icons.Eye size={14} /> Modifier
+                  </button>
+                  <button onClick={() => onDelete(product.id)} className="delete-btn">
+                    <Icons.Trash size={14} /> Supprimer
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            <Icons.ChevronLeft />
+          </button>
+          <span>Page {currentPage} sur {totalPages}</span>
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            <Icons.ChevronRight />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==================== CATEGORIES TABLE COMPONENT ====================
+const CategoriesTable = ({ categories, onAdd, onEdit, onDelete, onRefresh, onBack }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCategories = categories.filter(c => 
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des catégories</h2>
+        <button onClick={onAdd} className="add-btn">
+          <Icons.Plus size={16} /> Nouvelle catégorie
+        </button>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher une catégorie..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Slug</th>
+            <th>Produits</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredCategories.length === 0 ? (
+            <tr>
+              <td colSpan="5" style={{ textAlign: 'center', padding: '30px' }}>
+                Aucune catégorie trouvée
+              </td>
+            </tr>
+          ) : (
+            filteredCategories.map(category => (
+              <tr key={category.id}>
+                <td>{category.id}</td>
+                <td><strong>{category.name}</strong></td>
+                <td>{category.slug}</td>
+                <td>{category.products_count || 0}</td>
+                <td>
+                  <button onClick={() => onEdit(category)} className="edit-btn">
+                    <Icons.Eye size={14} /> Modifier
+                  </button>
+                  <button onClick={() => onDelete(category.id)} className="delete-btn">
+                    <Icons.Trash size={14} /> Supprimer
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// ==================== CUSTOMERS TABLE COMPONENT ====================
+const CustomersTable = ({ customers, onEdit, onRefresh, onView, onBack, currentPage, totalPages, onPageChange }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCustomers = customers.filter(c => 
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des clients</h2>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher un client..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Type</th>
+            <th>Commandes</th>
+            <th>Inscription</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredCustomers.length === 0 ? (
+            <tr>
+              <td colSpan="8" style={{ textAlign: 'center', padding: '30px' }}>
+                Aucun client trouvé
+              </td>
+            </tr>
+          ) : (
+            filteredCustomers.map(customer => (
+              <tr key={customer.id}>
+                <td>{customer.id}</td>
+                <td><strong>{customer.name}</strong></td>
+                <td>{customer.email}</td>
+                <td>{customer.phone || '-'}</td>
+                <td>
+                  {customer.tier === 'pro' ? (
+                    <span className="pro-badge">PRO</span>
+                  ) : (
+                    <span className="regular-badge">Régulier</span>
+                  )}
+                </td>
+                <td>{customer.orders_count || 0}</td>
+                <td>{new Date(customer.created_at).toLocaleDateString()}</td>
+                <td>
+                  <button onClick={() => onEdit(customer)} className="edit-btn">
+                    <Icons.Eye size={14} /> Modifier
+                  </button>
+                  <button onClick={() => onView(customer)} className="view-btn">
+                    <Icons.User size={14} /> Voir
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            <Icons.ChevronLeft />
+          </button>
+          <span>Page {currentPage} sur {totalPages}</span>
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            <Icons.ChevronRight />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==================== COUPONS TABLE COMPONENT ====================
+const CouponsTable = ({ coupons, customers, onAdd, onEdit, onDelete, onRefresh, onBack, currentPage, totalPages, onPageChange }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCoupons = coupons.filter(c => 
+    c.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des coupons</h2>
+        <button onClick={onAdd} className="add-btn">
+          <Icons.Plus size={16} /> Nouveau coupon
+        </button>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher un coupon..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Valeur</th>
+            <th>Utilisations</th>
+            <th>Expiration</th>
+            <th>Client</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredCoupons.length === 0 ? (
+            <tr>
+              <td colSpan="8" style={{ textAlign: 'center', padding: '30px' }}>
+                Aucun coupon trouvé
+              </td>
+            </tr>
+          ) : (
+            filteredCoupons.map(coupon => (
+              <tr key={coupon.id}>
+                <td><strong>{coupon.code}</strong></td>
+                <td>{coupon.name}</td>
+                <td>{coupon.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}</td>
+                <td>{coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} MAD`}</td>
+                <td>{coupon.used_count || 0}/{coupon.max_uses || '∞'}</td>
+                <td>{coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'Jamais'}</td>
+                <td>
+                  {coupon.customer ? (
+                    <span className="customer-badge">
+                      {coupon.customer.name}
+                    </span>
+                  ) : (
+                    <span className="public-badge">Public</span>
+                  )}
+                </td>
+                <td>
+                  <button onClick={() => onEdit(coupon)} className="edit-btn">
+                    <Icons.Eye size={14} /> Modifier
+                  </button>
+                  <button onClick={() => onDelete(coupon.id)} className="delete-btn">
+                    <Icons.Trash size={14} /> Supprimer
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            <Icons.ChevronLeft />
+          </button>
+          <span>Page {currentPage} sur {totalPages}</span>
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            <Icons.ChevronRight />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 // ==================== ADMIN PAGES ====================
 
-// Admin Dashboard Page
+// ==================== ADMIN DASHBOARD PAGE WITH SIDEBAR ====================
+// ==================== COMPLETE ADMIN DASHBOARD PAGE ====================
 const AdminDashboardPage = ({ navigate }) => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [recentCustomers, setRecentCustomers] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Data for tables
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('');
+  const [editingItem, setEditingItem] = useState(null);
+  const [formData, setFormData] = useState({});
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  
   const { user, isAdmin } = useAuth();
 
+  // Check authentication
   useEffect(() => {
-    // Wait for user to load
     if (user === undefined) return;
     
-    console.log('🔍 User loaded:', user);
-    
-    // Check if user is null (not logged in) or not admin
     if (!user || user.role !== 'admin') {
-      console.log('🔍 Not admin or not logged in, redirecting');
       navigate('/');
       return;
     }
@@ -4686,20 +5231,53 @@ const AdminDashboardPage = ({ navigate }) => {
     fetchDashboardData();
   }, [user]);
 
+  // Fetch all dashboard data
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsRes, ordersRes] = await Promise.all([
-        api.get('/admin/stats'),
-        api.get('/admin/orders?per_page=5')
-      ]);
+      // Fetch stats
+      const statsRes = await api.get('/admin/stats').catch(err => {
+        console.log('Stats error:', err);
+        return { data: { success: false, data: {} } };
+      });
       
-      if (statsRes.data.success) {
-        setStats(statsRes.data.data);
-      }
-      if (ordersRes.data.success) {
-        setRecentOrders(ordersRes.data.data.data || []);
-      }
+      // Fetch recent orders
+      const ordersRes = await api.get('/admin/orders?per_page=5').catch(err => {
+        console.log('Orders error:', err);
+        return { data: { success: false, data: { data: [] } } };
+      });
+      
+      // Fetch recent customers
+      const customersRes = await api.get('/admin/customers?per_page=5').catch(err => {
+        console.log('Customers error:', err);
+        return { data: { success: false, data: { data: [] } } };
+      });
+      
+      // Fetch low stock products
+      const productsRes = await api.get('/admin/products/low-stock?per_page=5').catch(err => {
+        console.log('Products error:', err);
+        return { data: { success: false, data: { data: [] } } };
+      });
+      
+      // Fetch categories
+      const categoriesRes = await api.get('/categories').catch(err => {
+        console.log('Categories error:', err);
+        return { data: { success: false, data: [] } };
+      });
+      
+      // Fetch coupons
+      const couponsRes = await api.get('/admin/coupons?per_page=5').catch(err => {
+        console.log('Coupons error:', err);
+        return { data: { success: false, data: { data: [] } } };
+      });
+      
+      if (statsRes.data.success) setStats(statsRes.data.data);
+      if (ordersRes.data.success) setRecentOrders(ordersRes.data.data.data || []);
+      if (customersRes.data.success) setRecentCustomers(customersRes.data.data.data || []);
+      if (productsRes.data.success) setLowStockProducts(productsRes.data.data.data || []);
+      if (categoriesRes.data.success) setCategories(categoriesRes.data.data);
+      if (couponsRes.data.success) setCoupons(couponsRes.data.data.data || []);
+      
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
     } finally {
@@ -4707,10 +5285,340 @@ const AdminDashboardPage = ({ navigate }) => {
     }
   };
 
-  // Show loading while checking auth
+  // Fetch all products
+  const fetchProducts = async (page = 1) => {
+    try {
+      const response = await api.get(`/admin/products?page=${page}`);
+      if (response.data.success) {
+        setProducts(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+        setCurrentPage(response.data.data.current_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      alert('Erreur lors du chargement des produits');
+    }
+  };
+
+  // Fetch all customers
+  const fetchCustomers = async (page = 1) => {
+    try {
+      const response = await api.get(`/admin/customers?page=${page}`);
+      if (response.data.success) {
+        setCustomers(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+        setCurrentPage(response.data.data.current_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch customers:', err);
+      alert('Erreur lors du chargement des clients');
+    }
+  };
+
+  // Fetch all coupons
+  const fetchCoupons = async (page = 1) => {
+    try {
+      const response = await api.get(`/admin/coupons?page=${page}`);
+      if (response.data.success) {
+        setCoupons(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+        setCurrentPage(response.data.data.current_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch coupons:', err);
+      alert('Erreur lors du chargement des coupons');
+    }
+  };
+
+  // Fetch all orders
+  const fetchOrders = async (page = 1, status = '') => {
+    try {
+      let url = `/admin/orders?page=${page}`;
+      if (status) url += `&status=${status}`;
+      
+      const response = await api.get(url);
+      if (response.data.success) {
+        setOrders(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+        setCurrentPage(response.data.data.current_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      alert('Erreur lors du chargement des commandes');
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    
+    if (tab === 'products') fetchProducts();
+    if (tab === 'customers') fetchCustomers();
+    if (tab === 'coupons') fetchCoupons();
+    if (tab === 'orders') fetchOrders();
+  };
+
+  // Open modal for adding/editing
+  const openModal = (type, item = null) => {
+    setModalType(type);
+    
+    if (item) {
+      // Editing existing item
+      setEditingItem(item);
+      
+      // Format data based on type
+      if (type === 'product') {
+        setFormData({
+          id: item.id,
+          name: item.name || '',
+          sku: item.sku || '',
+          price: item.price?.toString() || '',
+          stock: item.stock?.toString() || '',
+          category_id: item.category_id || '',
+          brand: item.brand || '',
+          image: item.image || '',
+          description: item.description || '',
+          features: item.features || [],
+          badge: item.badge || '',
+          featured: item.featured || false
+        });
+      } else if (type === 'category') {
+        setFormData({
+          id: item.id,
+          name: item.name || '',
+          color: item.color || '#6d9eeb',
+          image: item.image || ''
+        });
+      } else if (type === 'coupon') {
+        setFormData({
+          id: item.id,
+          code: item.code || '',
+          name: item.name || '',
+          description: item.description || '',
+          type: item.type || 'percentage',
+          value: item.value?.toString() || '',
+          min_order_amount: item.min_order_amount?.toString() || '',
+          max_uses: item.max_uses?.toString() || '',
+          customer_id: item.customer_id || '',
+          is_active: item.is_active !== false,
+          is_public: item.is_public || false,
+          starts_at: item.starts_at || '',
+          expires_at: item.expires_at || ''
+        });
+      } else if (type === 'customer') {
+        setFormData({
+          id: item.id,
+          name: item.name || '',
+          email: item.email || '',
+          phone: item.phone || '',
+          address: item.address || '',
+          tier: item.tier || 'regular',
+          pro_discount: item.pro_discount || '',
+          company_name: item.company_name || '',
+          role: item.role || 'customer',
+          email_verified_at: item.email_verified_at
+        });
+      }
+    } else {
+      // Creating new item - set default values
+      setEditingItem(null);
+      
+      if (type === 'product') {
+        setFormData({
+          name: '',
+          sku: 'PRD-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+          price: '',
+          stock: '',
+          category_id: '',
+          brand: '',
+          image: '',
+          description: '',
+          features: [],
+          badge: '',
+          featured: false
+        });
+      } else if (type === 'category') {
+        setFormData({
+          name: '',
+          color: '#6d9eeb',
+          image: ''
+        });
+      } else if (type === 'coupon') {
+        setFormData({
+          code: '',
+          name: '',
+          description: '',
+          type: 'percentage',
+          value: '',
+          min_order_amount: '',
+          max_uses: '',
+          customer_id: '',
+          is_active: true,
+          is_public: false,
+          starts_at: '',
+          expires_at: ''
+        });
+      } else {
+        setFormData({});
+      }
+    }
+    
+    setShowModal(true);
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    try {
+      let response;
+      let dataToSend = { ...formData };
+      
+      // Clean up data based on type
+      if (modalType === 'product') {
+        // Ensure features is an array
+        if (dataToSend.features && !Array.isArray(dataToSend.features)) {
+          dataToSend.features = [dataToSend.features];
+        }
+        
+        // Remove empty features
+        if (dataToSend.features) {
+          dataToSend.features = dataToSend.features.filter(f => f && f.trim() !== '');
+        }
+        
+        // Ensure numbers are numbers
+        dataToSend.price = parseFloat(dataToSend.price) || 0;
+        dataToSend.stock = parseInt(dataToSend.stock) || 0;
+        dataToSend.category_id = parseInt(dataToSend.category_id) || null;
+      }
+      
+      if (modalType === 'product') {
+        if (editingItem) {
+          response = await api.put(`/admin/products/${editingItem.id}`, dataToSend);
+        } else {
+          response = await api.post('/admin/products', dataToSend);
+        }
+      } else if (modalType === 'category') {
+        if (editingItem) {
+          response = await api.put(`/admin/categories/${editingItem.id}`, dataToSend);
+        } else {
+          response = await api.post('/admin/categories', dataToSend);
+        }
+      } else if (modalType === 'coupon') {
+        if (editingItem) {
+          response = await api.put(`/admin/coupons/${editingItem.id}`, dataToSend);
+        } else {
+          response = await api.post('/admin/coupons', dataToSend);
+        }
+      } else if (modalType === 'customer') {
+        response = await api.put(`/admin/customers/${editingItem.id}`, dataToSend);
+      }
+      
+      if (response?.data.success) {
+        setShowModal(false);
+        
+        // Refresh data based on type
+        if (modalType === 'product') {
+          if (activeTab === 'products') fetchProducts();
+          else fetchDashboardData(); // For low stock list
+        }
+        if (modalType === 'category') {
+          fetchDashboardData(); // Refresh categories
+        }
+        if (modalType === 'coupon') {
+          if (activeTab === 'coupons') fetchCoupons();
+          else fetchDashboardData(); // For recent coupons
+        }
+        if (modalType === 'customer') {
+          if (activeTab === 'customers') fetchCustomers();
+          else fetchDashboardData(); // For recent customers
+        }
+        
+        // Show success message
+        alert(editingItem ? 'Élément mis à jour avec succès' : 'Élément créé avec succès');
+      }
+    } catch (err) {
+      console.error('Failed to save:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de la sauvegarde';
+      alert(errorMessage);
+    }
+  };
+
+  // Handle delete
+ // Handle delete with warning for dependencies
+const handleDelete = async (type, id) => {
+  try {
+    let response;
+    
+    if (type === 'product') {
+      response = await api.delete(`/admin/products/${id}`);
+    } else if (type === 'category') {
+      response = await api.delete(`/admin/categories/${id}`);
+    } else if (type === 'coupon') {
+      response = await api.delete(`/admin/coupons/${id}`);
+    }
+    
+    if (response?.data.success) {
+      // Refresh data based on type
+      if (type === 'product') {
+        if (activeTab === 'products') fetchProducts();
+        else fetchDashboardData();
+      }
+      if (type === 'category') {
+        fetchDashboardData();
+        if (activeTab === 'products') fetchProducts();
+      }
+      if (type === 'coupon') {
+        if (activeTab === 'coupons') fetchCoupons();
+        else fetchDashboardData();
+      }
+      
+      alert(response.data.message || 'Élément supprimé avec succès');
+    }
+  } catch (err) {
+    console.error('Failed to delete:', err);
+    
+    // Show the error message from backend
+    const errorMessage = err.response?.data?.error || err.message;
+    
+    if (errorMessage.includes('commandes')) {
+      alert('❌ Impossible de supprimer: Ce produit a des commandes existantes');
+    } else if (errorMessage.includes('produits')) {
+      alert('❌ Impossible de supprimer: Cette catégorie contient des produits');
+    } else {
+      alert('Erreur lors de la suppression: ' + errorMessage);
+    }
+  }
+};
+  // Handle order status update
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const response = await api.put(`/admin/orders/${orderId}/status`, {
+        status: newStatus
+      });
+      if (response.data.success) {
+        if (activeTab === 'orders') fetchOrders(currentPage);
+        else fetchDashboardData();
+        alert('Statut mis à jour avec succès');
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Erreur lors de la mise à jour');
+    }
+  };
+
+  // Loading state
   if (checkingAuth || loading) {
     return (
-      <div className="loading-spinner" style={{ textAlign: 'center', padding: '50px' }}>
+      <div className="loading-container">
         <div className="spinner"></div>
         <p>Chargement du tableau de bord...</p>
       </div>
@@ -4719,79 +5627,1090 @@ const AdminDashboardPage = ({ navigate }) => {
 
   return (
     <motion.div 
-      className="admin-dashboard"
+      className="admin-dashboard-page"
       initial="hidden"
       animate="visible"
       variants={fadeIn}
     >
-      <div className="container">
-        <h1>Tableau de bord administrateur</h1>
-        
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icons.ShoppingBag size={32} />
-            </div>
-            
-            <div className="stat-content">
-              <h3>Commandes totales</h3>
-              <p className="stat-number">{stats?.total_orders || 0}</p>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icons.Truck size={32} />
-            </div>
-            <div className="stat-content">
-              <h3>Commandes en cours</h3>
-              <p className="stat-number">{stats?.pending_orders || 0}</p>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icons.Check size={32} />
-            </div>
-            <div className="stat-content">
-              <h3>Commandes livrées</h3>
-              <p className="stat-number">{stats?.completed_orders || 0}</p>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icons.Users size={32} />
-            </div>
-            <div className="stat-content">
-              <h3>Clients</h3>
-              <p className="stat-number">{stats?.total_customers || 0}</p>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icons.Package size={32} />
-            </div>
-            <div className="stat-content">
-              <h3>Produits</h3>
-              <p className="stat-number">{stats?.total_products || 0}</p>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icons.Percent size={32} />
-            </div>
-            <div className="stat-content">
-              <h3>Revenu total</h3>
-              <p className="stat-number">{stats?.total_revenue || 0} MAD</p>
-            </div>
+      <div className="admin-container">
+        {/* Admin Header */}
+        <div className="admin-header">
+          <h1>
+            <Icons.User size={28} />
+            Administration TECLAB
+          </h1>
+          <div className="admin-user">
+            <span>{user?.name}</span>
+            <button onClick={() => navigate('/')} className="view-site-btn">
+              <Icons.Eye size={16} /> Voir le site
+            </button>
           </div>
         </div>
 
-        <div className="recent-orders-section">
-          <h2>Commandes récentes</h2>
+        {/* Admin Layout */}
+        <div className="admin-layout">
+          {/* Sidebar */}
+          <div className="admin-sidebar">
+            <div className="sidebar-menu">
+              <button 
+                className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => handleTabChange('dashboard')}
+              >
+                <Icons.Home size={18} />
+                <span>Tableau de bord</span>
+              </button>
+              
+              <button 
+                className={`menu-item ${activeTab === 'orders' ? 'active' : ''}`}
+                onClick={() => handleTabChange('orders')}
+              >
+                <Icons.ShoppingBag size={18} />
+                <span>Commandes</span>
+                {stats?.pending_orders > 0 && (
+                  <span className="menu-badge">{stats.pending_orders}</span>
+                )}
+              </button>
+              
+              <button 
+                className={`menu-item ${activeTab === 'products' ? 'active' : ''}`}
+                onClick={() => handleTabChange('products')}
+              >
+                <Icons.Package size={18} />
+                <span>Produits</span>
+                {lowStockProducts.length > 0 && (
+                  <span className="menu-badge warning">{lowStockProducts.length}</span>
+                )}
+              </button>
+              
+              <button 
+                className={`menu-item ${activeTab === 'categories' ? 'active' : ''}`}
+                onClick={() => handleTabChange('categories')}
+              >
+                <Icons.Filter size={18} />
+                <span>Catégories</span>
+              </button>
+              
+              <button 
+                className={`menu-item ${activeTab === 'customers' ? 'active' : ''}`}
+                onClick={() => handleTabChange('customers')}
+              >
+                <Icons.Users size={18} />
+                <span>Clients</span>
+              </button>
+              
+              <button 
+                className={`menu-item ${activeTab === 'coupons' ? 'active' : ''}`}
+                onClick={() => handleTabChange('coupons')}
+              >
+                <Icons.Percent size={18} />
+                <span>Coupons</span>
+              </button>
+              
+              <button 
+                className="menu-item"
+                onClick={() => navigate('/admin/emails')}
+              >
+                <Icons.Mail size={18} />
+                <span>Campagne Email</span>
+              </button>
+              
+              <button 
+                className="menu-item"
+                onClick={() => navigate('/dashboard')}
+              >
+                <Icons.User size={18} />
+                <span>Mon Profil</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="admin-content">
+            {/* DASHBOARD TAB */}
+            {activeTab === 'dashboard' && (
+              <>
+                {/* Stats Grid */}
+                <div className="stats-grid">
+                  <div className="stat-card" onClick={() => handleTabChange('orders')}>
+                    <div className="stat-icon orders">
+                      <Icons.ShoppingBag size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Commandes totales</span>
+                      <span className="stat-value">{stats?.total_orders || 0}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-card" onClick={() => handleTabChange('orders')}>
+                    <div className="stat-icon pending">
+                      <Icons.Truck size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">En cours</span>
+                      <span className="stat-value">{stats?.pending_orders || 0}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-card" onClick={() => handleTabChange('products')}>
+                    <div className="stat-icon products">
+                      <Icons.Package size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Produits</span>
+                      <span className="stat-value">{stats?.total_products || 0}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-card" onClick={() => handleTabChange('customers')}>
+                    <div className="stat-icon customers">
+                      <Icons.Users size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Clients</span>
+                      <span className="stat-value">{stats?.total_customers || 0}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-card highlight" onClick={() => handleTabChange('orders')}>
+                    <div className="stat-icon revenue">
+                      <Icons.Percent size={24} />
+                    </div>
+                    <div className="stat-info">
+                      <span className="stat-label">Revenu total</span>
+                      <span className="stat-value">{stats?.total_revenue || 0} MAD</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="quick-actions">
+                  <h2>Actions rapides</h2>
+                  <div className="action-buttons">
+                    <button onClick={() => openModal('product')}>
+                      <Icons.Plus size={16} /> Nouveau produit
+                    </button>
+                    <button onClick={() => openModal('category')}>
+                      <Icons.Plus size={16} /> Nouvelle catégorie
+                    </button>
+                    <button onClick={() => openModal('coupon')}>
+                      <Icons.Plus size={16} /> Nouveau coupon
+                    </button>
+                    <button onClick={() => navigate('/admin/emails')}>
+                      <Icons.Mail size={16} /> Envoyer email
+                    </button>
+                  </div>
+                </div>
+
+                {/* Two Column Layout */}
+                <div className="admin-columns">
+                  {/* Left Column */}
+                  <div className="admin-column">
+                    {/* Recent Orders */}
+                    <div className="admin-card">
+                      <div className="card-header">
+                        <h3>Commandes récentes</h3>
+                        <button onClick={() => handleTabChange('orders')} className="view-all">
+                          Voir tout <Icons.ChevronRight size={16} />
+                        </button>
+                      </div>
+                      <div className="recent-orders-list">
+                        {recentOrders.length === 0 ? (
+                          <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Aucune commande récente</p>
+                        ) : (
+                          recentOrders.map(order => (
+                            <div 
+                              key={order.id} 
+                              className="recent-order-item"
+                              onClick={() => navigate(`/admin/orders/${order.id}`)}
+                            >
+                              <div className="order-info">
+                                <span className="order-number">#{order.order_number}</span>
+                                <span className="order-customer">{order.customer?.name}</span>
+                              </div>
+                              <div className="order-status-price">
+                                <span className={`status-badge ${order.status}`}>
+                                  {order.status}
+                                </span>
+                                <span className="order-price">{order.total} MAD</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Low Stock Products */}
+                    <div className="admin-card">
+                      <div className="card-header">
+                        <h3>Stock faible</h3>
+                        <button onClick={() => handleTabChange('products')} className="view-all">
+                          Gérer <Icons.ChevronRight size={16} />
+                        </button>
+                      </div>
+                      <div className="low-stock-list">
+                        {lowStockProducts.length === 0 ? (
+                          <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Aucun produit en stock faible</p>
+                        ) : (
+                          lowStockProducts.map(product => (
+                            <div key={product.id} className="low-stock-item">
+                              <span className="product-name">{product.name}</span>
+                              <span className={`stock-badge ${product.stock < 5 ? 'critical' : 'warning'}`}>
+                                {product.stock} unités
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="admin-column">
+                    {/* Recent Customers */}
+                    <div className="admin-card">
+                      <div className="card-header">
+                        <h3>Nouveaux clients</h3>
+                        <button onClick={() => handleTabChange('customers')} className="view-all">
+                          Voir tout <Icons.ChevronRight size={16} />
+                        </button>
+                      </div>
+                      <div className="recent-customers-list">
+                        {recentCustomers.length === 0 ? (
+                          <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Aucun client récent</p>
+                        ) : (
+                          recentCustomers.map(customer => (
+                            <div key={customer.id} className="recent-customer-item">
+                              <div className="customer-avatar">
+                                <Icons.User size={16} />
+                              </div>
+                              <div className="customer-info">
+                                <span className="customer-name">{customer.name}</span>
+                                <span className="customer-email">{customer.email}</span>
+                              </div>
+                              <span className="customer-date">
+                                {new Date(customer.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Recent Coupons */}
+                    <div className="admin-card">
+                      <div className="card-header">
+                        <h3>Coupons récents</h3>
+                        <button onClick={() => handleTabChange('coupons')} className="view-all">
+                          Voir tout <Icons.ChevronRight size={16} />
+                        </button>
+                      </div>
+                      <div className="recent-coupons-list">
+                        {coupons.length === 0 ? (
+                          <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Aucun coupon récent</p>
+                        ) : (
+                          coupons.slice(0, 5).map(coupon => (
+                            <div key={coupon.id} className="recent-coupon-item">
+                              <div className="coupon-code">
+                                <Icons.Percent size={14} />
+                                <span>{coupon.code}</span>
+                              </div>
+                              <span className="coupon-value">
+                                {coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} MAD`}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ORDERS TAB */}
+            {activeTab === 'orders' && (
+              <OrdersTable 
+                orders={orders}
+                onStatusChange={updateOrderStatus}
+                onRefresh={() => fetchOrders(currentPage)}
+                onView={(order) => navigate(`/admin/orders/${order.id}`)}
+                onBack={() => handleTabChange('dashboard')}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
+
+            {/* PRODUCTS TAB */}
+            {activeTab === 'products' && (
+              <ProductsTable 
+                products={products}
+                categories={categories}
+                onAdd={() => openModal('product')}
+                onEdit={(product) => openModal('product', product)}
+                onDelete={(id) => handleDelete('product', id)}
+                onRefresh={() => fetchProducts(currentPage)}
+                onBack={() => handleTabChange('dashboard')}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
+
+            {/* CATEGORIES TAB */}
+            {activeTab === 'categories' && (
+              <CategoriesTable 
+                categories={categories}
+                onAdd={() => openModal('category')}
+                onEdit={(category) => openModal('category', category)}
+                onDelete={(id) => handleDelete('category', id)}
+                onRefresh={fetchDashboardData}
+                onBack={() => handleTabChange('dashboard')}
+              />
+            )}
+
+            {/* CUSTOMERS TAB */}
+            {activeTab === 'customers' && (
+              <CustomersTable 
+                customers={customers}
+                onEdit={(customer) => openModal('customer', customer)}
+                onRefresh={() => fetchCustomers(currentPage)}
+                onView={(customer) => navigate(`/admin/customers/${customer.id}`)}
+                onBack={() => handleTabChange('dashboard')}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
+
+            {/* COUPONS TAB */}
+            {activeTab === 'coupons' && (
+              <CouponsTable 
+                coupons={coupons}
+                customers={customers}
+                onAdd={() => openModal('coupon')}
+                onEdit={(coupon) => openModal('coupon', coupon)}
+                onDelete={(id) => handleDelete('coupon', id)}
+                onRefresh={() => fetchCoupons(currentPage)}
+                onBack={() => handleTabChange('dashboard')}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <AdminModal
+            type={modalType}
+            data={formData}
+            isEditing={!!editingItem}
+            onClose={() => setShowModal(false)}
+            onChange={handleInputChange}
+            onSubmit={handleSubmit}
+            categories={categories}
+            customers={customers}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+// ==================== ADMIN MODAL COMPONENT ====================
+// ==================== COMPLETE ADMIN MODAL COMPONENT ====================
+const AdminModal = ({ 
+  type, 
+  data, 
+  isEditing, 
+  onClose, 
+  onChange, 
+  onSubmit, 
+  categories = [],
+  customers = []
+}) => {
+  
+  const getTitle = () => {
+    switch(type) {
+      case 'product': return isEditing ? 'Modifier le produit' : 'Nouveau produit';
+      case 'category': return isEditing ? 'Modifier la catégorie' : 'Nouvelle catégorie';
+      case 'coupon': return isEditing ? 'Modifier le coupon' : 'Nouveau coupon';
+      case 'customer': return 'Modifier le client';
+      default: return '';
+    }
+  };
+
+  const handleArrayInput = (e, fieldName) => {
+    // Convert textarea lines to array
+    const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
+    onChange({ target: { name: fieldName, value: lines } });
+  };
+
+  const generateSku = () => {
+    const newSku = 'PRD-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    onChange({ target: { name: 'sku', value: newSku } });
+  };
+
+  const generateCouponCode = () => {
+    const prefixes = ['PROMO', 'SALE', 'WELCOME', 'SPECIAL', 'BONUS'];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const suffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    const newCode = prefix + suffix;
+    onChange({ target: { name: 'code', value: newCode } });
+  };
+
+  const renderProductForm = () => (
+    <>
+      <div className="form-group">
+        <label>Nom du produit <span className="required">*</span></label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+          placeholder="Ex: Microscope Professionnel"
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group" style={{ flex: 2 }}>
+          <label>SKU <span className="required">*</span></label>
+          <input 
+            type="text"
+            name="sku"
+            value={data.sku || ''}
+            onChange={onChange}
+            required
+            placeholder="Ex: MIC-001"
+          />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>&nbsp;</label>
+          <button 
+            type="button"
+            onClick={generateSku}
+            className="generate-sku-btn"
+            style={{ width: '100%' }}
+          >
+            Générer SKU
+          </button>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Prix (MAD) <span className="required">*</span></label>
+          <input 
+            type="number"
+            name="price"
+            value={data.price || ''}
+            onChange={onChange}
+            required
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+        <div className="form-group">
+          <label>Stock <span className="required">*</span></label>
+          <input 
+            type="number"
+            name="stock"
+            value={data.stock || ''}
+            onChange={onChange}
+            required
+            min="0"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Catégorie <span className="required">*</span></label>
+          <select 
+            name="category_id" 
+            value={data.category_id || ''} 
+            onChange={onChange}
+            required
+          >
+            <option value="">Sélectionner une catégorie</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name} {cat.products_count ? `(${cat.products_count})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Marque</label>
+          <input 
+            type="text"
+            name="brand"
+            value={data.brand || ''}
+            onChange={onChange}
+            placeholder="Ex: Olympus"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Image URL</label>
+        <input 
+          type="text"
+          name="image"
+          value={data.image || ''}
+          onChange={onChange}
+          placeholder="https://exemple.com/image.jpg"
+        />
+        {data.image && (
+          <div style={{ marginTop: '10px' }}>
+            <img 
+              src={data.image} 
+              alt="Preview" 
+              style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '4px' }}
+              onError={(e) => e.target.style.display = 'none'}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label>Description</label>
+        <textarea
+          name="description"
+          value={data.description || ''}
+          onChange={onChange}
+          rows="3"
+          placeholder="Description détaillée du produit..."
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Badge (optionnel)</label>
+        <input 
+          type="text"
+          name="badge"
+          value={data.badge || ''}
+          onChange={onChange}
+          placeholder="Ex: Nouveau, Promotion, Meilleure vente"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Caractéristiques</label>
+        <textarea
+          name="features"
+          value={Array.isArray(data.features) ? data.features.join('\n') : (data.features || '')}
+          onChange={(e) => handleArrayInput(e, 'features')}
+          rows="4"
+          placeholder="Entrez une caractéristique par ligne&#10;Ex:&#10;Matériau de haute qualité&#10;Certifié ISO 9001&#10;Garantie 2 ans"
+        />
+        <small style={{ color: '#7f8c8d' }}>
+          Une caractéristique par ligne
+        </small>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="featured"
+            checked={data.featured || false}
+            onChange={(e) => onChange({ target: { name: 'featured', value: e.target.checked } })}
+          />
+          <span>Mettre en vedette (afficher sur la page d'accueil)</span>
+        </label>
+      </div>
+    </>
+  );
+
+  const renderCategoryForm = () => (
+    <>
+      <div className="form-group">
+        <label>Nom de la catégorie <span className="required">*</span></label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+          placeholder="Ex: Microscopes"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Couleur (optionnel)</label>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input 
+            type="color"
+            name="color"
+            value={data.color || '#6d9eeb'}
+            onChange={onChange}
+            style={{ width: '60px', height: '42px', padding: '4px' }}
+          />
+          <input 
+            type="text"
+            name="color_text"
+            value={data.color || ''}
+            onChange={(e) => onChange({ target: { name: 'color', value: e.target.value } })}
+            placeholder="#6d9eeb"
+            style={{ flex: 1 }}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Image URL (optionnel)</label>
+        <input 
+          type="text"
+          name="image"
+          value={data.image || ''}
+          onChange={onChange}
+          placeholder="https://exemple.com/category-image.jpg"
+        />
+        {data.image && (
+          <div style={{ marginTop: '10px' }}>
+            <img 
+              src={data.image} 
+              alt="Preview" 
+              style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '4px' }}
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  const renderCouponForm = () => (
+    <>
+      <div className="form-group">
+        <label>Code du coupon <span className="required">*</span></label>
+        <div className="form-row">
+          <div style={{ flex: 2 }}>
+            <input 
+              type="text"
+              name="code"
+              value={data.code || ''}
+              onChange={onChange}
+              required
+              placeholder="Ex: PROMO20"
+              style={{ textTransform: 'uppercase' }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <button 
+              type="button"
+              onClick={generateCouponCode}
+              className="generate-sku-btn"
+              style={{ width: '100%' }}
+            >
+              Générer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Nom du coupon <span className="required">*</span></label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+          placeholder="Ex: Promotion été 2024"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Description</label>
+        <textarea
+          name="description"
+          value={data.description || ''}
+          onChange={onChange}
+          rows="2"
+          placeholder="Description du coupon..."
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Type <span className="required">*</span></label>
+          <select name="type" value={data.type || 'percentage'} onChange={onChange} required>
+            <option value="percentage">Pourcentage (%)</option>
+            <option value="fixed">Montant fixe (MAD)</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Valeur <span className="required">*</span></label>
+          <input 
+            type="number"
+            name="value"
+            value={data.value || ''}
+            onChange={onChange}
+            required
+            min="0"
+            step={data.type === 'percentage' ? '1' : '0.01'}
+            placeholder={data.type === 'percentage' ? '20' : '100'}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Montant minimum de commande</label>
+        <input 
+          type="number"
+          name="min_order_amount"
+          value={data.min_order_amount || ''}
+          onChange={onChange}
+          min="0"
+          step="0.01"
+          placeholder="0 = Pas de minimum"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Nombre maximum d'utilisations</label>
+        <input 
+          type="number"
+          name="max_uses"
+          value={data.max_uses || ''}
+          onChange={onChange}
+          min="1"
+          placeholder="Laisser vide pour illimité"
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Date de début</label>
+          <input 
+            type="datetime-local"
+            name="starts_at"
+            value={data.starts_at ? data.starts_at.substring(0, 16) : ''}
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>Date d'expiration</label>
+          <input 
+            type="datetime-local"
+            name="expires_at"
+            value={data.expires_at ? data.expires_at.substring(0, 16) : ''}
+            onChange={onChange}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Assigner à un client (optionnel)</label>
+        <select 
+          name="customer_id" 
+          value={data.customer_id || ''} 
+          onChange={onChange}
+        >
+          <option value="">Tous les clients (public)</option>
+          {customers.map(customer => (
+            <option key={customer.id} value={customer.id}>
+              {customer.name} - {customer.email}
+            </option>
+          ))}
+        </select>
+        <small style={{ color: '#7f8c8d' }}>
+          Si vous assignez à un client, le coupon sera personnel et non public
+        </small>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="is_active"
+            checked={data.is_active !== false}
+            onChange={(e) => onChange({ target: { name: 'is_active', value: e.target.checked } })}
+          />
+          <span>Coupon actif</span>
+        </label>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="is_public"
+            checked={data.is_public || false}
+            onChange={(e) => onChange({ target: { name: 'is_public', value: e.target.checked } })}
+            disabled={data.customer_id}
+          />
+          <span>Visible publiquement (sur la page des coupons)</span>
+        </label>
+      </div>
+    </>
+  );
+
+  const renderCustomerForm = () => (
+    <>
+      <div className="form-group">
+        <label>Nom complet</label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Email</label>
+        <input 
+          type="email"
+          name="email"
+          value={data.email || ''}
+          onChange={onChange}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Téléphone</label>
+        <input 
+          type="tel"
+          name="phone"
+          value={data.phone || ''}
+          onChange={onChange}
+          placeholder="+212 6XX XXX XXX"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Adresse</label>
+        <textarea
+          name="address"
+          value={data.address || ''}
+          onChange={onChange}
+          rows="3"
+          placeholder="Adresse complète..."
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Type de compte</label>
+          <select name="tier" value={data.tier || 'regular'} onChange={onChange}>
+            <option value="regular">Client régulier</option>
+            <option value="pro">Client professionnel (PRO)</option>
+          </select>
+        </div>
+        {data.tier === 'pro' && (
+          <div className="form-group">
+            <label>Réduction PRO (%)</label>
+            <input 
+              type="number"
+              name="pro_discount"
+              value={data.pro_discount || ''}
+              onChange={onChange}
+              min="0"
+              max="100"
+              placeholder="Ex: 15"
+            />
+          </div>
+        )}
+      </div>
+
+      {data.tier === 'pro' && (
+        <div className="form-group">
+          <label>Nom de l'entreprise</label>
+          <input 
+            type="text"
+            name="company_name"
+            value={data.company_name || ''}
+            onChange={onChange}
+            placeholder="Nom de l'entreprise"
+          />
+        </div>
+      )}
+
+      <div className="form-group">
+        <label>Rôle</label>
+        <select name="role" value={data.role || 'customer'} onChange={onChange}>
+          <option value="customer">Client</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="email_verified"
+            checked={data.email_verified_at !== null}
+            onChange={(e) => onChange({ 
+              target: { 
+                name: 'email_verified_at', 
+                value: e.target.checked ? new Date().toISOString() : null 
+              } 
+            })}
+          />
+          <span>Email vérifié</span>
+        </label>
+      </div>
+    </>
+  );
+
+  return (
+    <motion.div 
+      className="admin-modal-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div 
+        className={`admin-modal-content ${type}-modal`}
+        initial={{ scale: 0.8, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.8, y: 50 }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3>
+            {type === 'product' && <Icons.Package size={20} style={{ marginRight: '10px' }} />}
+            {type === 'category' && <Icons.Filter size={20} style={{ marginRight: '10px' }} />}
+            {type === 'coupon' && <Icons.Percent size={20} style={{ marginRight: '10px' }} />}
+            {type === 'customer' && <Icons.User size={20} style={{ marginRight: '10px' }} />}
+            {getTitle()}
+          </h3>
+          <button className="close-btn" onClick={onClose}>
+            <Icons.X size={20} />
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {type === 'product' && renderProductForm()}
+          {type === 'category' && renderCategoryForm()}
+          {type === 'coupon' && renderCouponForm()}
+          {type === 'customer' && renderCustomerForm()}
+        </div>
+
+        <div className="modal-footer">
+          <button className="cancel-btn" onClick={onClose}>
+            Annuler
+          </button>
+          <button className="submit-btn" onClick={onSubmit}>
+            {isEditing ? 'Mettre à jour' : 'Créer'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Add PropTypes for better development experience
+AdminModal.propTypes = {
+  type: PropTypes.oneOf(['product', 'category', 'coupon', 'customer']).isRequired,
+  data: PropTypes.object,
+  isEditing: PropTypes.bool,
+  onClose: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  categories: PropTypes.array,
+  customers: PropTypes.array
+};
+
+AdminModal.defaultProps = {
+  data: {},
+  isEditing: false,
+  categories: [],
+  customers: []
+};
+// ==================== ADMIN TABLES COMPONENTS ====================
+
+const AdminOrdersTable = ({ navigate, onBack }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+
+  useEffect(() => {
+    fetchOrders();
+  }, [currentPage, statusFilter]);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('page', currentPage);
+      if (statusFilter) params.append('status', statusFilter);
+      
+      const response = await api.get(`/admin/orders?${params.toString()}`);
+      if (response.data.success && response.data.data) {
+        setOrders(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (orderId, newStatus) => {
+    try {
+      const response = await api.put(`/admin/orders/${orderId}/status`, {
+        status: newStatus
+      });
+      if (response.data.success) {
+        fetchOrders();
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des commandes</h2>
+        <div className="table-filters">
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tous les statuts</option>
+            <option value="en cours">En cours</option>
+            <option value="expédiée">Expédiée</option>
+            <option value="livré">Livrée</option>
+            <option value="annulée">Annulée</option>
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="loading-spinner">Chargement...</div>
+      ) : (
+        <>
           <table className="admin-table">
             <thead>
               <tr>
@@ -4800,23 +6719,37 @@ const AdminDashboardPage = ({ navigate }) => {
                 <th>Date</th>
                 <th>Total</th>
                 <th>Statut</th>
+                <th>Paiement</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map(order => (
+              {orders.map(order => (
                 <tr key={order.id}>
                   <td>{order.order_number}</td>
-                  <td>{order.customer?.name}</td>
-                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                  <td>{order.total} MAD</td>
                   <td>
-                    <span className={`status-badge ${
-                      order.status === 'en cours' ? 'status-pending' : 
-                      order.status === 'expédiée' ? 'status-shipped' : 
-                      order.status === 'livré' ? 'status-delivered' : 'status-cancelled'
-                    }`}>
-                      {order.status}
+                    <div className="customer-info">
+                      <strong>{order.customer?.name}</strong>
+                      <small>{order.customer?.email}</small>
+                    </div>
+                  </td>
+                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td><strong>{order.total} MAD</strong></td>
+                  <td>
+                    <select 
+                      value={order.status}
+                      onChange={(e) => updateStatus(order.id, e.target.value)}
+                      className={`status-select ${getStatusClass(order.status)}`}
+                    >
+                      <option value="en cours">En cours</option>
+                      <option value="expédiée">Expédiée</option>
+                      <option value="livré">Livrée</option>
+                      <option value="annulée">Annulée</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span className="payment-method">
+                      {order.payment_method === 'espèces' ? 'Espèces (COD)' : 'Carte'}
                     </span>
                   </td>
                   <td>
@@ -4824,21 +6757,303 @@ const AdminDashboardPage = ({ navigate }) => {
                       className="view-btn"
                       onClick={() => navigate(`/admin/orders/${order.id}`)}
                     >
-                      Voir
+                      Détails
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="view-all">
-            <button onClick={() => navigate('/admin/orders')}>
-              Voir toutes les commandes
-            </button>
-          </div>
-        </div>
+
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                <Icons.ChevronLeft />
+              </button>
+              <span>Page {currentPage} sur {totalPages}</span>
+              <button 
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                <Icons.ChevronRight />
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+const AdminProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
+  const [localProducts, setLocalProducts] = useState(products);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    setLocalProducts(products);
+  }, [products]);
+
+  const filteredProducts = localProducts.filter(p => 
+    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des produits</h2>
+        <button onClick={onAdd} className="add-btn">
+          <Icons.Plus size={16} /> Nouveau produit
+        </button>
       </div>
-    </motion.div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher un produit..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Nom</th>
+            <th>SKU</th>
+            <th>Prix</th>
+            <th>Stock</th>
+            <th>Catégorie</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredProducts.map(product => (
+            <tr key={product.id}>
+              <td>
+                <img src={product.image} alt={product.name} className="product-thumb" />
+              </td>
+              <td>{product.name}</td>
+              <td>{product.sku}</td>
+              <td><strong>{product.price} MAD</strong></td>
+              <td>
+                <span className={`stock-badge ${product.stock < 5 ? 'critical' : product.stock < 10 ? 'warning' : 'good'}`}>
+                  {product.stock}
+                </span>
+              </td>
+              <td>{product.category?.name}</td>
+              <td>
+                <button onClick={() => onEdit(product)} className="edit-btn">
+                  <Icons.Eye size={14} /> Modifier
+                </button>
+                <button onClick={() => onDelete(product.id)} className="delete-btn">
+                  <Icons.Trash size={14} /> Supprimer
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const AdminCategoriesTable = ({ categories, onAdd, onEdit, onDelete, onBack }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCategories = categories.filter(c => 
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des catégories</h2>
+        <button onClick={onAdd} className="add-btn">
+          <Icons.Plus size={16} /> Nouvelle catégorie
+        </button>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher une catégorie..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Slug</th>
+            <th>Produits</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredCategories.map(category => (
+            <tr key={category.id}>
+              <td>{category.id}</td>
+              <td><strong>{category.name}</strong></td>
+              <td>{category.slug}</td>
+              <td>{category.products_count || 0}</td>
+              <td>
+                <button onClick={() => onEdit(category)} className="edit-btn">
+                  <Icons.Eye size={14} /> Modifier
+                </button>
+                <button onClick={() => onDelete(category.id)} className="delete-btn">
+                  <Icons.Trash size={14} /> Supprimer
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const AdminCustomersTable = ({ customers, onView, onBack }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCustomers = customers.filter(c => 
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des clients</h2>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher un client..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Commandes</th>
+            <th>Inscription</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredCustomers.map(customer => (
+            <tr key={customer.id}>
+              <td>{customer.id}</td>
+              <td><strong>{customer.name}</strong></td>
+              <td>{customer.email}</td>
+              <td>{customer.phone || '-'}</td>
+              <td>{customer.orders_count || 0}</td>
+              <td>{new Date(customer.created_at).toLocaleDateString()}</td>
+              <td>
+                <button onClick={() => onView(customer)} className="view-btn">
+                  <Icons.Eye size={14} /> Voir
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const AdminCouponsTable = ({ coupons, onAdd, onEdit, onDelete, onBack }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCoupons = coupons.filter(c => 
+    c.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="admin-table-container">
+      <div className="table-header">
+        <button onClick={onBack} className="back-btn">
+          <Icons.ChevronLeft size={16} /> Retour
+        </button>
+        <h2>Gestion des coupons</h2>
+        <button onClick={onAdd} className="add-btn">
+          <Icons.Plus size={16} /> Nouveau coupon
+        </button>
+      </div>
+
+      <div className="table-search">
+        <Icons.Search size={16} />
+        <input 
+          type="text"
+          placeholder="Rechercher un coupon..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Valeur</th>
+            <th>Utilisations</th>
+            <th>Expiration</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredCoupons.map(coupon => (
+            <tr key={coupon.id}>
+              <td><strong>{coupon.code}</strong></td>
+              <td>{coupon.name}</td>
+              <td>{coupon.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}</td>
+              <td>{coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} MAD`}</td>
+              <td>{coupon.used_count || 0}/{coupon.max_uses || '∞'}</td>
+              <td>{coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'Jamais'}</td>
+              <td>
+                <button onClick={() => onEdit(coupon)} className="edit-btn">
+                  <Icons.Eye size={14} /> Modifier
+                </button>
+                <button onClick={() => onDelete(coupon.id)} className="delete-btn">
+                  <Icons.Trash size={14} /> Supprimer
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 // Admin Orders Page
@@ -5871,11 +8086,11 @@ function App() {
   if (basePath === '/coupons') return <CouponsPage navigate={navigate} />;
   
   // Admin routes - THESE SHOULD BE HERE
-  if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
-  if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
-  if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
-  if (basePath === '/admin/emails') return <EmailCampaign />;
-  
+// Admin routes
+if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
+if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
+if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
+if (basePath === '/admin/emails') return <EmailCampaign />;
   // 404
   return (
     <div className="not-found">
