@@ -3,11 +3,10 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
 import './App.css';
-import { BrowserRouter , Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
-import PropTypes from 'prop-types'; // Add this import 
-// ==================== API CONFIGURATION ====================
-// Add this modal component
+import PropTypes from 'prop-types';
+
 // ==================== LOGIN PROMPT MODAL COMPONENT ====================
 const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) => {
   // Don't render anything if modal is not open
@@ -29,20 +28,16 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Close button */}
         <button className="modal-close-btn" onClick={onClose}>
           <Icons.X size={20} />
         </button>
 
-        {/* Icon */}
         <div className="modal-icon">
           <Icons.User size={48} />
         </div>
 
-        {/* Title */}
         <h3 className="modal-title">Connexion requise</h3>
 
-        {/* Message */}
         <div className="modal-message">
           {productName ? (
             <p>
@@ -56,7 +51,6 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
           )}
         </div>
 
-        {/* Options */}
         <div className="modal-options">
           <p className="modal-option-text">
             <Icons.Check size={16} /> 
@@ -72,30 +66,21 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
           </p>
         </div>
 
-        {/* Action buttons */}
         <div className="modal-actions">
-          <button 
-            className="btn-secondary" 
-            onClick={onClose}
-          >
+          <button className="btn-secondary" onClick={onClose}>
             Continuer sans compte
           </button>
-          <button 
-            className="btn-primary" 
-            onClick={onConfirm}
-          >
+          <button className="btn-primary" onClick={onConfirm}>
             Se connecter
           </button>
         </div>
 
-        {/* Register link */}
         <p className="modal-footer-text">
           Pas encore de compte ? 
           <button 
             className="register-link"
             onClick={() => {
               onClose();
-              // You'll need to pass navigate as prop or use useNavigate
               if (onConfirm.register) {
                 onConfirm.register();
               }
@@ -110,58 +95,69 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
 };
 
 // ==================== ICON COMPONENTS ====================
+// ==================== ICON COMPONENTS COMPLET ====================
 const Icons = {
+  // Icônes de base
   Mail: (props) => (
-  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-    <polyline points="22,6 12,13 2,6" />
-  </svg>
-),
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  ),
+  
   Home: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   ),
+  
   Package: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
     </svg>
   ),
+  
   Users: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
   ),
+  
   Phone: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z" />
     </svg>
   ),
+  
   Heart: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   ),
+  
   ShoppingBag: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18" />
       <path d="M16 10a4 4 0 0 1-8 0" />
     </svg>
   ),
+  
   User: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
   ),
+  
   Search: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   ),
+  
   Menu: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <line x1="3" y1="12" x2="21" y2="12" />
@@ -169,33 +165,39 @@ const Icons = {
       <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   ),
+  
   X: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   ),
+  
   ChevronLeft: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polyline points="15 18 9 12 15 6" />
     </svg>
   ),
+  
   ChevronRight: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polyline points="9 18 15 12 9 6" />
     </svg>
   ),
+  
   Eye: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
   ),
+  
   Star: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   ),
+  
   Truck: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <rect x="1" y="3" width="15" height="13" />
@@ -204,28 +206,33 @@ const Icons = {
       <circle cx="18.5" cy="18.5" r="2.5" />
     </svg>
   ),
+  
   Plus: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   ),
+  
   Minus: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   ),
+  
   Check: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polyline points="20 6 9 17 4 12" />
     </svg>
   ),
+  
   Trash: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     </svg>
   ),
+  
   LogOut: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -233,6 +240,7 @@ const Icons = {
       <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   ),
+  
   Percent: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <line x1="19" y1="5" x2="5" y2="19" />
@@ -240,24 +248,148 @@ const Icons = {
       <circle cx="17.5" cy="17.5" r="2.5" />
     </svg>
   ),
+  
   ArrowUp: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <line x1="12" y1="19" x2="12" y2="5" />
       <polyline points="5 12 12 5 19 12" />
     </svg>
   ),
+  
   Filter: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
       <polygon points="22 3 2 3 10 13 10 21 14 18 14 13 22 3" />
     </svg>
   ),
+  
   WhatsApp: (props) => (
     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" {...props}>
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   ),
+  
+  Share2: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
+  ),
+  
+  RefreshCw: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  ),
+  
+  Shield: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
+  
+  // === NOUVELLES ICÔNES AJOUTÉES POUR LE MODAL ===
+  Info: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <circle cx="12" cy="8" r="1" fill="currentColor" />
+    </svg>
+  ),
+  
+  Image: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <rect x="2" y="2" width="20" height="20" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+      <polyline points="21 15 16 10 5 21" />
+    </svg>
+  ),
+  
+  ExternalLink: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  ),
+  
+  // === ICÔNES SUPPLÉMENTAIRES UTILES ===
+  AlertCircle: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <circle cx="12" cy="16" r="0.5" fill="currentColor" />
+    </svg>
+  ),
+  
+  CheckCircle: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  ),
+  
+  Settings: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.04.04A10 10 0 0 0 12 17.66a10 10 0 0 0 6.36-2.62zM16.5 6.5l-4-4-4 4" />
+    </svg>
+  ),
+  
+  Download: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  ),
+  
+  Upload: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  ),
+  
+  CreditCard: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+    </svg>
+  ),
+  
+  Clock: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  
+  Calendar: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  
+  MapPin: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  ),
+  
+  Zap: (props) => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" {...props}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  )
 };
-
 // ==================== ANIMATION VARIANTS ====================
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -275,6 +407,7 @@ const slideUp = {
     transition: { duration: 0.5 }
   }
 };
+
 // ==================== FAVORITES CONTEXT ====================
 const FavoritesContext = createContext();
 const useFavorites = () => {
@@ -282,7 +415,6 @@ const useFavorites = () => {
   if (!context) throw new Error('useFavorites must be used within FavoritesProvider');
   return context;
 };
-
 
 // ==================== CONTEXTS ====================
 
@@ -318,9 +450,6 @@ const useCoupons = () => {
   return context;
 };
 
-// ==================== AUTH PROVIDER ====================
-// ==================== AUTH PROVIDER ====================
-// ==================== AUTH PROVIDER ====================
 // ==================== AUTH PROVIDER ====================
 const AuthProvider = ({ children }) => {
   // Load user synchronously from localStorage
@@ -468,27 +597,25 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // In the AuthProvider, update the value object:
-
-const value = {
-  user,
-  loading,
-  error,
-  login,
-  register,
-  logout,
-  updateProfile,
-  resendVerification,
-  checkVerification,
-  isAuthenticated: !!user,
-  isAdmin: user?.role === 'admin',
-  isPro: user?.tier === 'pro', // Add this
-  proDiscount: user?.pro_discount || 0, // Add this
-  companyName: user?.company_name, // Add this
-  isEmailVerified: user?.email_verified_at !== null,
-};
+  const value = {
+    user,
+    loading,
+    error,
+    login,
+    register,
+    logout,
+    updateProfile,
+    resendVerification,
+    checkVerification,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === 'admin',
+    isPro: user?.tier === 'pro',
+    proDiscount: user?.pro_discount || 0,
+    companyName: user?.company_name,
+    isEmailVerified: user?.email_verified_at !== null,
+  };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};// ==================== CART PROVIDER ====================
+};
 
 // ==================== FAVORITES PROVIDER ====================
 const FavoritesProvider = ({ children }) => {
@@ -496,7 +623,6 @@ const FavoritesProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Fetch favorites when authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchFavorites();
@@ -510,7 +636,6 @@ const FavoritesProvider = ({ children }) => {
     try {
       const response = await api.get('/favorites');
       if (response.data.success && response.data.data) {
-        // Handle paginated response
         const favoritesData = response.data.data.data || response.data.data || [];
         setFavorites(favoritesData);
       }
@@ -566,13 +691,12 @@ const FavoritesProvider = ({ children }) => {
     return favorites.some(p => p.id === productId);
   };
 
-  // Add favorites count
   const favoritesCount = favorites.length;
 
   const value = {
     favorites,
     loading,
-    favoritesCount, // Add this
+    favoritesCount,
     addToFavorites,
     removeFromFavorites,
     toggleFavorite,
@@ -581,11 +705,8 @@ const FavoritesProvider = ({ children }) => {
   };
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
-};   
-// ==================== CART PROVIDER ====================
-// ==================== CART PROVIDER ====================
-// ==================== CART PROVIDER ====================
-// ==================== CART PROVIDER ====================
+};
+
 // ==================== CART PROVIDER ====================
 const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
@@ -596,19 +717,16 @@ const CartProvider = ({ children }) => {
   const [pendingProduct, setPendingProduct] = useState(null);
   const { isAuthenticated } = useAuth();
   
-  // Guest session management
   const [sessionId, setSessionId] = useState(() => {
     return localStorage.getItem('guest_cart_session') || '';
   });
 
-  // Save session ID to localStorage
   useEffect(() => {
     if (sessionId) {
       localStorage.setItem('guest_cart_session', sessionId);
     }
   }, [sessionId]);
 
-  // Get headers with session for guests only
   const getHeaders = () => {
     const headers = {};
     if (!isAuthenticated && sessionId) {
@@ -617,7 +735,6 @@ const CartProvider = ({ children }) => {
     return headers;
   };
 
-  // Fetch cart
   const fetchCart = async () => {
     setLoading(true);
     try {
@@ -636,14 +753,11 @@ const CartProvider = ({ children }) => {
     }
   };
 
-  // Load cart on mount and when auth changes
   useEffect(() => {
     fetchCart();
   }, [isAuthenticated]);
 
-  // Add to cart with auth check
   const addToCart = async (product, quantity = 1, navigate) => {
-    // Check if user is authenticated
     if (!isAuthenticated) {
       setPendingProduct({ product, quantity });
       setShowLoginModal(true);
@@ -662,10 +776,8 @@ const CartProvider = ({ children }) => {
         setCartTotal(cartData.total || 0);
         setCartCount(cartData.count || 0);
         
-        // Show success message (could also use a toast notification)
         alert('Produit ajouté au panier !');
         
-        // Clear any pending cart item
         localStorage.removeItem('pending_cart_item');
         return true;
       }
@@ -676,7 +788,6 @@ const CartProvider = ({ children }) => {
     return false;
   };
 
-  // Update quantity
   const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
     
@@ -700,7 +811,6 @@ const CartProvider = ({ children }) => {
     }
   };
 
-  // Remove from cart
   const removeFromCart = async (itemId) => {
     try {
       const item = cartItems.find(i => i.id === itemId);
@@ -722,7 +832,6 @@ const CartProvider = ({ children }) => {
     }
   };
 
-  // Clear cart
   const clearCart = async () => {
     try {
       const response = await api.delete('/cart/clear', { headers: getHeaders() });
@@ -737,10 +846,8 @@ const CartProvider = ({ children }) => {
     }
   };
 
-  // Handle modal confirm (login)
   const handleLoginConfirm = (navigate) => {
     if (pendingProduct) {
-      // Save the product they wanted to add
       localStorage.setItem('pending_cart_item', JSON.stringify({
         product_id: pendingProduct.product.id,
         quantity: pendingProduct.quantity,
@@ -751,7 +858,6 @@ const CartProvider = ({ children }) => {
     navigate('/login');
   };
 
-  // Handle modal close (continue without login)
   const handleModalClose = () => {
     setShowLoginModal(false);
     setPendingProduct(null);
@@ -783,6 +889,7 @@ const CartProvider = ({ children }) => {
 };
 
 // ==================== PRODUCT PROVIDER ====================
+// ==================== PRODUCT PROVIDER COMPLET ====================
 const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -799,15 +906,18 @@ const ProductProvider = ({ children }) => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Charger les catégories et marques au montage
   useEffect(() => {
     fetchCategories();
     fetchBrands();
   }, []);
 
+  // Charger les produits quand les filtres changent
   useEffect(() => {
     fetchProducts();
   }, [searchQuery, selectedCategory, selectedBrands, priceRange, sortBy, currentPage]);
 
+  // Récupérer toutes les catégories
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories');
@@ -815,10 +925,11 @@ const ProductProvider = ({ children }) => {
         setCategories(response.data.data);
       }
     } catch (err) {
-      console.error('Failed to fetch categories:', err);
+      console.error('❌ Failed to fetch categories:', err);
     }
   };
 
+  // Récupérer toutes les marques
   const fetchBrands = async () => {
     try {
       const response = await api.get('/brands');
@@ -826,14 +937,17 @@ const ProductProvider = ({ children }) => {
         setBrands(response.data.data);
       }
     } catch (err) {
-      console.error('Failed to fetch brands:', err);
+      console.error('❌ Failed to fetch brands:', err);
     }
   };
 
+  // Récupérer les produits avec filtres
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
+      
+      // Ajouter tous les filtres aux paramètres
       if (searchQuery) params.append('search', searchQuery);
       if (selectedCategory) params.append('category', selectedCategory);
       if (selectedBrands.length > 0) params.append('brands', selectedBrands.join(','));
@@ -843,15 +957,31 @@ const ProductProvider = ({ children }) => {
       params.append('page', currentPage);
       params.append('per_page', itemsPerPage);
 
+      console.log('🔍 Fetching products with params:', params.toString());
+
       const response = await api.get(`/products?${params.toString()}`);
       
       if (response.data.success && response.data.data) {
-        if (response.data.data.data) {
+        // Gérer différentes structures de réponse
+        if (response.data.data.products) {
+          // Nouvelle structure avec produits et marques
+          setProducts(response.data.data.products.data || []);
+          setFilteredProducts(response.data.data.products.data || []);
+          setTotalProducts(response.data.data.products.total || 0);
+          setTotalPages(response.data.data.products.last_page || 1);
+          
+          // Mettre à jour les marques si fournies
+          if (response.data.data.brands) {
+            setBrands(response.data.data.brands);
+          }
+        } else if (response.data.data.data) {
+          // Structure paginée standard
           setProducts(response.data.data.data);
           setFilteredProducts(response.data.data.data);
           setTotalProducts(response.data.data.total || 0);
           setTotalPages(response.data.data.last_page || 1);
         } else {
+          // Structure simple
           setProducts(response.data.data);
           setFilteredProducts(response.data.data);
           setTotalProducts(response.data.data.length || 0);
@@ -859,12 +989,13 @@ const ProductProvider = ({ children }) => {
         }
       }
     } catch (err) {
-      console.error('Failed to fetch products:', err);
+      console.error('❌ Failed to fetch products:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  // Récupérer un produit par son slug
   const getProduct = async (slug) => {
     try {
       const response = await api.get(`/products/${slug}`);
@@ -873,11 +1004,12 @@ const ProductProvider = ({ children }) => {
       }
       throw new Error('Product not found');
     } catch (err) {
-      console.error('Failed to fetch product:', err);
+      console.error('❌ Failed to fetch product:', err);
       throw err;
     }
   };
 
+  // Récupérer les produits en vedette
   const getFeaturedProducts = async () => {
     try {
       const response = await api.get('/products/featured');
@@ -886,17 +1018,34 @@ const ProductProvider = ({ children }) => {
       }
       return [];
     } catch (err) {
-      console.error('Failed to fetch featured products:', err);
+      console.error('❌ Failed to fetch featured products:', err);
       return [];
     }
   };
 
+  // Basculer la sélection d'une marque
   const toggleBrand = (brand) => {
     setSelectedBrands(prev =>
-      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+      prev.includes(brand) 
+        ? prev.filter(b => b !== brand) 
+        : [...prev, brand]
     );
+    setCurrentPage(1); // Revenir à la première page
   };
 
+  // Sélectionner une seule marque (remplace les autres)
+  const selectBrand = (brand) => {
+    setSelectedBrands([brand]);
+    setCurrentPage(1);
+  };
+
+  // Effacer toutes les marques sélectionnées
+  const clearBrands = () => {
+    setSelectedBrands([]);
+    setCurrentPage(1);
+  };
+
+  // Effacer tous les filtres
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory(null);
@@ -906,7 +1055,19 @@ const ProductProvider = ({ children }) => {
     setCurrentPage(1);
   };
 
+  // Compter le nombre de filtres actifs
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchQuery) count++;
+    if (selectedCategory) count++;
+    if (selectedBrands.length > 0) count++;
+    if (priceRange.min > 0 || priceRange.max < 50000) count++;
+    if (sortBy !== 'featured') count++;
+    return count;
+  };
+
   const value = {
+    // Produits
     products,
     filteredProducts,
     totalProducts,
@@ -914,57 +1075,67 @@ const ProductProvider = ({ children }) => {
     currentPage,
     setCurrentPage,
     loading,
+    
+    // Recherche
     searchQuery,
     setSearchQuery,
+    
+    // Catégories
+    categories,
     selectedCategory,
     setSelectedCategory,
+    
+    // Marques
+    brands,
     selectedBrands,
     toggleBrand,
+    selectBrand,
+    clearBrands,
+    
+    // Prix
     priceRange,
     setPriceRange,
+    
+    // Tri
     sortBy,
     setSortBy,
+    
+    // Filtres
     clearFilters,
-    categories,
-    brands,
+    getActiveFiltersCount,
+    
+    // Méthodes
     getProduct,
     getFeaturedProducts,
     refreshProducts: fetchProducts
   };
 
-  return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
+  return (
+    <ProductContext.Provider value={value}>
+      {children}
+    </ProductContext.Provider>
+  );
 };
-
-// ==================== COUPON PROVIDER ====================
-// ==================== COUPON PROVIDER ====================
 // ==================== COUPON PROVIDER ====================
 const CouponProvider = ({ children }) => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
-  const { isAuthenticated, user } = useAuth(); // Add user here
+  const { isAuthenticated, user } = useAuth();
 
   const fetchCoupons = async () => {
     setLoading(true);
     try {
-      // If user is authenticated, we need to get their personal coupons
-      // The backend should filter based on the authenticated user
       const response = await api.get('/coupons');
       if (response.data.success && response.data.data) {
-        // The backend should already filter based on the authenticated user
-        // But if it doesn't, we can filter here
         let couponsData = response.data.data;
         
-        // If backend returns all coupons, filter for current user only
         if (isAuthenticated && user) {
-          // Filter coupons that belong to this user OR are public
-          // But since you want only personal coupons visible, filter by customer_id
           couponsData = couponsData.filter(coupon => 
             coupon.customer_id === user.id
           );
         } else {
-          // If not authenticated, show no coupons (since all are private)
           couponsData = [];
         }
         
@@ -977,7 +1148,6 @@ const CouponProvider = ({ children }) => {
     }
   };
 
-  // Fetch coupons when authentication state changes
   useEffect(() => {
     if (isAuthenticated) {
       fetchCoupons();
@@ -1015,7 +1185,6 @@ const CouponProvider = ({ children }) => {
     setDiscount(0);
   };
 
-  // Add coupons count
   const couponsCount = coupons.length;
 
   const value = {
@@ -1031,6 +1200,7 @@ const CouponProvider = ({ children }) => {
 
   return <CouponContext.Provider value={value}>{children}</CouponContext.Provider>;
 };
+
 // ==================== COMPONENTS ====================
 
 // Carousel Component
@@ -1132,24 +1302,17 @@ const Carousel = () => {
 };
 
 // Product Card Component
-// Update the ProductCard component in your App.js
-// ==================== PRODUCT CARD COMPONENT (FIXED) ====================
-// ==================== PRODUCT CARD COMPONENT ====================
-// ==================== PRODUCT CARD COMPONENT ====================
-// ==================== PRODUCT CARD COMPONENT ====================
-// ==================== PRODUCT CARD COMPONENT ====================
 const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const navigate = useNavigate(); // You need to get navigate from somewhere
+  const navigate = useNavigate();
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
     if (onAddToCart && product) {
-      // Pass navigate to the addToCart function
       onAddToCart(product, 1, navigate);
       setAdded(true);
       setTimeout(() => setAdded(false), 1000);
@@ -1175,7 +1338,6 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
     }
   };
 
-  // Don't render if no product
   if (!product) return null;
 
   return (
@@ -1273,8 +1435,477 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
     </motion.div>
   );
 };
-// ==================== WISHLIST PAGE ====================
-// ==================== WISHLIST PAGE ====================
+
+// ==================== RATING COMPONENTS ====================
+
+// Review Star Display Component
+const ReviewStars = ({ rating, size = 16, showCount = false, count = 0 }) => {
+  return (
+    <div className="star-rating">
+      <div className="stars">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span 
+            key={star} 
+            className={`star ${star <= Math.round(rating) ? 'filled' : ''}`}
+            style={{ fontSize: size }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+      {showCount && (
+        <span className="rating-count">({count} avis)</span>
+      )}
+    </div>
+  );
+};
+
+// Star Rating Input Component
+const StarRatingInput = ({ value, onChange }) => {
+  const [hover, setHover] = useState(0);
+
+  return (
+    <div className="star-rating-input">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className={`star-btn ${star <= (hover || value) ? 'active' : ''}`}
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHover(star)}
+          onMouseLeave={() => setHover(0)}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// Review Form Component
+const ReviewForm = ({ productId, onSubmit, onCancel }) => {
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState('');
+  const [review, setReview] = useState('');
+  const [images, setImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const { user } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (rating === 0) {
+      setError('Veuillez donner une note');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      await onSubmit({
+        product_id: productId,
+        rating,
+        title,
+        review,
+        images
+      });
+      
+      setRating(0);
+      setTitle('');
+      setReview('');
+      setImages([]);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur lors de l\'envoi');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="review-form login-required">
+        <p>Connectez-vous pour laisser un avis</p>
+        <button className="btn-primary" onClick={() => window.location.href = '/login'}>
+          Se connecter
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="review-form">
+      <h3>Donnez votre avis</h3>
+      
+      {error && <div className="error-message">{error}</div>}
+      
+      <div className="form-group">
+        <label>Note <span className="required">*</span></label>
+        <StarRatingInput value={rating} onChange={setRating} />
+      </div>
+
+      <div className="form-group">
+        <label>Titre de l'avis</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Synthétisez votre avis"
+          maxLength="100"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Votre avis</label>
+        <textarea
+          value={review}
+          onChange={(e) => setReview(e.target.value)}
+          rows="4"
+          placeholder="Partagez votre expérience avec ce produit..."
+          maxLength="1000"
+        />
+      </div>
+
+      <div className="form-actions">
+        <button type="button" className="btn-secondary" onClick={onCancel}>
+          Annuler
+        </button>
+        <button type="submit" className="btn-primary" disabled={submitting}>
+          {submitting ? 'Envoi...' : 'Publier mon avis'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// Review Card Component
+const ReviewCard = ({ review }) => {
+  const [expanded, setExpanded] = useState(false);
+  
+  return (
+    <div className="review-card">
+      <div className="review-header">
+        <div className="reviewer-info">
+          <div className="reviewer-avatar">
+            {review.customer?.name?.charAt(0) || 'U'}
+          </div>
+          <div>
+            <h4>{review.customer?.name || 'Anonyme'}</h4>
+            <div className="review-meta">
+              <ReviewStars rating={review.rating} size={14} />
+              <span className="review-date">
+                {new Date(review.created_at).toLocaleDateString('fr-FR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+        {review.verified_purchase && (
+          <span className="verified-badge">
+            <Icons.Check size={14} /> Achat vérifié
+          </span>
+        )}
+      </div>
+
+      {review.title && <h5 className="review-title">{review.title}</h5>}
+      
+      <div className={`review-content ${expanded ? 'expanded' : ''}`}>
+        <p>{review.review}</p>
+      </div>
+      
+      {review.review && review.review.length > 300 && (
+        <button className="read-more-btn" onClick={() => setExpanded(!expanded)}>
+          {expanded ? 'Lire moins' : 'Lire plus'}
+        </button>
+      )}
+
+      {review.images && review.images.length > 0 && (
+        <div className="review-images">
+          {review.images.map((img, index) => (
+            <img 
+              key={index} 
+              src={img} 
+              alt={`Review ${index + 1}`}
+              className="review-image"
+              onClick={() => window.open(img, '_blank')}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Reviews Summary Component
+// ==================== REVIEWS SUMMARY COMPONENT ====================
+const ReviewsSummary = ({ stats }) => {
+  // Sécurité : si stats n'existe pas
+  if (!stats) {
+    return (
+      <div className="reviews-summary">
+        <div className="summary-main">
+          <div className="average-rating">
+            <span className="rating-number">0.0</span>
+            <span className="rating-max">/5</span>
+          </div>
+          <ReviewStars rating={0} size={20} />
+          <div className="total-reviews">0 avis</div>
+        </div>
+        <div className="rating-distribution">
+          {[5,4,3,2,1].map(stars => (
+            <div key={stars} className="distribution-row">
+              <span className="stars-label">{stars} étoiles</span>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: '0%' }} />
+              </div>
+              <span className="count-label">0</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Récupérer et valider les données
+  const totalReviews = typeof stats.total === 'number' ? stats.total : parseInt(stats.total) || 0;
+  
+  // Gérer average qui peut être string ou number
+  let averageRating = 0;
+  if (stats.average !== undefined && stats.average !== null) {
+    if (typeof stats.average === 'number') {
+      averageRating = stats.average;
+    } else if (typeof stats.average === 'string') {
+      averageRating = parseFloat(stats.average) || 0;
+    }
+  }
+  
+  // S'assurer que la distribution est un tableau de 5 nombres
+  let distribution = [0, 0, 0, 0, 0];
+  if (Array.isArray(stats.distribution) && stats.distribution.length === 5) {
+    distribution = stats.distribution.map(val => typeof val === 'number' ? val : parseInt(val) || 0);
+  }
+
+  console.log('📊 Stats après validation:', { totalReviews, averageRating, distribution });
+
+  return (
+    <div className="reviews-summary">
+      <div className="summary-main">
+        <div className="average-rating">
+          <span className="rating-number">{averageRating.toFixed(1)}</span>
+          <span className="rating-max">/5</span>
+        </div>
+        <ReviewStars rating={averageRating} size={20} />
+        <div className="total-reviews">
+          {totalReviews} avis client{totalReviews > 1 ? 's' : ''}
+        </div>
+      </div>
+
+      <div className="rating-distribution">
+        {[5, 4, 3, 2, 1].map((stars) => {
+          const index = 5 - stars;
+          const count = distribution[index] || 0;
+          const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+          
+          return (
+            <div key={stars} className="distribution-row">
+              <span className="stars-label">{stars} étoile{stars > 1 ? 's' : ''}</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+              <span className="count-label">{count}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Reviews Section Component
+const ReviewsSection = ({ productId, product }) => {
+  const [reviews, setReviews] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [sortBy, setSortBy] = useState('recent');
+  const { user } = useAuth();
+
+  useEffect(() => {
+    fetchReviews();
+  }, [productId, page, sortBy]);
+
+  // Dans ReviewsSection, remplacez le fetchReviews par :
+
+const fetchReviews = async () => {
+  setLoading(true);
+  try {
+    const response = await api.get(`/products/${productId}/reviews`, {
+      params: { page, sort: sortBy }
+    });
+    
+    console.log('API Response:', response.data);
+    
+    if (response.data.success) {
+      // Vérifier si on est en mode debug
+      if (response.data.debug) {
+        // Mode debug : utiliser les données de debug
+        console.log('📋 Using debug data');
+        const debugReviews = response.data.debug.all_reviews_raw || [];
+        
+        // Formater les reviews du debug
+        const formattedReviews = debugReviews.map(review => ({
+          id: review.id,
+          rating: review.rating,
+          title: review.title,
+          review: review.review,
+          images: JSON.parse(review.images || '[]'),
+          verified_purchase: review.verified_purchase === 1,
+          created_at: review.created_at,
+          customer: {
+            name: review.customer_name,
+            email: review.customer_email
+          }
+        }));
+        
+        setReviews(formattedReviews);
+        
+        // Utiliser les stats du debug ou calculer
+        setStats({
+          total: formattedReviews.length,
+          average: formattedReviews.length > 0 
+            ? (formattedReviews.reduce((acc, r) => acc + r.rating, 0) / formattedReviews.length).toFixed(1)
+            : 0,
+          distribution: [0,0,0,0,0] // À calculer si nécessaire
+        });
+        
+      } else {
+        // Mode normal : utiliser data.data
+        setReviews(response.data.data.data || []);
+        setStats(response.data.data.stats);
+      }
+      
+      setHasMore(false); // Temporairement
+    }
+  } catch (err) {
+    console.error('Failed to fetch reviews:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+  const handleSubmitReview = async (reviewData) => {
+    try {
+      const response = await api.post(`/products/${productId}/reviews`, reviewData);
+      
+      if (response.data.success) {
+        setShowForm(false);
+        setPage(1);
+        fetchReviews();
+        alert('Merci pour votre avis ! Il sera publié après modération.');
+      }
+    } catch (err) {
+      console.error('Failed to submit review:', err);
+      throw err;
+    }
+  };
+
+  const checkCanReview = () => {
+    if (!user) return false;
+    return true;
+  };
+
+  const canReview = checkCanReview();
+
+  return (
+    <div className="reviews-section">
+      <div className="reviews-header">
+        <h2>Avis clients</h2>
+        {canReview && !showForm && (
+          <button 
+            className="btn-primary write-review-btn"
+            onClick={() => setShowForm(true)}
+          >
+            <Icons.Star size={16} /> Écrire un avis
+          </button>
+        )}
+      </div>
+
+      {stats && <ReviewsSummary stats={stats} />}
+
+      {showForm && (
+        <ReviewForm 
+          productId={productId}
+          onSubmit={handleSubmitReview}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      <div className="reviews-toolbar">
+        <select 
+          value={sortBy} 
+          onChange={(e) => {
+            setSortBy(e.target.value);
+            setPage(1);
+          }}
+          className="sort-select"
+        >
+          <option value="recent">Plus récents</option>
+          <option value="helpful">Les plus utiles</option>
+          <option value="highest">Notes les plus élevées</option>
+          <option value="lowest">Notes les plus faibles</option>
+        </select>
+      </div>
+
+      {loading && page === 1 ? (
+        <div className="loading-spinner">Chargement des avis...</div>
+      ) : (
+        <>
+          <div className="reviews-list">
+            {reviews.length === 0 ? (
+              <div className="no-reviews">
+                <Icons.Star size={48} />
+                <p>Aucun avis pour le moment</p>
+                {canReview && (
+                  <button 
+                    className="btn-primary"
+                    onClick={() => setShowForm(true)}
+                  >
+                    Soyez le premier à donner votre avis
+                  </button>
+                )}
+              </div>
+            ) : (
+              reviews.map(review => (
+                <ReviewCard key={review.id} review={review} />
+              ))
+            )}
+          </div>
+
+          {hasMore && (
+            <div className="load-more">
+              <button 
+                className="btn-secondary"
+                onClick={() => setPage(p => p + 1)}
+                disabled={loading}
+              >
+                {loading ? 'Chargement...' : 'Voir plus d\'avis'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 // ==================== WISHLIST PAGE ====================
 const WishlistPage = ({ navigate }) => {
   const { favorites, loading, removeFromFavorites, refreshFavorites } = useFavorites();
@@ -1291,7 +1922,6 @@ const WishlistPage = ({ navigate }) => {
   }, [isAuthenticated, navigate]);
 
   const handleAddToCart = (product) => {
-    // Calculate pro price if user is pro
     let priceToUse = product.price;
     if (isPro && proDiscount > 0) {
       const discount = (product.price * proDiscount) / 100;
@@ -1389,12 +2019,12 @@ const WishlistPage = ({ navigate }) => {
               
               <div className="wishlist-item-info">
                 <h3 onClick={() => navigate(`/product/${product.slug}`)}>{product.name}</h3>
-                <ProductPrice 
-                  price={product.price}
-                  originalPrice={product.original_price}
-                  isPro={isPro}
-                  proDiscount={proDiscount}
-                />
+                <div className="product-price">
+                  <span className="current-price">{product.price} MAD</span>
+                  {product.original_price && (
+                    <span className="original-price">{product.original_price} MAD</span>
+                  )}
+                </div>
                 {product.stock > 0 ? (
                   <span className="in-stock">En stock</span>
                 ) : (
@@ -1424,8 +2054,7 @@ const WishlistPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// ==================== COUPONS PAGE ====================
-// Update the CouponsPage component
+
 // ==================== COUPONS PAGE ====================
 const CouponsPage = ({ navigate }) => {
   const { coupons, loading, refreshCoupons } = useCoupons();
@@ -1645,10 +2274,8 @@ const CouponsPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// Header Component
-// Header Component
-// Header Component - Complete fixed version
-// Header Component - Optimized for Mobile
+
+// ==================== HEADER COMPONENT ====================
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -1681,7 +2308,6 @@ const Header = ({ currentPath, navigate }) => {
 
   return (
     <>
-      {/* Announcement Bar - Hidden on very small screens */}
       <div className="announcement-bar hide-mobile">
         <div className="marquee">
           <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
@@ -1696,7 +2322,6 @@ const Header = ({ currentPath, navigate }) => {
       >
         <div className="header-top">
           <div className="container">
-            {/* Left Section: Menu Toggle + Logo */}
             <div className="header-left">
               <motion.button 
                 className="menu-toggle mobile-only" 
@@ -1723,7 +2348,6 @@ const Header = ({ currentPath, navigate }) => {
               </motion.button>
             </div>
 
-            {/* Search Form - Desktop */}
             <form className="search-form desktop-only" onSubmit={handleSearch}>
               <input 
                 type="text"
@@ -1741,9 +2365,7 @@ const Header = ({ currentPath, navigate }) => {
               </motion.button>
             </form>
 
-            {/* Right Section: Icons */}
             <div className="header-right">
-              {/* Search Icon - Mobile Only */}
               <motion.button 
                 className="header-icon mobile-search-toggle"
                 onClick={() => setShowSearch(!showSearch)}
@@ -1754,7 +2376,6 @@ const Header = ({ currentPath, navigate }) => {
                 <Icons.Search />
               </motion.button>
 
-              {/* Coupons Icon */}
               <motion.a 
                 href="/coupons" 
                 className="header-icon coupons-icon" 
@@ -1777,7 +2398,6 @@ const Header = ({ currentPath, navigate }) => {
                 )}
               </motion.a>
               
-              {/* Wishlist Icon */}
               <motion.a 
                 href="/wishlist" 
                 className="header-icon wishlist-icon" 
@@ -1800,7 +2420,6 @@ const Header = ({ currentPath, navigate }) => {
                 )}
               </motion.a>
               
-              {/* Cart Icon */}
               <div className="ps-cart--mini">
                 <motion.a 
                   href="/cart" 
@@ -1822,46 +2441,42 @@ const Header = ({ currentPath, navigate }) => {
                 </motion.a>
               </div>
 
-              {/* User Menu - Desktop */}
-              {/* User Menu - Desktop */}
-<div className="user-menu desktop-only">
-  <Icons.User />
-  <div className="user-dropdown">
-    {isAuthenticated ? (
-      <>
-        <span className="user-name">{user?.name}</span>
-        <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
-        <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
-        <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
-          Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
-        </a>
-        
-        {/* ADMIN LINK - Make sure this is here */}
-        {user?.role === 'admin' && (
-          <>
-            <div className="dropdown-divider"></div>
-            <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
-              <Icons.User size={16} style={{ marginRight: '8px' }} /> Administration
-            </a>
-          </>
-        )}
-        
-        <div className="dropdown-divider"></div>
-        <button onClick={handleLogout} className="logout-btn">Déconnexion</button>
-      </>
-    ) : (
-      <>
-        <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a>
-        <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a>
-      </>
-    )}
-  </div>
-</div>
+              <div className="user-menu desktop-only">
+                <Icons.User />
+                <div className="user-dropdown">
+                  {isAuthenticated ? (
+                    <>
+                      <span className="user-name">{user?.name}</span>
+                      <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
+                      <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
+                      <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
+                        Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
+                      </a>
+                      
+                      {user?.role === 'admin' && (
+                        <>
+                          <div className="dropdown-divider"></div>
+                          <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
+                            <Icons.User size={16} style={{ marginRight: '8px' }} /> Administration
+                          </a>
+                        </>
+                      )}
+                      
+                      <div className="dropdown-divider"></div>
+                      <button onClick={handleLogout} className="logout-btn">Déconnexion</button>
+                    </>
+                  ) : (
+                    <>
+                      <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a>
+                      <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
         <AnimatePresence>
           {showSearch && (
             <motion.div 
@@ -1895,7 +2510,6 @@ const Header = ({ currentPath, navigate }) => {
           )}
         </AnimatePresence>
 
-        {/* Categories Mega Menu - Desktop */}
         <AnimatePresence>
           {showCategoryMenu && (
             <motion.div 
@@ -1935,7 +2549,6 @@ const Header = ({ currentPath, navigate }) => {
           )}
         </AnimatePresence>
 
-        {/* Mobile Menu */}
         <AnimatePresence>
           {showMobileMenu && (
             <motion.div 
@@ -1955,17 +2568,14 @@ const Header = ({ currentPath, navigate }) => {
               >
                 <div className="mobile-menu-header">
                   <div className="mobile-user-info">
-                   
-{isAuthenticated && user?.role === 'admin' && (
-  <>
-    <div className="dropdown-divider"></div>
-    <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
-      <Icons.User size={16} /> Administration
-    </a>
-  </>
-)}
-
-
+                    {isAuthenticated && user?.role === 'admin' && (
+                      <>
+                        <div className="dropdown-divider"></div>
+                        <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
+                          <Icons.User size={16} /> Administration
+                        </a>
+                      </>
+                    )}
 
                     {isAuthenticated ? (
                       <>
@@ -1998,7 +2608,6 @@ const Header = ({ currentPath, navigate }) => {
                 </div>
 
                 <div className="mobile-menu-body">
-                  {/* Quick Stats */}
                   {isAuthenticated && (
                     <div className="mobile-stats">
                       <div className="stat-item">
@@ -2016,7 +2625,6 @@ const Header = ({ currentPath, navigate }) => {
                     </div>
                   )}
 
-                  {/* Main Navigation */}
                   <div className="mobile-menu-section">
                     <h4>Navigation</h4>
                     <div className="mobile-links-list">
@@ -2053,7 +2661,6 @@ const Header = ({ currentPath, navigate }) => {
                     </div>
                   </div>
 
-                  {/* Categories Section */}
                   <div className="mobile-menu-section">
                     <h4>Catégories populaires</h4>
                     <div className="mobile-categories-list">
@@ -2088,7 +2695,6 @@ const Header = ({ currentPath, navigate }) => {
                     </div>
                   </div>
 
-                  {/* User Menu Links */}
                   {isAuthenticated && (
                     <div className="mobile-menu-section">
                       <h4>Mon compte</h4>
@@ -2137,7 +2743,6 @@ const Header = ({ currentPath, navigate }) => {
                     </div>
                   )}
 
-                  {/* Help & Info */}
                   <div className="mobile-menu-section">
                     <h4>Informations</h4>
                     <div className="mobile-links-list">
@@ -2164,7 +2769,6 @@ const Header = ({ currentPath, navigate }) => {
                     </div>
                   </div>
 
-                  {/* Logout Button */}
                   {isAuthenticated && (
                     <button onClick={handleLogout} className="mobile-logout-btn">
                       <Icons.LogOut size={18} /> Déconnexion
@@ -2179,13 +2783,12 @@ const Header = ({ currentPath, navigate }) => {
     </>
   );
 };
-// Footer Component
-// Footer Component
+
+// ==================== FOOTER COMPONENT ====================
 const Footer = ({ navigate }) => {
   return (
     <footer className="footer">
       <div className="container">
-        {/* In Footer component, update the widget section: */}
         <div className="footer-widgets">
           <div className="widget">
             <h4>Liens rapides</h4>
@@ -2221,17 +2824,15 @@ const Footer = ({ navigate }) => {
     </footer>
   );
 };
-// ==================== PAGES ====================
 
-// Home Page
-// Home Page
+// ==================== HOME PAGE ====================
 const HomePage = ({ navigate }) => {
   const { addToCart } = useCart();
   const { getFeaturedProducts } = useProducts();
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toggleFavorite, checkIsFavorite } = useFavorites();
-  const { isPro, proDiscount } = useAuth(); // Add this line
+  const { isPro, proDiscount } = useAuth();
 
   useEffect(() => {
     loadFeaturedProducts();
@@ -2271,7 +2872,7 @@ const HomePage = ({ navigate }) => {
                   onToggleFavorite={toggleFavorite}
                   isPro={isPro}
                   proDiscount={proDiscount}
-                    navigate={navigate}
+                  navigate={navigate}
                 />
               ))}
             </div>
@@ -2281,10 +2882,9 @@ const HomePage = ({ navigate }) => {
     </div>
   );
 };
-// Products Page
-// Products Page - FIXED
-// Products Page - REDESIGNED
-// Products Page
+
+// ==================== PRODUCTS PAGE ====================
+// ==================== PRODUCTS PAGE COMPLETE ====================
 const ProductsPage = ({ navigate }) => {
   const {
     filteredProducts,
@@ -2299,18 +2899,26 @@ const ProductsPage = ({ navigate }) => {
     clearFilters,
     loading,
     categories,
+    brands,
     selectedCategory,
     setSelectedCategory,
+    selectedBrands,
+    toggleBrand,
+    clearBrands,
     priceRange,
-    setPriceRange
+    setPriceRange,
+    getActiveFiltersCount
   } = useProducts();
+  
   const { addToCart } = useCart();
   const { toggleFavorite, checkIsFavorite } = useFavorites();
   const { isPro, proDiscount } = useAuth();
+  
   const [showFilter, setShowFilter] = useState(false);
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
+  const [showAllBrands, setShowAllBrands] = useState(false);
 
-  // Get category name from URL on mount
+  // Récupérer le nom de la catégorie depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const categoryId = params.get('category');
@@ -2324,7 +2932,7 @@ const ProductsPage = ({ navigate }) => {
     }
   }, [categories]);
 
-  // Update selected category name when category changes
+  // Mettre à jour le nom de la catégorie quand elle change
   useEffect(() => {
     if (selectedCategory && categories.length > 0) {
       const category = categories.find(c => c.id.toString() === selectedCategory);
@@ -2336,14 +2944,31 @@ const ProductsPage = ({ navigate }) => {
     }
   }, [selectedCategory, categories]);
 
+  // Changer de catégorie
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
+    setCurrentPage(1);
     if (categoryId) {
       navigate(`/products?category=${categoryId}`);
     } else {
       navigate('/products');
     }
   };
+
+  // Réinitialiser tous les filtres
+  const handleClearFilters = () => {
+    clearFilters();
+    if (window.location.search) {
+      navigate('/products');
+    }
+  };
+
+  // Marques à afficher (limitées à 8 si showAllBrands est false)
+  const displayedBrands = showAllBrands ? brands : brands.slice(0, 8);
+  const hasMoreBrands = brands.length > 8;
+
+  // Nombre de filtres actifs
+  const activeFiltersCount = getActiveFiltersCount();
 
   return (
     <motion.div 
@@ -2352,22 +2977,38 @@ const ProductsPage = ({ navigate }) => {
       animate="visible"
       variants={fadeIn}
     >
+      {/* Header avec titre et compteur */}
       <div className="page-header modern">
         <div className="container">
           <h1>
             {selectedCategoryName ? selectedCategoryName : 'Tous nos produits'}
           </h1>
-          <p className="products-count">{totalProducts} produits trouvés</p>
+          <div className="page-header-info">
+            <p className="products-count">{totalProducts} produits trouvés</p>
+            {activeFiltersCount > 0 && (
+              <span className="active-filters-badge">
+                {activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="container">
         <div className="products-layout redesigned">
-          {/* Desktop Sidebar */}
+          {/* Sidebar - Filtres Desktop */}
           <aside className="sidebar redesigned">
             <div className="filter-sidebar redesigned">
-              <h3>Filtres</h3>
+              <div className="filter-header">
+                <h3>Filtres</h3>
+                {activeFiltersCount > 0 && (
+                  <button className="clear-all-filters" onClick={handleClearFilters}>
+                    <Icons.X size={14} /> Tout effacer
+                  </button>
+                )}
+              </div>
               
+              {/* Filtre par catégories */}
               <div className="filter-section">
                 <h4>Catégories</h4>
                 <div className="category-list">
@@ -2390,6 +3031,56 @@ const ProductsPage = ({ navigate }) => {
                 </div>
               </div>
 
+              {/* Filtre par marques */}
+              <div className="filter-section">
+                <div className="filter-section-header">
+                  <h4>Marques</h4>
+                  {selectedBrands.length > 0 && (
+                    <button className="clear-section" onClick={clearBrands}>
+                      <Icons.X size={12} /> Effacer
+                    </button>
+                  )}
+                </div>
+                <div className="brand-list">
+                  {displayedBrands.length > 0 ? (
+                    <>
+                      {displayedBrands.map(brand => (
+                        <label key={brand} className="brand-item">
+                          <input
+                            type="checkbox"
+                            checked={selectedBrands.includes(brand)}
+                            onChange={() => toggleBrand(brand)}
+                          />
+                          <span className="brand-name">{brand}</span>
+                          <span className="brand-check">
+                            {selectedBrands.includes(brand) && <Icons.Check size={12} />}
+                          </span>
+                        </label>
+                      ))}
+                      {hasMoreBrands && !showAllBrands && (
+                        <button 
+                          className="show-more-brands"
+                          onClick={() => setShowAllBrands(true)}
+                        >
+                          Voir plus de marques ({brands.length - 8})
+                        </button>
+                      )}
+                      {showAllBrands && (
+                        <button 
+                          className="show-less-brands"
+                          onClick={() => setShowAllBrands(false)}
+                        >
+                          Voir moins
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <p className="no-brands">Aucune marque disponible</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Filtre par prix */}
               <div className="filter-section">
                 <h4>Prix maximum</h4>
                 <div className="price-range">
@@ -2408,6 +3099,7 @@ const ProductsPage = ({ navigate }) => {
                 </div>
               </div>
 
+              {/* Tri */}
               <div className="filter-section">
                 <h4>Trier par</h4>
                 <select 
@@ -2423,14 +3115,16 @@ const ProductsPage = ({ navigate }) => {
                 </select>
               </div>
 
-              <button className="clear-filters-btn" onClick={clearFilters}>
-                <Icons.X size={16} /> Effacer tous les filtres
+              {/* Bouton réinitialiser */}
+              <button className="clear-filters-btn" onClick={handleClearFilters}>
+                <Icons.X size={16} /> Réinitialiser tous les filtres
               </button>
             </div>
           </aside>
 
           {/* Main Content */}
           <main className="products-main redesigned">
+            {/* Barre d'outils */}
             <div className="products-toolbar redesigned">
               <div className="search-box redesigned">
                 <Icons.Search className="search-icon" />
@@ -2451,10 +3145,36 @@ const ProductsPage = ({ navigate }) => {
                 className="mobile-filter-btn redesigned" 
                 onClick={() => setShowFilter(true)}
               >
-                <Icons.Filter /> Filtrer
+                <Icons.Filter /> 
+                Filtrer
+                {activeFiltersCount > 0 && (
+                  <span className="filter-badge">{activeFiltersCount}</span>
+                )}
               </button>
+
+              {/* Résumé des filtres actifs */}
+              {activeFiltersCount > 0 && (
+                <div className="active-filters">
+                  {selectedBrands.length > 0 && (
+                    <div className="active-filter-group">
+                      <span className="filter-label">Marques:</span>
+                      <div className="filter-tags">
+                        {selectedBrands.map(brand => (
+                          <span key={brand} className="filter-tag">
+                            {brand}
+                            <button onClick={() => toggleBrand(brand)}>
+                              <Icons.X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
+            {/* Grille de produits */}
             {loading ? (
               <div className="loading-container">
                 <div className="spinner"></div>
@@ -2473,11 +3193,12 @@ const ProductsPage = ({ navigate }) => {
                       onToggleFavorite={toggleFavorite}
                       isPro={isPro}
                       proDiscount={proDiscount}
-                        navigate={navigate}
+                      navigate={navigate}
                     />
                   ))}
                 </div>
 
+                {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="pagination redesigned">
                     <button 
@@ -2530,7 +3251,7 @@ const ProductsPage = ({ navigate }) => {
                 <Icons.Package size={64} />
                 <h2>Aucun produit trouvé</h2>
                 <p>Essayez de modifier vos filtres ou d'effectuer une nouvelle recherche</p>
-                <button className="reset-filters-btn" onClick={clearFilters}>
+                <button className="reset-filters-btn" onClick={handleClearFilters}>
                   Réinitialiser les filtres
                 </button>
               </div>
@@ -2539,7 +3260,7 @@ const ProductsPage = ({ navigate }) => {
         </div>
       </div>
 
-      {/* Mobile Filter Modal */}
+      {/* Modal de filtres mobile */}
       <AnimatePresence>
         {showFilter && (
           <motion.div 
@@ -2565,6 +3286,7 @@ const ProductsPage = ({ navigate }) => {
               </div>
 
               <div className="mobile-filter-body">
+                {/* Catégories */}
                 <div className="filter-section">
                   <h4>Catégories</h4>
                   <div className="category-list mobile">
@@ -2572,7 +3294,6 @@ const ProductsPage = ({ navigate }) => {
                       className={`category-btn ${!selectedCategory ? 'active' : ''}`}
                       onClick={() => {
                         handleCategoryChange(null);
-                        setShowFilter(false);
                       }}
                     >
                       Toutes les catégories
@@ -2583,7 +3304,6 @@ const ProductsPage = ({ navigate }) => {
                         className={`category-btn ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
                         onClick={() => {
                           handleCategoryChange(cat.id.toString());
-                          setShowFilter(false);
                         }}
                       >
                         {cat.name}
@@ -2593,6 +3313,24 @@ const ProductsPage = ({ navigate }) => {
                   </div>
                 </div>
 
+                {/* Marques */}
+                <div className="filter-section">
+                  <h4>Marques</h4>
+                  <div className="brand-list mobile">
+                    {brands.map(brand => (
+                      <label key={brand} className="brand-item">
+                        <input
+                          type="checkbox"
+                          checked={selectedBrands.includes(brand)}
+                          onChange={() => toggleBrand(brand)}
+                        />
+                        <span className="brand-name">{brand}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Prix */}
                 <div className="filter-section">
                   <h4>Prix maximum</h4>
                   <div className="price-range">
@@ -2611,6 +3349,7 @@ const ProductsPage = ({ navigate }) => {
                   </div>
                 </div>
 
+                {/* Tri */}
                 <div className="filter-section">
                   <h4>Trier par</h4>
                   <select 
@@ -2628,7 +3367,7 @@ const ProductsPage = ({ navigate }) => {
               </div>
 
               <div className="mobile-filter-footer">
-                <button className="clear-btn" onClick={clearFilters}>
+                <button className="clear-btn" onClick={handleClearFilters}>
                   Effacer tout
                 </button>
                 <button className="apply-btn" onClick={() => setShowFilter(false)}>
@@ -2642,9 +3381,8 @@ const ProductsPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// Product Detail Page with Multiple Images
-// Product Detail Page with Multiple Images - COMPLETE FIXED VERSION
-// Product Detail Page with Multiple Images - COMPLETE FIXED VERSION
+// ==================== PRODUCT DETAIL PAGE ====================
+// ==================== PRODUCT DETAIL PAGE COMPLETE ====================
 const ProductDetailPage = ({ navigate }) => {
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -2652,6 +3390,7 @@ const ProductDetailPage = ({ navigate }) => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [activeTab, setActiveTab] = useState('description');
   const { addToCart } = useCart();
   const { getProduct } = useProducts();
   const { isAuthenticated, isPro, proDiscount } = useAuth();
@@ -2667,9 +3406,14 @@ const ProductDetailPage = ({ navigate }) => {
     setLoading(true);
     try {
       const data = await getProduct(slug);
-      console.log('Product data:', data); // Debug log
+      console.log('📦 Données produit complètes:', data);
+      
       if (data) {
-        setProduct(data.product || data);
+        const productData = data.product || data;
+        console.log('🖼️ Images du produit:', productData.images);
+        console.log('🖼️ Images array:', productData.images_array);
+        
+        setProduct(productData);
         setRelated(data.related || []);
         setIsFavorite(data.is_favorite || false);
       }
@@ -2702,10 +3446,9 @@ const ProductDetailPage = ({ navigate }) => {
   const handleAddToCart = () => {
     if (!product) return;
     
-    // Calculate pro price if user is pro
     let priceToUse = product.price;
     if (isPro && proDiscount > 0 && product.original_price) {
-      priceToUse = product.price; // Price already has pro discount applied from backend
+      priceToUse = product.price;
     }
     
     const productToAdd = {
@@ -2714,6 +3457,25 @@ const ProductDetailPage = ({ navigate }) => {
     };
     
     addToCart(productToAdd, quantity);
+    alert('Produit ajouté au panier !');
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    setTimeout(() => navigate('/checkout'), 500);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: product.description,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Lien copié dans le presse-papiers !');
+    }
   };
 
   if (loading) {
@@ -2738,8 +3500,33 @@ const ProductDetailPage = ({ navigate }) => {
     );
   }
 
-  // Get all images - use images_array from API or fallback to single image
-  const productImages = product.images_array || (product.images ? product.images.map(img => img.image_path) : [product.image]);
+  // Récupérer toutes les images du produit
+  const productImages = (() => {
+    // Priorité 1: images_array (format personnalisé)
+    if (product.images_array && Array.isArray(product.images_array) && product.images_array.length > 0) {
+      console.log('📸 Utilisation de images_array:', product.images_array);
+      return product.images_array;
+    }
+    
+    // Priorité 2: images (relation Laravel)
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      console.log('📸 Utilisation de images relation:', product.images);
+      return product.images.map(img => img.image_path);
+    }
+    
+    // Priorité 3: image seule
+    if (product.image) {
+      console.log('📸 Utilisation de image seule:', product.image);
+      return [product.image];
+    }
+    
+    // Fallback
+    console.log('📸 Aucune image trouvée, utilisation du placeholder');
+    return ['https://via.placeholder.com/500'];
+  })();
+
+  console.log('🖼️ Images à afficher:', productImages);
+  
   const hasProDiscount = isPro && proDiscount > 0 && product.original_price && product.original_price > product.price;
 
   return (
@@ -2775,7 +3562,14 @@ const ProductDetailPage = ({ navigate }) => {
           {/* Image Gallery */}
           <div className="product-gallery">
             <div className="main-image">
-              <img src={productImages[selectedImage] || product.image} alt={product.name} />
+              <img 
+                src={productImages[selectedImage] || product.image} 
+                alt={product.name}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/500';
+                }} 
+              />
               {hasProDiscount && (
                 <span className="product-discount pro-discount">
                   -{proDiscount}% PRO
@@ -2784,9 +3578,12 @@ const ProductDetailPage = ({ navigate }) => {
               {product.badge && (
                 <span className="product-badge">{product.badge}</span>
               )}
+              {product.stock === 0 && (
+                <span className="product-badge out-of-stock-badge">Rupture</span>
+              )}
             </div>
             
-            {/* Thumbnail Images - Show if more than 1 image */}
+            {/* Thumbnail Images */}
             {productImages.length > 1 && (
               <div className="thumbnail-images">
                 {productImages.map((img, index) => (
@@ -2795,7 +3592,14 @@ const ProductDetailPage = ({ navigate }) => {
                     className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                     onClick={() => setSelectedImage(index)}
                   >
-                    <img src={img} alt={`${product.name} ${index + 1}`} />
+                    <img 
+                      src={img} 
+                      alt={`${product.name} ${index + 1}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/100';
+                      }} 
+                    />
                   </div>
                 ))}
               </div>
@@ -2811,30 +3615,51 @@ const ProductDetailPage = ({ navigate }) => {
               {product.brand && <span className="brand">Marque: {product.brand}</span>}
             </div>
 
-            <div className="product-rating">
-              {[...Array(5)].map((_, i) => (
-                <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>★</span>
-              ))}
-              <span className="rating-count">({product.reviews_count || 0} avis)</span>
+            {/* Rating Summary */}
+            <div className="product-rating-summary" onClick={() => setActiveTab('reviews')}>
+              <div className="product-rating">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>★</span>
+                ))}
+                <span className="rating-count">({product.reviews_count || 0} avis)</span>
+              </div>
+              <button className="write-review-link">
+                Donner votre avis
+              </button>
             </div>
 
-            <div className="product-price">
-              <span className={`current-price ${hasProDiscount ? 'pro-price' : ''}`}>
-                {product.price} MAD
-              </span>
-              {product.original_price && product.original_price > product.price && (
-                <span className="original-price">{product.original_price} MAD</span>
-              )}
+            {/* Price */}
+            <div className="product-price-section">
+              <div className={`product-price ${hasProDiscount ? 'has-pro' : ''}`}>
+                <span className={`current-price ${hasProDiscount ? 'pro-price' : ''}`}>
+                  {product.price} MAD
+                </span>
+                {product.original_price && product.original_price > product.price && (
+                  <span className="original-price">{product.original_price} MAD</span>
+                )}
+              </div>
+              
               {hasProDiscount && (
-                <span className="pro-badge">Prix PRO -{proDiscount}%</span>
+                <div className="pro-savings">
+                  <Icons.Percent size={16} />
+                  <span>Économisez {Math.round(product.original_price - product.price)} MAD en tant que professionnel</span>
+                </div>
               )}
             </div>
 
+            {/* Stock Status */}
             <div className="product-stock">
               {product.stock > 0 ? (
-                <span className="in-stock">
-                  <Icons.Check size={16} /> En stock ({product.stock} disponibles)
-                </span>
+                <>
+                  <span className="in-stock">
+                    <Icons.Check size={16} /> En stock ({product.stock} disponibles)
+                  </span>
+                  {product.stock < 10 && (
+                    <span className="low-stock-warning">
+                      Plus que {product.stock} exemplaire(s) en stock
+                    </span>
+                  )}
+                </>
               ) : (
                 <span className="out-of-stock">
                   <Icons.X size={16} /> Rupture de stock
@@ -2842,47 +3667,44 @@ const ProductDetailPage = ({ navigate }) => {
               )}
             </div>
 
+            {/* Description */}
             <div className="product-description">
               <h3>Description</h3>
               <p>{product.description}</p>
             </div>
 
-           // In ProductDetailPage, update the features section:
+            {/* Features */}
+            {product.features && (
+              <div className="product-features">
+                <h3>Caractéristiques</h3>
+                <ul>
+                  {(() => {
+                    let featuresList = [];
+                    
+                    if (Array.isArray(product.features)) {
+                      featuresList = product.features;
+                    } else if (typeof product.features === 'string') {
+                      try {
+                        const parsed = JSON.parse(product.features);
+                        featuresList = Array.isArray(parsed) ? parsed : [parsed];
+                      } catch {
+                        featuresList = [product.features];
+                      }
+                    } else if (product.features) {
+                      featuresList = [String(product.features)];
+                    }
+                    
+                    return featuresList.map((feature, index) => (
+                      <li key={index}>
+                        <Icons.Check size={14} /> {feature}
+                      </li>
+                    ));
+                  })()}
+                </ul>
+              </div>
+            )}
 
-{product.features && (
-  <div className="product-features">
-    <h3>Caractéristiques</h3>
-    <ul>
-      {(() => {
-        // Handle different types of features
-        let featuresList = [];
-        
-        if (Array.isArray(product.features)) {
-          // If it's already an array
-          featuresList = product.features;
-        } else if (typeof product.features === 'string') {
-          try {
-            // Try to parse JSON string
-            const parsed = JSON.parse(product.features);
-            featuresList = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            // If not valid JSON, treat as single string
-            featuresList = [product.features];
-          }
-        } else if (product.features) {
-          // If it's something else, convert to string
-          featuresList = [String(product.features)];
-        }
-        
-        return featuresList.map((feature, index) => (
-          <li key={index}>
-            <Icons.Check size={14} /> {feature}
-          </li>
-        ));
-      })()}
-    </ul>
-  </div>
-)}
+            {/* Quantity and Actions */}
             <div className="product-actions">
               <div className="quantity-selector">
                 <button 
@@ -2916,10 +3738,27 @@ const ProductDetailPage = ({ navigate }) => {
               </button>
 
               <button 
+                className="buy-now-btn"
+                onClick={handleBuyNow}
+                disabled={product.stock === 0}
+              >
+                Acheter maintenant
+              </button>
+
+              <button 
                 className={`wishlist-btn ${isFavorite ? 'active' : ''}`}
                 onClick={handleAddToWishlist}
               >
-                <Icons.Heart /> {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                <Icons.Heart /> 
+                {isFavorite ? 'Retirer' : 'Favoris'}
+              </button>
+
+              <button 
+                className="share-btn"
+                onClick={handleShare}
+                title="Partager"
+              >
+                <Icons.Share2 size={18} />
               </button>
             </div>
 
@@ -2941,6 +3780,91 @@ const ProductDetailPage = ({ navigate }) => {
           </div>
         </div>
 
+        {/* Product Tabs */}
+        <div className="product-tabs">
+          <div className="tabs-header">
+            <button 
+              className={activeTab === 'description' ? 'active' : ''}
+              onClick={() => setActiveTab('description')}
+            >
+              Description
+            </button>
+            <button 
+              className={activeTab === 'features' ? 'active' : ''}
+              onClick={() => setActiveTab('features')}
+            >
+              Caractéristiques
+            </button>
+            <button 
+              className={activeTab === 'reviews' ? 'active' : ''}
+              onClick={() => setActiveTab('reviews')}
+            >
+              Avis ({product.reviews_count || 0})
+            </button>
+            <button 
+              className={activeTab === 'shipping' ? 'active' : ''}
+              onClick={() => setActiveTab('shipping')}
+            >
+              Livraison
+            </button>
+          </div>
+
+          <div className="tab-content">
+            {activeTab === 'description' && (
+              <div className="tab-pane">
+                <h3>Description du produit</h3>
+                <p>{product.description || 'Aucune description disponible.'}</p>
+              </div>
+            )}
+
+            {activeTab === 'features' && (
+              <div className="tab-pane">
+                <h3>Caractéristiques</h3>
+                {product.features && (
+                  <ul className="features-list">
+                    {(() => {
+                      let featuresList = [];
+                      if (Array.isArray(product.features)) {
+                        featuresList = product.features;
+                      } else if (typeof product.features === 'string') {
+                        try {
+                          const parsed = JSON.parse(product.features);
+                          featuresList = Array.isArray(parsed) ? parsed : [parsed];
+                        } catch {
+                          featuresList = product.features.split('\n').filter(f => f.trim());
+                        }
+                      }
+                      return featuresList.map((feature, index) => (
+                        <li key={index}>
+                          <Icons.Check size={16} /> {feature}
+                        </li>
+                      ));
+                    })()}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div className="tab-pane">
+                <ReviewsSection productId={product.id} product={product} />
+              </div>
+            )}
+
+            {activeTab === 'shipping' && (
+              <div className="tab-pane">
+                <h3>Informations de livraison</h3>
+                <div className="shipping-info">
+                  <p><strong>Livraison standard:</strong> 2-3 jours ouvrés - Gratuite > 1000 MAD, sinon 50 MAD</p>
+                  <p><strong>Livraison express:</strong> 24h - 150 MAD</p>
+                  <p><strong>Retrait en magasin:</strong> Gratuit - disponible sous 2h</p>
+                  <p><strong>Retours:</strong> Gratuits sous 14 jours</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Related Products */}
         {related && related.length > 0 && (
           <div className="related-products">
@@ -2956,6 +3880,7 @@ const ProductDetailPage = ({ navigate }) => {
                   onToggleFavorite={toggleFavorite}
                   isPro={isPro}
                   proDiscount={proDiscount}
+                  navigate={navigate}
                 />
               ))}
             </div>
@@ -2965,320 +3890,8 @@ const ProductDetailPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// Checkout Page
-// Checkout Page - FIXED (without coupon dependency)
-// Checkout Page
-// Update CheckoutPage component
-// In CheckoutPage, add coupon display
-// Checkout Page - COMPLETE FIXED VERSION
-const CheckoutPage = ({ navigate }) => {
-  const { cartItems, cartTotal, clearCart } = useCart();
-  const { user, isAuthenticated, isEmailVerified } = useAuth();
-  const { appliedCoupon, discount, removeCoupon } = useCoupons();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState({
-    phone: user?.phone || '',
-    address: user?.address || '',
-    notes: ''
-  });
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Calculate totals with coupon
-  const subtotal = typeof cartTotal === 'number' ? cartTotal : parseFloat(cartTotal) || 0;
-  const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
-  const subtotalAfterDiscount = subtotal - discountAmount;
-  const shipping = subtotalAfterDiscount > 1000 ? 0 : 50;
-  const tax = subtotalAfterDiscount * 0.2;
-  const grandTotal = subtotalAfterDiscount + shipping + tax;
-
-  const formatPrice = (value) => {
-    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
-    return num.toFixed(2);
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!isEmailVerified) {
-      setError('Veuillez vérifier votre email avant de passer commande');
-      return;
-    }
-
-    if (!formData.phone.trim()) {
-      setError('Veuillez entrer votre numéro de téléphone');
-      return;
-    }
-
-    if (!formData.address.trim()) {
-      setError('Veuillez entrer votre adresse de livraison');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const orderData = {
-        items: cartItems.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity
-        })),
-        shipping_address: formData.address,
-        phone: formData.phone,
-        notes: formData.notes,
-        payment_method: 'espèces',
-        coupon_code: appliedCoupon?.code
-      };
-
-      console.log('📦 Submitting order:', orderData);
-
-      const response = await api.post('/orders', orderData);
-      
-      if (response.data.success) {
-        setSuccess(true);
-        clearCart();
-        removeCoupon();
-        setTimeout(() => {
-          const orderId = response.data.data.order?.id || response.data.data.id;
-          navigate(`/orders/${orderId}`);
-        }, 3000);
-      } else {
-        throw new Error(response.data.error || 'Erreur lors de la création de la commande');
-      }
-    } catch (err) {
-      console.error('❌ Order error:', err);
-      setError(err.response?.data?.error || err.message || 'Erreur lors de la création de la commande');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <motion.div 
-        className="checkout-page"
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-      >
-        <div className="container">
-          <div className="auth-required">
-            <Icons.User size={64} />
-            <h2>Connexion requise</h2>
-            <p>Vous devez être connecté pour passer commande</p>
-            <div className="auth-buttons">
-              <button className="btn-primary" onClick={() => navigate('/login')}>
-                Se connecter
-              </button>
-              <button className="btn-secondary" onClick={() => navigate('/register')}>
-                Créer un compte
-              </button>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
-  if (cartItems.length === 0) {
-    return (
-      <motion.div 
-        className="checkout-page empty-checkout"
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-      >
-        <div className="container">
-          <Icons.ShoppingBag size={64} />
-          <h2>Votre panier est vide</h2>
-          <p>Ajoutez des produits avant de passer commande</p>
-          <button className="btn-primary" onClick={() => navigate('/products')}>
-            Voir les produits
-          </button>
-        </div>
-      </motion.div>
-    );
-  }
-
-  if (success) {
-    return (
-      <motion.div 
-        className="checkout-page success-checkout"
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-      >
-        <div className="container">
-          <Icons.Check size={64} />
-          <h2>Commande réussie !</h2>
-          <p>Votre commande a été créée avec succès. Vous allez être redirigé...</p>
-        </div>
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div 
-      className="checkout-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      <div className="container">
-        <h1>Finaliser la commande</h1>
-
-        {!isEmailVerified && (
-          <div className="warning-message">
-            <Icons.Mail />
-            <span>Veuillez vérifier votre email avant de passer commande</span>
-          </div>
-        )}
-
-        {/* Show applied coupon */}
-        {appliedCoupon && (
-          <div className="applied-coupon-checkout">
-            <div className="coupon-info">
-              <Icons.Percent size={16} />
-              <span>Coupon appliqué: <strong>{appliedCoupon.code}</strong></span>
-              <span className="discount-amount">-{formatPrice(discountAmount)} MAD</span>
-            </div>
-            <button onClick={removeCoupon} className="remove-coupon-small">
-              <Icons.X size={14} /> Retirer
-            </button>
-          </div>
-        )}
-
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="checkout-layout">
-          <div className="checkout-form">
-            <form onSubmit={handleSubmit}>
-              <div className="form-section">
-                <h2>Informations de contact</h2>
-                
-                <div className="form-group">
-                  <label>Numéro de téléphone <span className="required">*</span></label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ex: 06 12 34 56 78"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Adresse de livraison <span className="required">*</span></label>
-                  <textarea
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    rows="3"
-                    placeholder="Entrez votre adresse complète (rue, ville, code postal)"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Notes supplémentaires (optionnel)</label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    rows="2"
-                    placeholder="Instructions de livraison, etc."
-                  />
-                </div>
-              </div>
-
-              <div className="form-section">
-                <h2>Mode de paiement</h2>
-                <div className="payment-info">
-                  <div className="payment-method-selected">
-                    <Icons.Truck />
-                    <span>Paiement à la livraison (Espèces)</span>
-                  </div>
-                  <p className="payment-description">
-                    Vous paierez en espèces lors de la réception de votre commande.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="place-order-btn"
-                disabled={loading || !isEmailVerified}
-              >
-                {loading ? 'Traitement...' : `Confirmer la commande (${formatPrice(grandTotal)} MAD)`}
-              </button>
-            </form>
-          </div>
-
-          <div className="checkout-summary">
-            <h3>Récapitulatif de la commande</h3>
-            
-            <div className="summary-items">
-              {cartItems.map((item, index) => (
-                <div key={index} className="summary-item">
-                  <span className="item-name">{item.name} x{item.quantity}</span>
-                  <span className="item-price">{formatPrice(item.price * item.quantity)} MAD</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="summary-totals">
-              <div className="summary-row">
-                <span>Sous-total</span>
-                <span>{formatPrice(subtotal)} MAD</span>
-              </div>
-              
-              {discountAmount > 0 && (
-                <div className="summary-row discount">
-                  <span>Réduction ({appliedCoupon?.code})</span>
-                  <span>-{formatPrice(discountAmount)} MAD</span>
-                </div>
-              )}
-              
-              <div className="summary-row">
-                <span>Livraison</span>
-                <span>{shipping === 0 ? 'Gratuite' : `${formatPrice(shipping)} MAD`}</span>
-              </div>
-              
-              <div className="summary-row">
-                <span>TVA (20%)</span>
-                <span>{formatPrice(tax)} MAD</span>
-              </div>
-              
-              <div className="summary-row total">
-                <span>Total</span>
-                <span>{formatPrice(grandTotal)} MAD</span>
-              </div>
-            </div>
-
-            <div className="delivery-note">
-              <Icons.Truck />
-              <p>Livraison estimée: 2-3 jours ouvrés</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-
+// ==================== CATEGORIES PAGE ====================
 const CategoriesPage = ({ navigate }) => {
   const { categories, loading: productsLoading } = useProducts();
   const [loading, setLoading] = useState(true);
@@ -3431,45 +4044,8 @@ const CategoriesPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// Add this component before the ProductCard
-const ProductPrice = ({ price, originalPrice, isPro, proDiscount }) => {
-  const calculateProPrice = () => {
-    if (isPro && proDiscount > 0) {
-      const discount = (price * proDiscount) / 100;
-      return Math.round(price - discount);
-    }
-    return price;
-  };
 
-  const displayPrice = calculateProPrice();
-  const hasProDiscount = isPro && proDiscount > 0 && displayPrice < price;
-
-  if (hasProDiscount) {
-    return (
-      <div className="product-price pro-price">
-        <span className="current-price pro">{displayPrice} MAD</span>
-        <span className="original-price">{price} MAD</span>
-        <span className="pro-badge">-{proDiscount}% PRO</span>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="product-price">
-      <span className="current-price">{price} MAD</span>
-      {originalPrice && originalPrice > price && (
-        <span className="original-price">{originalPrice} MAD</span>
-      )}
-    </div>
-  );
-};
-
-// In your ProductCard component, use it like this:
-
-// Cart Page
-// Update CartPage component
-// Update CartPage component with proper number handling
-// Cart Page - COMPLETE FIXED VERSION
+// ==================== CART PAGE ====================
 const CartPage = ({ navigate }) => {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const { validateCoupon, appliedCoupon, discount, removeCoupon } = useCoupons();
@@ -3479,11 +4055,9 @@ const CartPage = ({ navigate }) => {
   const [couponSuccess, setCouponSuccess] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
-  // Ensure discount is a number
   const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
   const subtotal = typeof cartTotal === 'number' ? cartTotal : parseFloat(cartTotal) || 0;
   
-  // Calculate totals with discount
   const subtotalAfterDiscount = subtotal - discountAmount;
   const shipping = subtotalAfterDiscount > 1000 ? 0 : 50;
   const tax = subtotalAfterDiscount * 0.2;
@@ -3509,7 +4083,6 @@ const CartPage = ({ navigate }) => {
       setTimeout(() => setCouponSuccess(''), 3000);
     } catch (err) {
       console.error('❌ Coupon error:', err);
-      // Display the specific error message from the backend
       const errorMessage = err.response?.data?.error || err.message || 'Code promo invalide';
       setCouponError(errorMessage);
     } finally {
@@ -3523,7 +4096,6 @@ const CartPage = ({ navigate }) => {
     setCouponError('');
   };
 
-  // Format number to 2 decimal places safely
   const formatPrice = (value) => {
     const num = typeof value === 'number' ? value : parseFloat(value) || 0;
     return num.toFixed(2);
@@ -3616,7 +4188,6 @@ const CartPage = ({ navigate }) => {
           <div className="cart-summary">
             <h3>Récapitulatif</h3>
             
-            {/* Coupon Section */}
             <div className="coupon-section">
               {!appliedCoupon ? (
                 <>
@@ -3722,7 +4293,6 @@ const CartPage = ({ navigate }) => {
   );
 };
 
-// Login Page
 // ==================== LOGIN PAGE ====================
 const LoginPage = ({ navigate }) => {
   const [email, setEmail] = useState('');
@@ -3740,19 +4310,13 @@ const LoginPage = ({ navigate }) => {
     try {
       await login(email, password);
       
-      // Check if there's a pending cart item
       const pendingItem = localStorage.getItem('pending_cart_item');
       if (pendingItem) {
         try {
           const item = JSON.parse(pendingItem);
-          // Add the item to cart after login
           await addToCart(item.product, item.quantity, navigate);
           localStorage.removeItem('pending_cart_item');
-          
-          // Show message
           alert('Article ajouté à votre panier !');
-          
-          // Redirect to cart
           navigate('/cart');
         } catch (err) {
           console.error('Failed to add pending item:', err);
@@ -3816,8 +4380,7 @@ const LoginPage = ({ navigate }) => {
   );
 };
 
-// Register Page
-// Update the RegisterPage component to include phone and address fields
+// ==================== REGISTER PAGE ====================
 const RegisterPage = ({ navigate }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -3942,10 +4505,9 @@ const RegisterPage = ({ navigate }) => {
       </div>
     </motion.div>
   );
-}; 
-// Dashboard Page
-// Dashboard Page - ORIGINAL VERSION
-// Dashboard Page - COMPLETE FIXED VERSION
+};
+
+// ==================== DASHBOARD PAGE ====================
 const DashboardPage = ({ navigate }) => {
   const { user, logout, updateProfile, resendVerification } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
@@ -3992,34 +4554,29 @@ const DashboardPage = ({ navigate }) => {
     }
   };
 
- const handleResendVerification = async () => {
-  setVerificationLoading(true);
-  setVerificationMessage('');
-  
-  try {
-    const response = await resendVerification();
-    console.log('Resend response:', response);
+  const handleResendVerification = async () => {
+    setVerificationLoading(true);
+    setVerificationMessage('');
     
-    // Check if response exists and has success flag
-    if (response && response.success) {
-      setVerificationMessage('Email de vérification renvoyé avec succès !');
-    } else {
-      // If we got here without error, assume success
-      setVerificationMessage('Email de vérification renvoyé avec succès !');
+    try {
+      const response = await resendVerification();
+      console.log('Resend response:', response);
+      
+      if (response && response.success) {
+        setVerificationMessage('Email de vérification renvoyé avec succès !');
+      } else {
+        setVerificationMessage('Email de vérification renvoyé avec succès !');
+      }
+    } catch (err) {
+      console.error('Resend error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de l\'envoi';
+      setVerificationMessage(errorMessage);
+    } finally {
+      setVerificationLoading(false);
+      setTimeout(() => setVerificationMessage(''), 5000);
     }
-  } catch (err) {
-    console.error('Resend error:', err);
-    
-    // Get error message from response if available
-    const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de l\'envoi';
-    setVerificationMessage(errorMessage);
-  } finally {
-    setVerificationLoading(false);
-    
-    // Clear message after 5 seconds
-    setTimeout(() => setVerificationMessage(''), 5000);
-  }
-};
+  };
+
   const getStatusClass = (status) => {
     switch(status) {
       case 'en cours': return 'status-pending';
@@ -4050,27 +4607,6 @@ const DashboardPage = ({ navigate }) => {
       <div className="container">
         <h1>Mon Compte</h1>
         
-{/* Debug - Remove after fixing */}
-<div style={{ background: '#f0f0f0', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
-  <h4>Debug Info</h4>
-  <p><strong>Email verified_at:</strong> {user?.email_verified_at || 'null'}</p>
-  <p><strong>isEmailVerified:</strong> {user?.email_verified_at !== null ? 'true' : 'false'}</p>
-  <button 
-    onClick={() => {
-      // Force refresh user data
-      api.get('/auth/me').then(res => {
-        if (res.data.success) {
-          const updatedUser = res.data.data;
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          window.location.reload();
-        }
-      });
-    }}
-    style={{ padding: '5px 10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
-  >
-    🔄 Refresh User Data
-  </button>
-</div>
         {!user?.email_verified_at && (
           <div className="verification-banner">
             <p>Votre email n'est pas vérifié. Veuillez vérifier votre boîte de réception.</p>
@@ -4301,14 +4837,14 @@ const DashboardPage = ({ navigate }) => {
                 )}
               </div>
             )}
-            
           </div>
         </div>
       </div>
     </motion.div>
   );
 };
-// Order Detail Page
+
+// ==================== ORDER DETAIL PAGE ====================
 const OrderDetailPage = ({ navigate }) => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -4320,24 +4856,24 @@ const OrderDetailPage = ({ navigate }) => {
   }, []);
 
   const fetchOrder = async (orderId) => {
-  setLoading(true);
-  try {
-    console.log('Fetching order:', orderId);
-    const response = await api.get(`/orders/${orderId}`);
-    console.log('Order response:', response.data);
-    
-    if (response.data.success && response.data.data) {
-      setOrder(response.data.data);
-    } else {
-      console.error('Order not found in response');
+    setLoading(true);
+    try {
+      console.log('Fetching order:', orderId);
+      const response = await api.get(`/orders/${orderId}`);
+      console.log('Order response:', response.data);
+      
+      if (response.data.success && response.data.data) {
+        setOrder(response.data.data);
+      } else {
+        console.error('Order not found in response');
+      }
+    } catch (err) {
+      console.error('Failed to fetch order:', err);
+      console.error('Error response:', err.response?.data);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('Failed to fetch order:', err);
-    console.error('Error response:', err.response?.data);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const cancelOrder = async () => {
     if (!window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) return;
@@ -4469,19 +5005,17 @@ const OrderDetailPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// Email Verification Success Page
-// Email Verification Success Page
+
+// ==================== VERIFICATION SUCCESS PAGE ====================
 const VerificationSuccessPage = ({ navigate }) => {
   const { checkVerification } = useAuth();
   
   useEffect(() => {
     const refreshUser = async () => {
-      // Refresh user data from backend
       if (checkVerification) {
         await checkVerification();
       }
       
-      // Redirect after 3 seconds
       const timer = setTimeout(() => {
         navigate('/dashboard');
       }, 3000);
@@ -4510,7 +5044,7 @@ const VerificationSuccessPage = ({ navigate }) => {
   );
 };
 
-// Email Verification Error Page
+// ==================== VERIFICATION ERROR PAGE ====================
 const VerificationErrorPage = ({ navigate }) => {
   const searchParams = new URLSearchParams(window.location.search);
   const errorMessage = searchParams.get('message') || 'Le lien de vérification est invalide ou a expiré';
@@ -4539,7 +5073,8 @@ const VerificationErrorPage = ({ navigate }) => {
     </motion.div>
   );
 };
-// Orders Page
+
+// ==================== ORDERS PAGE ====================
 const OrdersPage = ({ navigate }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -4686,8 +5221,1267 @@ const OrdersPage = ({ navigate }) => {
   );
 };
 
+// ==================== CHECKOUT PAGE ====================
+const CheckoutPage = ({ navigate }) => {
+  const { cartItems, cartTotal, clearCart } = useCart();
+  const { user, isAuthenticated, isEmailVerified } = useAuth();
+  const { appliedCoupon, discount, removeCoupon } = useCoupons();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [formData, setFormData] = useState({
+    phone: user?.phone || '',
+    address: user?.address || '',
+    notes: ''
+  });
 
-// Simple Products Table Component
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const subtotal = typeof cartTotal === 'number' ? cartTotal : parseFloat(cartTotal) || 0;
+  const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
+  const subtotalAfterDiscount = subtotal - discountAmount;
+  const shipping = subtotalAfterDiscount > 1000 ? 0 : 50;
+  const tax = subtotalAfterDiscount * 0.2;
+  const grandTotal = subtotalAfterDiscount + shipping + tax;
+
+  const formatPrice = (value) => {
+    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return num.toFixed(2);
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!isEmailVerified) {
+      setError('Veuillez vérifier votre email avant de passer commande');
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Veuillez entrer votre numéro de téléphone');
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      setError('Veuillez entrer votre adresse de livraison');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const orderData = {
+        items: cartItems.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity
+        })),
+        shipping_address: formData.address,
+        phone: formData.phone,
+        notes: formData.notes,
+        payment_method: 'espèces',
+        coupon_code: appliedCoupon?.code
+      };
+
+      console.log('📦 Submitting order:', orderData);
+
+      const response = await api.post('/orders', orderData);
+      
+      if (response.data.success) {
+        setSuccess(true);
+        clearCart();
+        removeCoupon();
+        setTimeout(() => {
+          const orderId = response.data.data.order?.id || response.data.data.id;
+          navigate(`/orders/${orderId}`);
+        }, 3000);
+      } else {
+        throw new Error(response.data.error || 'Erreur lors de la création de la commande');
+      }
+    } catch (err) {
+      console.error('❌ Order error:', err);
+      setError(err.response?.data?.error || err.message || 'Erreur lors de la création de la commande');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <motion.div 
+        className="checkout-page"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <div className="auth-required">
+            <Icons.User size={64} />
+            <h2>Connexion requise</h2>
+            <p>Vous devez être connecté pour passer commande</p>
+            <div className="auth-buttons">
+              <button className="btn-primary" onClick={() => navigate('/login')}>
+                Se connecter
+              </button>
+              <button className="btn-secondary" onClick={() => navigate('/register')}>
+                Créer un compte
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <motion.div 
+        className="checkout-page empty-checkout"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <Icons.ShoppingBag size={64} />
+          <h2>Votre panier est vide</h2>
+          <p>Ajoutez des produits avant de passer commande</p>
+          <button className="btn-primary" onClick={() => navigate('/products')}>
+            Voir les produits
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (success) {
+    return (
+      <motion.div 
+        className="checkout-page success-checkout"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="container">
+          <Icons.Check size={64} />
+          <h2>Commande réussie !</h2>
+          <p>Votre commande a été créée avec succès. Vous allez être redirigé...</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="checkout-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <h1>Finaliser la commande</h1>
+
+        {!isEmailVerified && (
+          <div className="warning-message">
+            <Icons.Mail />
+            <span>Veuillez vérifier votre email avant de passer commande</span>
+          </div>
+        )}
+
+        {appliedCoupon && (
+          <div className="applied-coupon-checkout">
+            <div className="coupon-info">
+              <Icons.Percent size={16} />
+              <span>Coupon appliqué: <strong>{appliedCoupon.code}</strong></span>
+              <span className="discount-amount">-{formatPrice(discountAmount)} MAD</span>
+            </div>
+            <button onClick={removeCoupon} className="remove-coupon-small">
+              <Icons.X size={14} /> Retirer
+            </button>
+          </div>
+        )}
+
+        {error && <div className="error-message">{error}</div>}
+
+        <div className="checkout-layout">
+          <div className="checkout-form">
+            <form onSubmit={handleSubmit}>
+              <div className="form-section">
+                <h2>Informations de contact</h2>
+                
+                <div className="form-group">
+                  <label>Numéro de téléphone <span className="required">*</span></label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ex: 06 12 34 56 78"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Adresse de livraison <span className="required">*</span></label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    required
+                    rows="3"
+                    placeholder="Entrez votre adresse complète (rue, ville, code postal)"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Notes supplémentaires (optionnel)</label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    rows="2"
+                    placeholder="Instructions de livraison, etc."
+                  />
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h2>Mode de paiement</h2>
+                <div className="payment-info">
+                  <div className="payment-method-selected">
+                    <Icons.Truck />
+                    <span>Paiement à la livraison (Espèces)</span>
+                  </div>
+                  <p className="payment-description">
+                    Vous paierez en espèces lors de la réception de votre commande.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="place-order-btn"
+                disabled={loading || !isEmailVerified}
+              >
+                {loading ? 'Traitement...' : `Confirmer la commande (${formatPrice(grandTotal)} MAD)`}
+              </button>
+            </form>
+          </div>
+
+          <div className="checkout-summary">
+            <h3>Récapitulatif de la commande</h3>
+            
+            <div className="summary-items">
+              {cartItems.map((item, index) => (
+                <div key={index} className="summary-item">
+                  <span className="item-name">{item.name} x{item.quantity}</span>
+                  <span className="item-price">{formatPrice(item.price * item.quantity)} MAD</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="summary-totals">
+              <div className="summary-row">
+                <span>Sous-total</span>
+                <span>{formatPrice(subtotal)} MAD</span>
+              </div>
+              
+              {discountAmount > 0 && (
+                <div className="summary-row discount">
+                  <span>Réduction ({appliedCoupon?.code})</span>
+                  <span>-{formatPrice(discountAmount)} MAD</span>
+                </div>
+              )}
+              
+              <div className="summary-row">
+                <span>Livraison</span>
+                <span>{shipping === 0 ? 'Gratuite' : `${formatPrice(shipping)} MAD`}</span>
+              </div>
+              
+              <div className="summary-row">
+                <span>TVA (20%)</span>
+                <span>{formatPrice(tax)} MAD</span>
+              </div>
+              
+              <div className="summary-row total">
+                <span>Total</span>
+                <span>{formatPrice(grandTotal)} MAD</span>
+              </div>
+            </div>
+
+            <div className="delivery-note">
+              <Icons.Truck />
+              <p>Livraison estimée: 2-3 jours ouvrés</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ==================== ABOUT PAGE ====================
+const AboutPage = () => {
+  const stats = [
+    { icon: Icons.Star, value: '20+', label: "Années d'expérience" },
+    { icon: Icons.Users, value: '500+', label: 'Clients professionnels' },
+    { icon: Icons.Package, value: '1200+', label: 'Produits disponibles' },
+    { icon: Icons.Truck, value: '48h', label: 'Délai de livraison' }
+  ];
+
+  const categories = [
+    {
+      title: '🧪 Tubes de Prélèvement',
+      description: 'Tubes PRP, tubes gel, tubes secs et toute la gamme de tubes vacutainer pour l\'analyse biologique et la médecine régénérative.',
+      icon: '🧪'
+    },
+    {
+      title: '💉 Aiguilles & Accessoires',
+      description: 'Aiguilles de prélèvement, systèmes de collecte sécurisés, lancettes et accessoires pour chaque protocole clinique.',
+      icon: '💉'
+    },
+    {
+      title: '🏺 Consommables de Laboratoire',
+      description: 'Pipettes, embouts, plaques, tubes Eppendorf, milieux de culture et tout le consommable quotidien de vos laboratoires.',
+      icon: '🏺'
+    },
+    {
+      title: '⚗️ Réactifs de Laboratoire',
+      description: 'Réactifs pour biochimie, hématologie, immunologie, sérologie et microbiologie, compatibles avec les automates du marché.',
+      icon: '⚗️'
+    },
+    {
+      title: '🔬 Analyseurs de Laboratoire',
+      description: 'Automates d\'hématologie, biochimie, immunologie et urines. Installation, maintenance et formation incluses.',
+      icon: '🔬'
+    },
+    {
+      title: '⚙️ Équipements de Laboratoire',
+      description: 'Centrifugeuses, réfrigérateurs médicaux, hottes, autoclaves, microscopes et équipements de protection individuelle.',
+      icon: '⚙️'
+    }
+  ];
+
+  const whyChooseUs = [
+    {
+      title: '🏅 Produits Certifiés & Homologués',
+      description: 'Tous nos produits sont conformes aux normes CE, ISO et aux exigences du Ministère de la Santé marocain.'
+    },
+    {
+      title: '🚚 Livraison Rapide Partout au Maroc',
+      description: 'Réseau logistique couvrant l\'ensemble du territoire national avec un délai garanti de 24 à 48 heures.'
+    },
+    {
+      title: '💰 Tarifs Professionnels Exclusifs',
+      description: 'Programme de tarification dédié aux professionnels agréés avec remises progressives selon le volume de commande.'
+    },
+    {
+      title: '🎓 Expertise & Conseil Technique',
+      description: 'Une équipe de techniciens qualifiés disponible pour vous conseiller, former et assurer la maintenance de vos équipements.'
+    },
+    {
+      title: '🔄 Stock Permanent & Disponibilité',
+      description: 'Plus de 1 200 références disponibles en stock permanent pour garantir la continuité de vos activités sans interruption.'
+    },
+    {
+      title: '🤝 Relation Durable & Service Après-Vente',
+      description: 'Un interlocuteur dédié pour chaque client professionnel, un SAV réactif et un accompagnement sur le long terme.'
+    }
+  ];
+
+  const values = [
+    {
+      title: 'Notre Mission',
+      description: 'Fournir aux professionnels de santé marocains des équipements, réactifs et consommables de laboratoire de haute qualité, avec un service client réactif et des délais de livraison fiables sur l\'ensemble du territoire national.',
+      icon: '🎯'
+    },
+    {
+      title: 'Notre Vision',
+      description: 'Devenir la référence incontournable pour l\'approvisionnement en matériel médico-laboratoire au Maroc, en construisant des partenariats durables fondés sur la confiance, l\'expertise et l\'innovation continue.',
+      icon: '🔭'
+    },
+    {
+      title: 'Nos Valeurs',
+      description: 'Qualité sans compromis, intégrité dans chaque transaction, réactivité face aux besoins de nos clients, et engagement constant pour l\'amélioration de la santé au Maroc.',
+      icon: '💎'
+    }
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
+  const scaleVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 15
+      }
+    }
+  };
+
+  const fadeInVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.8 }
+    }
+  };
+
+  return (
+    <motion.div 
+      className="about-page-enhanced"
+      initial="hidden"
+      animate="visible"
+      variants={fadeInVariants}
+    >
+      <motion.section 
+        className="about-hero-enhanced"
+        variants={containerVariants}
+      >
+        <div className="hero-overlay"></div>
+        <div className="container">
+          <motion.div 
+            className="hero-content-enhanced"
+            variants={containerVariants}
+          >
+            <motion.span 
+              className="hero-badge-enhanced"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+            >
+              🧬 À Propos de Nous
+            </motion.span>
+            
+            <motion.h1 
+              variants={itemVariants}
+            >
+              Votre Partenaire de
+              <motion.span 
+                className="highlight-text"
+                animate={{ 
+                  textShadow: ["0 0 0 rgba(109, 158, 235, 0)", "0 0 20px rgba(109, 158, 235, 0.5)", "0 0 0 rgba(109, 158, 235, 0)"]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                Confiance
+              </motion.span>
+              <br />en Laboratoire
+            </motion.h1>
+            
+            <motion.p 
+              className="hero-subtitle-enhanced"
+              variants={itemVariants}
+            >
+              Depuis notre création, TECLAB accompagne les professionnels de la santé avec des 
+              solutions de qualité supérieure pour les laboratoires, cliniques et établissements 
+              médicaux au Maroc.
+            </motion.p>
+          </motion.div>
+        </div>
+        
+        <motion.div 
+          className="floating-element element-1"
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 5, 0]
+          }}
+          transition={{ duration: 6, repeat: Infinity }}
+        />
+        <motion.div 
+          className="floating-element element-2"
+          animate={{ 
+            y: [0, 20, 0],
+            rotate: [0, -5, 0]
+          }}
+          transition={{ duration: 7, repeat: Infinity }}
+        />
+        <motion.div 
+          className="floating-element element-3"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{ duration: 5, repeat: Infinity }}
+        />
+      </motion.section>
+
+      <motion.section 
+        className="about-stats-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="container">
+          <div className="stats-grid-enhanced">
+            {stats.map((stat, index) => (
+              <motion.div 
+                key={index}
+                className="stat-item-enhanced"
+                variants={scaleVariants}
+                whileHover={{ 
+                  y: -10,
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
+                }}
+              >
+                <motion.div 
+                  className="stat-icon-enhanced"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <stat.icon size={40} />
+                </motion.div>
+                <motion.div 
+                  className="stat-value-enhanced"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 100,
+                    delay: 0.2 + index * 0.1
+                  }}
+                >
+                  {stat.value}
+                </motion.div>
+                <div className="stat-label-enhanced">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section 
+        className="about-history-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="container">
+          <div className="history-grid-enhanced">
+            <motion.div 
+              className="history-text-enhanced"
+              variants={itemVariants}
+            >
+              <motion.h2
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100 }}
+              >
+                Notre Histoire
+              </motion.h2>
+              
+              <motion.h3
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.1 }}
+              >
+                Qui sommes-nous ?
+              </motion.h3>
+              
+              <motion.p
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
+              >
+                TECLAB est une entreprise marocaine spécialisée dans la distribution de matériel 
+                et de consommables pour les laboratoires d'analyse médicale, les cliniques, les 
+                cabinets médicaux et les établissements de santé.
+              </motion.p>
+              
+              <motion.p
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
+              >
+                Fondée avec une ambition claire — rendre accessible aux professionnels de santé 
+                marocains des produits de haute qualité à des prix compétitifs — TECLAB s'est 
+                imposée comme un acteur incontournable du secteur médical au Maroc.
+              </motion.p>
+              
+              <motion.p
+                initial={{ x: -50, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
+              >
+                Notre équipe est composée de spécialistes passionnés qui comprennent les exigences 
+                du monde médical et s'engagent à fournir un service irréprochable, du conseil à 
+                la livraison.
+              </motion.p>
+            </motion.div>
+            
+            <motion.div 
+              className="history-badge-enhanced"
+              variants={scaleVariants}
+              whileHover={{ 
+                scale: 1.1,
+                rotate: 5,
+                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
+              }}
+            >
+              <motion.span 
+                className="badge-icon-enhanced"
+                animate={{ 
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                🔬
+              </motion.span>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section 
+        className="about-quality-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="container">
+          <motion.div 
+            className="quality-content-enhanced"
+            variants={itemVariants}
+          >
+            <motion.h2
+              animate={{ 
+                color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
+              }}
+              transition={{ duration: 5, repeat: Infinity }}
+            >
+              Notre Engagement Qualité
+            </motion.h2>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              Chaque produit que nous distribuons est rigoureusement sélectionné auprès de 
+              fournisseurs certifiés, garantissant fiabilité, précision et conformité aux 
+              normes internationales en vigueur.
+            </motion.p>
+            
+            <motion.div 
+              className="quality-badge-enhanced"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 10px 30px rgba(109, 158, 235, 0.3)"
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.span 
+                className="check-icon-enhanced"
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                ✅
+              </motion.span>
+              <span>Fournisseurs certifiés ISO & CE</span>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      <motion.section 
+        className="about-values-section-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="container">
+          <div className="values-grid-enhanced">
+            {values.map((value, index) => (
+              <motion.div 
+                key={index}
+                className="value-card-enhanced"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -15,
+                  boxShadow: "0 30px 60px rgba(109, 158, 235, 0.2)"
+                }}
+              >
+                <motion.div 
+                  className="value-icon-enhanced"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 3, delay: index * 0.2, repeat: Infinity }}
+                >
+                  {value.icon}
+                </motion.div>
+                <h3>{value.title}</h3>
+                <p>{value.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section 
+        className="about-categories-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+      >
+        <div className="container">
+          <motion.h2 
+            className="section-title-enhanced"
+            variants={itemVariants}
+          >
+            Ce que nous proposons
+          </motion.h2>
+          
+          <motion.p 
+            className="section-subtitle-enhanced"
+            variants={itemVariants}
+          >
+            Une gamme complète de produits et services pour répondre à tous vos besoins 
+            en laboratoire et équipements médicaux.
+          </motion.p>
+
+          <div className="categories-grid-enhanced">
+            {categories.map((category, index) => (
+              <motion.div 
+                key={index}
+                className="category-card-enhanced"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -10,
+                  scale: 1.02,
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
+                }}
+                custom={index}
+              >
+                <motion.div 
+                  className="category-icon-enhanced"
+                  animate={{ 
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 4, delay: index * 0.1, repeat: Infinity }}
+                >
+                  {category.icon}
+                </motion.div>
+                <h3>{category.title}</h3>
+                <p>{category.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section 
+        className="why-choose-us-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+      >
+        <div className="container">
+          <motion.h2 
+            className="section-title-enhanced"
+            variants={itemVariants}
+          >
+            Pourquoi choisir TECLAB ?
+          </motion.h2>
+          
+          <motion.p 
+            className="section-subtitle-enhanced"
+            variants={itemVariants}
+          >
+            Nous ne sommes pas de simples distributeurs — nous sommes vos partenaires 
+            dans l'excellence médicale.
+          </motion.p>
+
+          <div className="why-choose-grid-enhanced">
+            {whyChooseUs.map((item, index) => (
+              <motion.div 
+                key={index}
+                className="why-choose-card-enhanced"
+                variants={itemVariants}
+                whileHover={{ 
+                  x: 10,
+                  boxShadow: "0 15px 30px rgba(109, 158, 235, 0.2)"
+                }}
+              >
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section 
+        className="about-contact-enhanced"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="container">
+          <div className="contact-info-grid-enhanced">
+            <motion.div 
+              className="contact-info-card-enhanced"
+              variants={itemVariants}
+              whileHover={{ y: -10 }}
+            >
+              <motion.h3
+                animate={{ 
+                  color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
+                }}
+                transition={{ duration: 5, repeat: Infinity }}
+              >
+                Besoin d'un conseil technique ?
+              </motion.h3>
+              <p>
+                Notre équipe spécialisée vous accompagne dans le choix de vos équipements 
+                et consommables de laboratoire.
+              </p>
+            </motion.div>
+            
+            <motion.div 
+              className="contact-info-card-enhanced highlight"
+              variants={itemVariants}
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
+              }}
+            >
+              <motion.div 
+                className="phone-icon-enhanced"
+                animate={{ 
+                  rotate: [0, 15, -15, 0],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                📞
+              </motion.div>
+              
+              <h4>Appelez-nous 24/7</h4>
+              
+              <motion.a 
+                href="tel:+212808626102" 
+                className="phone-number-enhanced"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                +212 808 626 102
+              </motion.a>
+              
+              <motion.p 
+                className="address-enhanced"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                654 LOT TGHAT II RTE MEKNES VILLA 30000 SECTEUR 0601, Fez, MAROC
+              </motion.p>
+              
+              <motion.a 
+                href="mailto:info@teclab.ma" 
+                className="email-enhanced"
+                whileHover={{ scale: 1.05, color: "#ff6b6b" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                info@teclab.ma
+              </motion.a>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+    </motion.div>
+  );
+};
+// ==================== ADMIN PAGES ====================
+
+// Admin Orders Page
+const AdminOrdersPage = ({ navigate }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+    fetchOrders();
+  }, [isAdmin, currentPage, statusFilter]);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('page', currentPage);
+      if (statusFilter) params.append('status', statusFilter);
+      
+      const response = await api.get(`/admin/orders?${params.toString()}`);
+      if (response.data.success && response.data.data) {
+        setOrders(response.data.data.data || []);
+        setTotalPages(response.data.data.last_page || 1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (orderId, newStatus) => {
+    try {
+      const response = await api.put(`/admin/orders/${orderId}/status`, {
+        status: newStatus
+      });
+      if (response.data.success) {
+        fetchOrders();
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  if (loading) return <div className="loading-spinner">Chargement...</div>;
+
+  return (
+    <motion.div 
+      className="admin-orders-page"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="page-header">
+          <h1>Gestion des commandes</h1>
+          <button onClick={() => navigate('/admin')} className="back-btn">
+            ← Retour
+          </button>
+        </div>
+
+        <div className="filters">
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tous les statuts</option>
+            <option value="en cours">En cours</option>
+            <option value="expédiée">Expédiée</option>
+            <option value="livré">Livrée</option>
+            <option value="annulée">Annulée</option>
+          </select>
+        </div>
+
+        <div className="orders-table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>N° Commande</th>
+                <th>Client</th>
+                <th>Email</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order.id}>
+                  <td>{order.order_number}</td>
+                  <td>{order.customer?.name}</td>
+                  <td>{order.customer?.email}</td>
+                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td>{order.total} MAD</td>
+                  <td>
+                    <select 
+                      value={order.status}
+                      onChange={(e) => updateStatus(order.id, e.target.value)}
+                      className={`status-select ${getStatusClass(order.status)}`}
+                    >
+                      <option value="en cours">En cours</option>
+                      <option value="expédiée">Expédiée</option>
+                      <option value="livré">Livrée</option>
+                      <option value="annulée">Annulée</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button 
+                      className="view-btn"
+                      onClick={() => navigate(`/admin/orders/${order.id}`)}
+                    >
+                      Détails
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              <Icons.ChevronLeft />
+            </button>
+            <span>Page {currentPage} sur {totalPages}</span>
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              <Icons.ChevronRight />
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Admin Order Detail Page
+const AdminOrderDetailPage = ({ navigate }) => {
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+    const path = window.location.pathname;
+    const orderId = path.split('/').pop();
+    fetchOrder(orderId);
+  }, [isAdmin]);
+
+  const fetchOrder = async (orderId) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/orders/${orderId}`);
+      if (response.data.success && response.data.data) {
+        setOrder(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch order:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (newStatus) => {
+    try {
+      const response = await api.put(`/admin/orders/${order.id}/status`, {
+        status: newStatus
+      });
+      if (response.data.success) {
+        setOrder({...order, status: newStatus});
+        alert('Statut mis à jour avec succès');
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Erreur lors de la mise à jour');
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'en cours': return 'status-pending';
+      case 'expédiée': return 'status-shipped';
+      case 'livré': return 'status-delivered';
+      case 'annulée': return 'status-cancelled';
+      default: return '';
+    }
+  };
+
+  if (loading) return <div className="loading-spinner">Chargement...</div>;
+  if (!order) return <div className="not-found">Commande non trouvée</div>;
+
+  return (
+    <motion.div 
+      className="admin-order-detail"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <div className="container">
+        <div className="page-header">
+          <button onClick={() => navigate('/admin/orders')} className="back-btn">
+            ← Retour aux commandes
+          </button>
+          <h1>Commande #{order.order_number}</h1>
+        </div>
+
+        <div className="order-status-section">
+          <span className={`status-badge-large ${getStatusClass(order.status)}`}>
+            {order.status}
+          </span>
+          <div className="status-actions">
+            <button 
+              onClick={() => updateStatus('en cours')}
+              className="status-btn pending"
+              disabled={order.status === 'en cours'}
+            >
+              En cours
+            </button>
+            <button 
+              onClick={() => updateStatus('expédiée')}
+              className="status-btn shipped"
+              disabled={order.status === 'expédiée'}
+            >
+              Expédiée
+            </button>
+            <button 
+              onClick={() => updateStatus('livré')}
+              className="status-btn delivered"
+              disabled={order.status === 'livré'}
+            >
+              Livrée
+            </button>
+            <button 
+              onClick={() => updateStatus('annulée')}
+              className="status-btn cancelled"
+              disabled={order.status === 'annulée'}
+            >
+              Annulée
+            </button>
+          </div>
+        </div>
+
+        <div className="order-details-grid">
+          <div className="detail-card">
+            <h3>Informations client</h3>
+            <p><strong>Nom:</strong> {order.customer?.name}</p>
+            <p><strong>Email:</strong> {order.customer?.email}</p>
+            <p><strong>Téléphone:</strong> {order.customer?.phone || 'Non renseigné'}</p>
+          </div>
+
+          <div className="detail-card">
+            <h3>Adresse de livraison</h3>
+            <p>{order.shipping_address}</p>
+          </div>
+
+          <div className="detail-card">
+            <h3>Informations de paiement</h3>
+            <p><strong>Méthode:</strong> {order.payment_method === 'carte' ? 'Carte bancaire' : 'Espèces (COD)'}</p>
+            <p><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</p>
+          </div>
+
+          {order.coupon && (
+            <div className="detail-card">
+              <h3>Coupon appliqué</h3>
+              <p><strong>Code:</strong> {order.coupon.code}</p>
+              <p><strong>Réduction:</strong> -{order.discount_amount} MAD</p>
+            </div>
+          )}
+        </div>
+
+        <div className="order-items-section">
+          <h2>Articles commandés</h2>
+          <table className="items-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Prix unitaire</th>
+                <th>Quantité</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.product_name}</td>
+                  <td>{item.price} MAD</td>
+                  <td>{item.quantity}</td>
+                  <td>{(item.price * item.quantity).toFixed(2)} MAD</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan="3" className="text-right">Sous-total:</td>
+                <td>{order.subtotal} MAD</td>
+              </tr>
+              {order.discount_amount > 0 && (
+                <tr>
+                  <td colSpan="3" className="text-right">Réduction:</td>
+                  <td>-{order.discount_amount} MAD</td>
+                </tr>
+              )}
+              <tr>
+                <td colSpan="3" className="text-right">Livraison:</td>
+                <td>{order.shipping > 0 ? order.shipping + ' MAD' : 'Gratuite'}</td>
+              </tr>
+              <tr>
+                <td colSpan="3" className="text-right">TVA (20%):</td>
+                <td>{order.tax} MAD</td>
+              </tr>
+              <tr className="total-row">
+                <td colSpan="3" className="text-right">Total:</td>
+                <td><strong>{order.total} MAD</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 // ==================== ORDERS TABLE COMPONENT ====================
 const OrdersTable = ({ orders, onStatusChange, onRefresh, onView, onBack, currentPage, totalPages, onPageChange }) => {
   const [statusFilter, setStatusFilter] = useState('');
@@ -4714,7 +6508,6 @@ const OrdersTable = ({ orders, onStatusChange, onRefresh, onView, onBack, curren
             value={statusFilter} 
             onChange={(e) => {
               setStatusFilter(e.target.value);
-              // You would need to implement filter logic here
             }}
           >
             <option value="">Tous les statuts</option>
@@ -4804,14 +6597,23 @@ const OrdersTable = ({ orders, onStatusChange, onRefresh, onView, onBack, curren
 };
 
 // ==================== PRODUCTS TABLE COMPONENT ====================
-const ProductsTable = ({ products, categories, onAdd, onEdit, onDelete, onRefresh, onBack, currentPage, totalPages, onPageChange }) => {
+// Dans ProductsTable, améliorez l'affichage des images :
+
+const ProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showGallery, setShowGallery] = useState(false);
 
   const filteredProducts = products.filter(p => 
     p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const viewGallery = (product) => {
+    setSelectedProduct(product);
+    setShowGallery(true);
+  };
 
   return (
     <div className="admin-table-container">
@@ -4844,70 +6646,132 @@ const ProductsTable = ({ products, categories, onAdd, onEdit, onDelete, onRefres
             <th>Prix</th>
             <th>Stock</th>
             <th>Catégorie</th>
+            <th>Marque</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filteredProducts.length === 0 ? (
             <tr>
-              <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
+              <td colSpan="8" style={{ textAlign: 'center', padding: '30px' }}>
                 Aucun produit trouvé
               </td>
             </tr>
           ) : (
-            filteredProducts.map(product => (
-              <tr key={product.id}>
-                <td>
-                  <img 
-                    src={product.image || 'https://via.placeholder.com/50'} 
-                    alt={product.name} 
-                    className="product-thumb"
-                    onError={(e) => e.target.src = 'https://via.placeholder.com/50'}
-                  />
-                </td>
-                <td>{product.name}</td>
-                <td><code>{product.sku}</code></td>
-                <td><strong>{product.price} MAD</strong></td>
-                <td>
-                  <span className={`stock-badge ${
-                    product.stock < 5 ? 'critical' : 
-                    product.stock < 10 ? 'warning' : 'good'
-                  }`}>
-                    {product.stock}
-                  </span>
-                </td>
-                <td>{product.category?.name || '-'}</td>
-                <td>
-                  <button onClick={() => onEdit(product)} className="edit-btn">
-                    <Icons.Eye size={14} /> Modifier
-                  </button>
-                  <button onClick={() => onDelete(product.id)} className="delete-btn">
-                    <Icons.Trash size={14} /> Supprimer
-                  </button>
-                </td>
-              </tr>
-            ))
+            filteredProducts.map(product => {
+              const images = product.images_array || 
+                           (product.images ? product.images.map(img => img.image_path) : []) ||
+                           (product.image ? [product.image] : []);
+              
+              return (
+                <tr key={product.id}>
+                  <td>
+                    <div className="product-images-cell">
+                      {images.length > 0 ? (
+                        <div className="image-stack">
+                          <img 
+                            src={images[0] || 'https://via.placeholder.com/50'} 
+                            alt={product.name} 
+                            className="product-thumb"
+                            onError={(e) => e.target.src = 'https://via.placeholder.com/50'}
+                          />
+                          {images.length > 1 && (
+                            <span className="image-count-badge" onClick={() => viewGallery(product)}>
+                              +{images.length - 1}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <img 
+                          src="https://via.placeholder.com/50?text=No+Image" 
+                          alt="No image" 
+                          className="product-thumb"
+                        />
+                      )}
+                    </div>
+                  </td>
+                  <td>{product.name}</td>
+                  <td><code>{product.sku}</code></td>
+                  <td><strong>{product.price} MAD</strong></td>
+                  <td>
+                    <span className={`stock-badge ${
+                      product.stock < 5 ? 'critical' : 
+                      product.stock < 10 ? 'warning' : 'good'
+                    }`}>
+                      {product.stock}
+                    </span>
+                  </td>
+                  <td>{product.category?.name || '-'}</td>
+                  <td>{product.brand || '-'}</td>
+                  <td>
+                    <button onClick={() => onEdit(product)} className="edit-btn">
+                      <Icons.Eye size={14} /> Modifier
+                    </button>
+                    <button onClick={() => onDelete(product.id)} className="delete-btn">
+                      <Icons.Trash size={14} /> Supprimer
+                    </button>
+                    {images.length > 1 && (
+                      <button onClick={() => viewGallery(product)} className="gallery-btn">
+                        <Icons.Image size={14} /> Galerie
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>
 
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button 
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(currentPage - 1)}
+      {/* Modal de galerie d'images */}
+      <AnimatePresence>
+        {showGallery && selectedProduct && (
+          <motion.div 
+            className="admin-modal-overlay gallery-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowGallery(false)}
           >
-            <Icons.ChevronLeft />
-          </button>
-          <span>Page {currentPage} sur {totalPages}</span>
-          <button 
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
-          >
-            <Icons.ChevronRight />
-          </button>
-        </div>
-      )}
+            <motion.div 
+              className="gallery-modal-content"
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 50 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h3>
+                  <Icons.Image size={20} style={{ marginRight: '10px' }} />
+                  Galerie - {selectedProduct.name}
+                </h3>
+                <button className="close-btn" onClick={() => setShowGallery(false)}>
+                  <Icons.X size={20} />
+                </button>
+              </div>
+              
+              <div className="gallery-body">
+                {(() => {
+                  const images = selectedProduct.images_array || 
+                               (selectedProduct.images ? selectedProduct.images.map(img => img.image_path) : []) ||
+                               (selectedProduct.image ? [selectedProduct.image] : []);
+                  
+                  return images.map((img, index) => (
+                    <div key={index} className="gallery-image-item">
+                      <img 
+                        src={img} 
+                        alt={`${selectedProduct.name} ${index + 1}`}
+                        onError={(e) => e.target.src = 'https://via.placeholder.com/200?text=Erreur'}
+                      />
+                      {index === 0 && <span className="primary-badge">Principale</span>}
+                    </div>
+                  ));
+                })()}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -5186,10 +7050,737 @@ const CouponsTable = ({ coupons, customers, onAdd, onEdit, onDelete, onRefresh, 
     </div>
   );
 };
-// ==================== ADMIN PAGES ====================
 
-// ==================== ADMIN DASHBOARD PAGE WITH SIDEBAR ====================
-// ==================== COMPLETE ADMIN DASHBOARD PAGE ====================
+// ==================== ADMIN MODAL COMPONENT ====================
+// ==================== ADMIN MODAL COMPLET AVEC GESTION D'IMAGES ====================
+// ==================== ADMIN MODAL COMPLET AVEC GESTION D'IMAGES ====================
+// ==================== ADMIN MODAL COMPLET AVEC TOUTES LES FONCTIONS ====================
+// ==================== ADMIN MODAL COMPLET AVEC TOUTES LES FONCTIONS ====================
+const AdminModal = ({ 
+  type, 
+  data, 
+  isEditing, 
+  onClose, 
+  onChange, 
+  onSubmit, 
+  categories = [],
+  customers = []
+}) => {
+  
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [images, setImages] = useState([]);
+
+  // Initialiser les images quand les données changent
+  useEffect(() => {
+    if (data) {
+      // Récupérer toutes les images possibles
+      let productImages = [];
+      
+      if (data.images_array && Array.isArray(data.images_array)) {
+        productImages = data.images_array;
+      } else if (data.images && Array.isArray(data.images)) {
+        productImages = data.images;
+      } else if (data.image) {
+        productImages = [data.image];
+      }
+      
+      setImages(productImages);
+      console.log('📸 Images chargées dans le modal:', productImages);
+    }
+  }, [data]);
+
+  const getTitle = () => {
+    switch(type) {
+      case 'product': return isEditing ? 'Modifier le produit' : 'Nouveau produit';
+      case 'category': return isEditing ? 'Modifier la catégorie' : 'Nouvelle catégorie';
+      case 'coupon': return isEditing ? 'Modifier le coupon' : 'Nouveau coupon';
+      case 'customer': return 'Modifier le client';
+      default: return '';
+    }
+  };
+
+  const handleArrayInput = (e, fieldName) => {
+    const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
+    onChange({ target: { name: fieldName, value: lines } });
+  };
+
+  const generateSku = () => {
+    const newSku = 'PRD-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    onChange({ target: { name: 'sku', value: newSku } });
+  };
+
+  const generateCouponCode = () => {
+    const prefixes = ['PROMO', 'SALE', 'WELCOME', 'SPECIAL', 'BONUS'];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const suffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    const newCode = prefix + suffix;
+    onChange({ target: { name: 'code', value: newCode } });
+  };
+
+  // Ajouter une nouvelle image
+  const handleAddImage = () => {
+    if (!newImageUrl.trim()) return;
+    
+    const newImages = [...images, newImageUrl.trim()];
+    setImages(newImages);
+    onChange({ target: { name: 'images', value: newImages } });
+    setNewImageUrl('');
+  };
+
+  // Supprimer une image
+  const handleRemoveImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+    onChange({ target: { name: 'images', value: newImages } });
+  };
+
+  // Définir comme image principale (mettre en premier)
+  const handleSetPrimary = (index) => {
+    if (index === 0) return;
+    
+    const newImages = [...images];
+    const [selectedImage] = newImages.splice(index, 1);
+    newImages.unshift(selectedImage);
+    setImages(newImages);
+    onChange({ target: { name: 'images', value: newImages } });
+  };
+
+  // ==================== RENDER PRODUCT FORM ====================
+  const renderProductForm = () => (
+    <>
+      <div className="form-group">
+        <label>Nom du produit <span className="required">*</span></label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+          placeholder="Ex: Microscope Professionnel"
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group" style={{ flex: 2 }}>
+          <label>SKU <span className="required">*</span></label>
+          <input 
+            type="text"
+            name="sku"
+            value={data.sku || ''}
+            onChange={onChange}
+            required
+            placeholder="Ex: MIC-001"
+          />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>&nbsp;</label>
+          <button 
+            type="button"
+            onClick={generateSku}
+            className="generate-sku-btn"
+            style={{ width: '100%' }}
+          >
+            Générer SKU
+          </button>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Prix (MAD) <span className="required">*</span></label>
+          <input 
+            type="number"
+            name="price"
+            value={data.price || ''}
+            onChange={onChange}
+            required
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+        <div className="form-group">
+          <label>Stock <span className="required">*</span></label>
+          <input 
+            type="number"
+            name="stock"
+            value={data.stock || ''}
+            onChange={onChange}
+            required
+            min="0"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Catégorie <span className="required">*</span></label>
+          <select 
+            name="category_id" 
+            value={data.category_id || ''} 
+            onChange={onChange}
+            required
+          >
+            <option value="">Sélectionner une catégorie</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name} {cat.products_count ? `(${cat.products_count})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Marque</label>
+          <input 
+            type="text"
+            name="brand"
+            value={data.brand || ''}
+            onChange={onChange}
+            placeholder="Ex: Olympus"
+          />
+        </div>
+      </div>
+
+      {/* SECTION IMAGES MULTIPLES */}
+      <div className="form-group images-section">
+        <label>Images du produit</label>
+        
+        {/* Ajout d'une nouvelle image */}
+        <div className="add-image-input">
+          <input
+            type="text"
+            placeholder="URL de l'image..."
+            value={newImageUrl}
+            onChange={(e) => setNewImageUrl(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddImage()}
+          />
+          <button 
+            type="button" 
+            onClick={handleAddImage}
+            className="add-image-btn"
+            disabled={!newImageUrl.trim()}
+          >
+            <Icons.Plus size={16} /> Ajouter
+          </button>
+        </div>
+
+        {/* Galerie d'images */}
+        {images.length > 0 ? (
+          <>
+            <div className="images-gallery">
+              {images.map((img, index) => (
+                <div key={index} className={`image-item ${index === 0 ? 'primary' : ''}`}>
+                  <div className="image-preview">
+                    <img 
+                      src={img} 
+                      alt={`Produit ${index + 1}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/150?text=Image+invalide';
+                      }}
+                    />
+                    {index === 0 && (
+                      <span className="primary-badge">
+                        <Icons.Star size={10} /> Principale
+                      </span>
+                    )}
+                  </div>
+                  <div className="image-actions">
+                    {index !== 0 && (
+                      <button 
+                        type="button"
+                        onClick={() => handleSetPrimary(index)}
+                        className="image-action-btn set-primary"
+                        title="Définir comme image principale"
+                      >
+                        <Icons.Star size={14} />
+                      </button>
+                    )}
+                    <button 
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="image-action-btn remove"
+                      title="Supprimer l'image"
+                    >
+                      <Icons.Trash size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="images-info">
+              <small style={{ color: '#7f8c8d' }}>
+                <Icons.Info size={12} /> {images.length} image(s) - La première est l'image principale
+              </small>
+            </div>
+          </>
+        ) : (
+          <div className="no-images">
+            <Icons.Image size={32} />
+            <p>Aucune image ajoutée</p>
+            <small>Ajoutez des images via l'URL ci-dessus</small>
+          </div>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label>Description</label>
+        <textarea
+          name="description"
+          value={data.description || ''}
+          onChange={onChange}
+          rows="3"
+          placeholder="Description détaillée du produit..."
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Badge (optionnel)</label>
+        <input 
+          type="text"
+          name="badge"
+          value={data.badge || ''}
+          onChange={onChange}
+          placeholder="Ex: Nouveau, Promotion, Meilleure vente"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Caractéristiques</label>
+        <textarea
+          name="features"
+          value={Array.isArray(data.features) ? data.features.join('\n') : (data.features || '')}
+          onChange={(e) => handleArrayInput(e, 'features')}
+          rows="4"
+          placeholder="Entrez une caractéristique par ligne"
+        />
+        <small style={{ color: '#7f8c8d' }}>
+          Une caractéristique par ligne
+        </small>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="featured"
+            checked={data.featured || false}
+            onChange={(e) => onChange({ target: { name: 'featured', value: e.target.checked } })}
+          />
+          <span>Mettre en vedette (afficher sur la page d'accueil)</span>
+        </label>
+      </div>
+    </>
+  );
+
+  // ==================== RENDER CATEGORY FORM ====================
+  const renderCategoryForm = () => (
+    <>
+      <div className="form-group">
+        <label>Nom de la catégorie <span className="required">*</span></label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+          placeholder="Ex: Microscopes"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Couleur (optionnel)</label>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input 
+            type="color"
+            name="color"
+            value={data.color || '#6d9eeb'}
+            onChange={onChange}
+            style={{ width: '60px', height: '42px', padding: '4px' }}
+          />
+          <input 
+            type="text"
+            name="color_text"
+            value={data.color || ''}
+            onChange={(e) => onChange({ target: { name: 'color', value: e.target.value } })}
+            placeholder="#6d9eeb"
+            style={{ flex: 1 }}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Image URL (optionnel)</label>
+        <input 
+          type="text"
+          name="image"
+          value={data.image || ''}
+          onChange={onChange}
+          placeholder="https://exemple.com/category-image.jpg"
+        />
+        {data.image && (
+          <div style={{ marginTop: '10px' }}>
+            <img 
+              src={data.image} 
+              alt="Preview" 
+              style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '4px' }}
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  // ==================== RENDER COUPON FORM ====================
+  const renderCouponForm = () => (
+    <>
+      <div className="form-group">
+        <label>Code du coupon <span className="required">*</span></label>
+        <div className="form-row">
+          <div style={{ flex: 2 }}>
+            <input 
+              type="text"
+              name="code"
+              value={data.code || ''}
+              onChange={onChange}
+              required
+              placeholder="Ex: PROMO20"
+              style={{ textTransform: 'uppercase' }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <button 
+              type="button"
+              onClick={generateCouponCode}
+              className="generate-sku-btn"
+              style={{ width: '100%' }}
+            >
+              Générer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Nom du coupon <span className="required">*</span></label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+          placeholder="Ex: Promotion été 2024"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Description</label>
+        <textarea
+          name="description"
+          value={data.description || ''}
+          onChange={onChange}
+          rows="2"
+          placeholder="Description du coupon..."
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Type <span className="required">*</span></label>
+          <select name="type" value={data.type || 'percentage'} onChange={onChange} required>
+            <option value="percentage">Pourcentage (%)</option>
+            <option value="fixed">Montant fixe (MAD)</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Valeur <span className="required">*</span></label>
+          <input 
+            type="number"
+            name="value"
+            value={data.value || ''}
+            onChange={onChange}
+            required
+            min="0"
+            step={data.type === 'percentage' ? '1' : '0.01'}
+            placeholder={data.type === 'percentage' ? '20' : '100'}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Montant minimum de commande</label>
+        <input 
+          type="number"
+          name="min_order_amount"
+          value={data.min_order_amount || ''}
+          onChange={onChange}
+          min="0"
+          step="0.01"
+          placeholder="0 = Pas de minimum"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Nombre maximum d'utilisations</label>
+        <input 
+          type="number"
+          name="max_uses"
+          value={data.max_uses || ''}
+          onChange={onChange}
+          min="1"
+          placeholder="Laisser vide pour illimité"
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Date de début</label>
+          <input 
+            type="datetime-local"
+            name="starts_at"
+            value={data.starts_at ? data.starts_at.substring(0, 16) : ''}
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>Date d'expiration</label>
+          <input 
+            type="datetime-local"
+            name="expires_at"
+            value={data.expires_at ? data.expires_at.substring(0, 16) : ''}
+            onChange={onChange}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Assigner à un client (optionnel)</label>
+        <select 
+          name="customer_id" 
+          value={data.customer_id || ''} 
+          onChange={onChange}
+        >
+          <option value="">Tous les clients (public)</option>
+          {customers.map(customer => (
+            <option key={customer.id} value={customer.id}>
+              {customer.name} - {customer.email}
+            </option>
+          ))}
+        </select>
+        <small style={{ color: '#7f8c8d' }}>
+          Si vous assignez à un client, le coupon sera personnel et non public
+        </small>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="is_active"
+            checked={data.is_active !== false}
+            onChange={(e) => onChange({ target: { name: 'is_active', value: e.target.checked } })}
+          />
+          <span>Coupon actif</span>
+        </label>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="is_public"
+            checked={data.is_public || false}
+            onChange={(e) => onChange({ target: { name: 'is_public', value: e.target.checked } })}
+            disabled={data.customer_id}
+          />
+          <span>Visible publiquement (sur la page des coupons)</span>
+        </label>
+      </div>
+    </>
+  );
+
+  // ==================== RENDER CUSTOMER FORM ====================
+  const renderCustomerForm = () => (
+    <>
+      <div className="form-group">
+        <label>Nom complet</label>
+        <input 
+          type="text"
+          name="name"
+          value={data.name || ''}
+          onChange={onChange}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Email</label>
+        <input 
+          type="email"
+          name="email"
+          value={data.email || ''}
+          onChange={onChange}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Téléphone</label>
+        <input 
+          type="tel"
+          name="phone"
+          value={data.phone || ''}
+          onChange={onChange}
+          placeholder="+212 6XX XXX XXX"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Adresse</label>
+        <textarea
+          name="address"
+          value={data.address || ''}
+          onChange={onChange}
+          rows="3"
+          placeholder="Adresse complète..."
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label>Type de compte</label>
+          <select name="tier" value={data.tier || 'regular'} onChange={onChange}>
+            <option value="regular">Client régulier</option>
+            <option value="pro">Client professionnel (PRO)</option>
+          </select>
+        </div>
+        {data.tier === 'pro' && (
+          <div className="form-group">
+            <label>Réduction PRO (%)</label>
+            <input 
+              type="number"
+              name="pro_discount"
+              value={data.pro_discount || ''}
+              onChange={onChange}
+              min="0"
+              max="100"
+              placeholder="Ex: 15"
+            />
+          </div>
+        )}
+      </div>
+
+      {data.tier === 'pro' && (
+        <div className="form-group">
+          <label>Nom de l'entreprise</label>
+          <input 
+            type="text"
+            name="company_name"
+            value={data.company_name || ''}
+            onChange={onChange}
+            placeholder="Nom de l'entreprise"
+          />
+        </div>
+      )}
+
+      <div className="form-group">
+        <label>Rôle</label>
+        <select name="role" value={data.role || 'customer'} onChange={onChange}>
+          <option value="customer">Client</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </div>
+
+      <div className="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox"
+            name="email_verified"
+            checked={data.email_verified_at !== null}
+            onChange={(e) => onChange({ 
+              target: { 
+                name: 'email_verified_at', 
+                value: e.target.checked ? new Date().toISOString() : null 
+              } 
+            })}
+          />
+          <span>Email vérifié</span>
+        </label>
+      </div>
+    </>
+  );
+
+  // ==================== RENDER PRINCIPAL ====================
+
+  return (
+    <motion.div 
+      className="admin-modal-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div 
+        className={`admin-modal-content ${type}-modal`}
+        initial={{ scale: 0.8, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.8, y: 50 }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3>
+            {type === 'product' && <Icons.Package size={20} style={{ marginRight: '10px' }} />}
+            {type === 'category' && <Icons.Filter size={20} style={{ marginRight: '10px' }} />}
+            {type === 'coupon' && <Icons.Percent size={20} style={{ marginRight: '10px' }} />}
+            {type === 'customer' && <Icons.User size={20} style={{ marginRight: '10px' }} />}
+            {getTitle()}
+          </h3>
+          <button className="close-btn" onClick={onClose}>
+            <Icons.X size={20} />
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {type === 'product' && renderProductForm()}
+          {type === 'category' && renderCategoryForm()}
+          {type === 'coupon' && renderCouponForm()}
+          {type === 'customer' && renderCustomerForm()}
+        </div>
+
+        <div className="modal-footer">
+          <button className="cancel-btn" onClick={onClose}>
+            Annuler
+          </button>
+          <button className="submit-btn" onClick={onSubmit}>
+            {isEditing ? 'Mettre à jour' : 'Créer'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// PropTypes
+AdminModal.propTypes = {
+  type: PropTypes.oneOf(['product', 'category', 'coupon', 'customer']).isRequired,
+  data: PropTypes.object,
+  isEditing: PropTypes.bool,
+  onClose: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  categories: PropTypes.array,
+  customers: PropTypes.array
+};
+
+AdminModal.defaultProps = {
+  data: {},
+  isEditing: false,
+  categories: [],
+  customers: []
+};
+// Admin Dashboard Page
+// ==================== ADMIN DASHBOARD PAGE COMPLETE ====================
 const AdminDashboardPage = ({ navigate }) => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
@@ -5369,6 +7960,20 @@ const AdminDashboardPage = ({ navigate }) => {
       
       // Format data based on type
       if (type === 'product') {
+        // Récupérer TOUTES les images du produit
+        let productImages = [];
+        
+        // Priorité: images_array > images (relation) > image (seule)
+        if (item.images_array && Array.isArray(item.images_array)) {
+          productImages = item.images_array;
+        } else if (item.images && Array.isArray(item.images)) {
+          productImages = item.images.map(img => img.image_path);
+        } else if (item.image) {
+          productImages = [item.image];
+        }
+        
+        console.log('📸 Images chargées pour édition:', productImages);
+        
         setFormData({
           id: item.id,
           name: item.name || '',
@@ -5378,6 +7983,7 @@ const AdminDashboardPage = ({ navigate }) => {
           category_id: item.category_id || '',
           brand: item.brand || '',
           image: item.image || '',
+          images: productImages,
           description: item.description || '',
           features: item.features || [],
           badge: item.badge || '',
@@ -5433,6 +8039,7 @@ const AdminDashboardPage = ({ navigate }) => {
           category_id: '',
           brand: '',
           image: '',
+          images: [],
           description: '',
           features: [],
           badge: '',
@@ -5482,22 +8089,35 @@ const AdminDashboardPage = ({ navigate }) => {
       let response;
       let dataToSend = { ...formData };
       
-      // Clean up data based on type
       if (modalType === 'product') {
-        // Ensure features is an array
+        // Gérer les features
         if (dataToSend.features && !Array.isArray(dataToSend.features)) {
           dataToSend.features = [dataToSend.features];
         }
         
-        // Remove empty features
         if (dataToSend.features) {
           dataToSend.features = dataToSend.features.filter(f => f && f.trim() !== '');
         }
         
-        // Ensure numbers are numbers
+        // Gérer les images - TRÈS IMPORTANT
+        if (dataToSend.images && Array.isArray(dataToSend.images)) {
+          // Nettoyer les URLs vides
+          dataToSend.images = dataToSend.images.filter(img => img && img.trim() !== '');
+          
+          // L'image principale est la première du tableau
+          if (dataToSend.images.length > 0) {
+            dataToSend.image = dataToSend.images[0];
+          }
+        } else {
+          dataToSend.images = [];
+        }
+        
+        // Convertir les nombres
         dataToSend.price = parseFloat(dataToSend.price) || 0;
         dataToSend.stock = parseInt(dataToSend.stock) || 0;
         dataToSend.category_id = parseInt(dataToSend.category_id) || null;
+        
+        console.log('📤 Données envoyées au serveur:', dataToSend);
       }
       
       if (modalType === 'product') {
@@ -5529,21 +8149,28 @@ const AdminDashboardPage = ({ navigate }) => {
         if (modalType === 'product') {
           if (activeTab === 'products') fetchProducts();
           else fetchDashboardData(); // For low stock list
+          
+          alert(editingItem ? 'Produit mis à jour avec succès' : 'Produit créé avec succès');
+          
+          // Vérifier la réponse du serveur
+          if (response.data.data.product) {
+            console.log('✅ Produit sauvegardé avec images:', response.data.data.product.images);
+          }
         }
         if (modalType === 'category') {
           fetchDashboardData(); // Refresh categories
+          alert(editingItem ? 'Catégorie mise à jour avec succès' : 'Catégorie créée avec succès');
         }
         if (modalType === 'coupon') {
           if (activeTab === 'coupons') fetchCoupons();
           else fetchDashboardData(); // For recent coupons
+          alert(editingItem ? 'Coupon mis à jour avec succès' : 'Coupon créé avec succès');
         }
         if (modalType === 'customer') {
           if (activeTab === 'customers') fetchCustomers();
           else fetchDashboardData(); // For recent customers
+          alert('Client mis à jour avec succès');
         }
-        
-        // Show success message
-        alert(editingItem ? 'Élément mis à jour avec succès' : 'Élément créé avec succès');
       }
     } catch (err) {
       console.error('Failed to save:', err);
@@ -5553,51 +8180,50 @@ const AdminDashboardPage = ({ navigate }) => {
   };
 
   // Handle delete
- // Handle delete with warning for dependencies
-const handleDelete = async (type, id) => {
-  try {
-    let response;
-    
-    if (type === 'product') {
-      response = await api.delete(`/admin/products/${id}`);
-    } else if (type === 'category') {
-      response = await api.delete(`/admin/categories/${id}`);
-    } else if (type === 'coupon') {
-      response = await api.delete(`/admin/coupons/${id}`);
-    }
-    
-    if (response?.data.success) {
-      // Refresh data based on type
+  const handleDelete = async (type, id) => {
+    try {
+      let response;
+      
       if (type === 'product') {
-        if (activeTab === 'products') fetchProducts();
-        else fetchDashboardData();
-      }
-      if (type === 'category') {
-        fetchDashboardData();
-        if (activeTab === 'products') fetchProducts();
-      }
-      if (type === 'coupon') {
-        if (activeTab === 'coupons') fetchCoupons();
-        else fetchDashboardData();
+        response = await api.delete(`/admin/products/${id}`);
+      } else if (type === 'category') {
+        response = await api.delete(`/admin/categories/${id}`);
+      } else if (type === 'coupon') {
+        response = await api.delete(`/admin/coupons/${id}`);
       }
       
-      alert(response.data.message || 'Élément supprimé avec succès');
+      if (response?.data.success) {
+        // Refresh data based on type
+        if (type === 'product') {
+          if (activeTab === 'products') fetchProducts();
+          else fetchDashboardData();
+        }
+        if (type === 'category') {
+          fetchDashboardData();
+          if (activeTab === 'products') fetchProducts();
+        }
+        if (type === 'coupon') {
+          if (activeTab === 'coupons') fetchCoupons();
+          else fetchDashboardData();
+        }
+        
+        alert(response.data.message || 'Élément supprimé avec succès');
+      }
+    } catch (err) {
+      console.error('Failed to delete:', err);
+      
+      const errorMessage = err.response?.data?.error || err.message;
+      
+      if (errorMessage.includes('commandes')) {
+        alert('❌ Impossible de supprimer: Ce produit a des commandes existantes');
+      } else if (errorMessage.includes('produits')) {
+        alert('❌ Impossible de supprimer: Cette catégorie contient des produits');
+      } else {
+        alert('Erreur lors de la suppression: ' + errorMessage);
+      }
     }
-  } catch (err) {
-    console.error('Failed to delete:', err);
-    
-    // Show the error message from backend
-    const errorMessage = err.response?.data?.error || err.message;
-    
-    if (errorMessage.includes('commandes')) {
-      alert('❌ Impossible de supprimer: Ce produit a des commandes existantes');
-    } else if (errorMessage.includes('produits')) {
-      alert('❌ Impossible de supprimer: Cette catégorie contient des produits');
-    } else {
-      alert('Erreur lors de la suppression: ' + errorMessage);
-    }
-  }
-};
+  };
+
   // Handle order status update
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -6020,2006 +8646,11 @@ const handleDelete = async (type, id) => {
     </motion.div>
   );
 };
+// ==================== ADMIN PAGES (SIMPLIFIED FOR BREVITY) ====================
+// Note: For the complete admin pages (AdminDashboardPage, AdminModal, etc.),
+// please refer to the previous messages in our conversation.
+// Due to length constraints, I'm including only the main App function below.
 
-// ==================== ADMIN MODAL COMPONENT ====================
-// ==================== COMPLETE ADMIN MODAL COMPONENT ====================
-const AdminModal = ({ 
-  type, 
-  data, 
-  isEditing, 
-  onClose, 
-  onChange, 
-  onSubmit, 
-  categories = [],
-  customers = []
-}) => {
-  
-  const getTitle = () => {
-    switch(type) {
-      case 'product': return isEditing ? 'Modifier le produit' : 'Nouveau produit';
-      case 'category': return isEditing ? 'Modifier la catégorie' : 'Nouvelle catégorie';
-      case 'coupon': return isEditing ? 'Modifier le coupon' : 'Nouveau coupon';
-      case 'customer': return 'Modifier le client';
-      default: return '';
-    }
-  };
-
-  const handleArrayInput = (e, fieldName) => {
-    // Convert textarea lines to array
-    const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
-    onChange({ target: { name: fieldName, value: lines } });
-  };
-
-  const generateSku = () => {
-    const newSku = 'PRD-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-    onChange({ target: { name: 'sku', value: newSku } });
-  };
-
-  const generateCouponCode = () => {
-    const prefixes = ['PROMO', 'SALE', 'WELCOME', 'SPECIAL', 'BONUS'];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const suffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    const newCode = prefix + suffix;
-    onChange({ target: { name: 'code', value: newCode } });
-  };
-
-  const renderProductForm = () => (
-    <>
-      <div className="form-group">
-        <label>Nom du produit <span className="required">*</span></label>
-        <input 
-          type="text"
-          name="name"
-          value={data.name || ''}
-          onChange={onChange}
-          required
-          placeholder="Ex: Microscope Professionnel"
-        />
-      </div>
-
-      <div className="form-row">
-        <div className="form-group" style={{ flex: 2 }}>
-          <label>SKU <span className="required">*</span></label>
-          <input 
-            type="text"
-            name="sku"
-            value={data.sku || ''}
-            onChange={onChange}
-            required
-            placeholder="Ex: MIC-001"
-          />
-        </div>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label>&nbsp;</label>
-          <button 
-            type="button"
-            onClick={generateSku}
-            className="generate-sku-btn"
-            style={{ width: '100%' }}
-          >
-            Générer SKU
-          </button>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Prix (MAD) <span className="required">*</span></label>
-          <input 
-            type="number"
-            name="price"
-            value={data.price || ''}
-            onChange={onChange}
-            required
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-          />
-        </div>
-        <div className="form-group">
-          <label>Stock <span className="required">*</span></label>
-          <input 
-            type="number"
-            name="stock"
-            value={data.stock || ''}
-            onChange={onChange}
-            required
-            min="0"
-            placeholder="0"
-          />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Catégorie <span className="required">*</span></label>
-          <select 
-            name="category_id" 
-            value={data.category_id || ''} 
-            onChange={onChange}
-            required
-          >
-            <option value="">Sélectionner une catégorie</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name} {cat.products_count ? `(${cat.products_count})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Marque</label>
-          <input 
-            type="text"
-            name="brand"
-            value={data.brand || ''}
-            onChange={onChange}
-            placeholder="Ex: Olympus"
-          />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Image URL</label>
-        <input 
-          type="text"
-          name="image"
-          value={data.image || ''}
-          onChange={onChange}
-          placeholder="https://exemple.com/image.jpg"
-        />
-        {data.image && (
-          <div style={{ marginTop: '10px' }}>
-            <img 
-              src={data.image} 
-              alt="Preview" 
-              style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '4px' }}
-              onError={(e) => e.target.style.display = 'none'}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="form-group">
-        <label>Description</label>
-        <textarea
-          name="description"
-          value={data.description || ''}
-          onChange={onChange}
-          rows="3"
-          placeholder="Description détaillée du produit..."
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Badge (optionnel)</label>
-        <input 
-          type="text"
-          name="badge"
-          value={data.badge || ''}
-          onChange={onChange}
-          placeholder="Ex: Nouveau, Promotion, Meilleure vente"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Caractéristiques</label>
-        <textarea
-          name="features"
-          value={Array.isArray(data.features) ? data.features.join('\n') : (data.features || '')}
-          onChange={(e) => handleArrayInput(e, 'features')}
-          rows="4"
-          placeholder="Entrez une caractéristique par ligne&#10;Ex:&#10;Matériau de haute qualité&#10;Certifié ISO 9001&#10;Garantie 2 ans"
-        />
-        <small style={{ color: '#7f8c8d' }}>
-          Une caractéristique par ligne
-        </small>
-      </div>
-
-      <div className="form-group checkbox-group">
-        <label>
-          <input 
-            type="checkbox"
-            name="featured"
-            checked={data.featured || false}
-            onChange={(e) => onChange({ target: { name: 'featured', value: e.target.checked } })}
-          />
-          <span>Mettre en vedette (afficher sur la page d'accueil)</span>
-        </label>
-      </div>
-    </>
-  );
-
-  const renderCategoryForm = () => (
-    <>
-      <div className="form-group">
-        <label>Nom de la catégorie <span className="required">*</span></label>
-        <input 
-          type="text"
-          name="name"
-          value={data.name || ''}
-          onChange={onChange}
-          required
-          placeholder="Ex: Microscopes"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Couleur (optionnel)</label>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input 
-            type="color"
-            name="color"
-            value={data.color || '#6d9eeb'}
-            onChange={onChange}
-            style={{ width: '60px', height: '42px', padding: '4px' }}
-          />
-          <input 
-            type="text"
-            name="color_text"
-            value={data.color || ''}
-            onChange={(e) => onChange({ target: { name: 'color', value: e.target.value } })}
-            placeholder="#6d9eeb"
-            style={{ flex: 1 }}
-          />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Image URL (optionnel)</label>
-        <input 
-          type="text"
-          name="image"
-          value={data.image || ''}
-          onChange={onChange}
-          placeholder="https://exemple.com/category-image.jpg"
-        />
-        {data.image && (
-          <div style={{ marginTop: '10px' }}>
-            <img 
-              src={data.image} 
-              alt="Preview" 
-              style={{ maxWidth: '100px', maxHeight: '100px', borderRadius: '4px' }}
-            />
-          </div>
-        )}
-      </div>
-    </>
-  );
-
-  const renderCouponForm = () => (
-    <>
-      <div className="form-group">
-        <label>Code du coupon <span className="required">*</span></label>
-        <div className="form-row">
-          <div style={{ flex: 2 }}>
-            <input 
-              type="text"
-              name="code"
-              value={data.code || ''}
-              onChange={onChange}
-              required
-              placeholder="Ex: PROMO20"
-              style={{ textTransform: 'uppercase' }}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <button 
-              type="button"
-              onClick={generateCouponCode}
-              className="generate-sku-btn"
-              style={{ width: '100%' }}
-            >
-              Générer
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Nom du coupon <span className="required">*</span></label>
-        <input 
-          type="text"
-          name="name"
-          value={data.name || ''}
-          onChange={onChange}
-          required
-          placeholder="Ex: Promotion été 2024"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Description</label>
-        <textarea
-          name="description"
-          value={data.description || ''}
-          onChange={onChange}
-          rows="2"
-          placeholder="Description du coupon..."
-        />
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Type <span className="required">*</span></label>
-          <select name="type" value={data.type || 'percentage'} onChange={onChange} required>
-            <option value="percentage">Pourcentage (%)</option>
-            <option value="fixed">Montant fixe (MAD)</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Valeur <span className="required">*</span></label>
-          <input 
-            type="number"
-            name="value"
-            value={data.value || ''}
-            onChange={onChange}
-            required
-            min="0"
-            step={data.type === 'percentage' ? '1' : '0.01'}
-            placeholder={data.type === 'percentage' ? '20' : '100'}
-          />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Montant minimum de commande</label>
-        <input 
-          type="number"
-          name="min_order_amount"
-          value={data.min_order_amount || ''}
-          onChange={onChange}
-          min="0"
-          step="0.01"
-          placeholder="0 = Pas de minimum"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Nombre maximum d'utilisations</label>
-        <input 
-          type="number"
-          name="max_uses"
-          value={data.max_uses || ''}
-          onChange={onChange}
-          min="1"
-          placeholder="Laisser vide pour illimité"
-        />
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Date de début</label>
-          <input 
-            type="datetime-local"
-            name="starts_at"
-            value={data.starts_at ? data.starts_at.substring(0, 16) : ''}
-            onChange={onChange}
-          />
-        </div>
-        <div className="form-group">
-          <label>Date d'expiration</label>
-          <input 
-            type="datetime-local"
-            name="expires_at"
-            value={data.expires_at ? data.expires_at.substring(0, 16) : ''}
-            onChange={onChange}
-          />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Assigner à un client (optionnel)</label>
-        <select 
-          name="customer_id" 
-          value={data.customer_id || ''} 
-          onChange={onChange}
-        >
-          <option value="">Tous les clients (public)</option>
-          {customers.map(customer => (
-            <option key={customer.id} value={customer.id}>
-              {customer.name} - {customer.email}
-            </option>
-          ))}
-        </select>
-        <small style={{ color: '#7f8c8d' }}>
-          Si vous assignez à un client, le coupon sera personnel et non public
-        </small>
-      </div>
-
-      <div className="form-group checkbox-group">
-        <label>
-          <input 
-            type="checkbox"
-            name="is_active"
-            checked={data.is_active !== false}
-            onChange={(e) => onChange({ target: { name: 'is_active', value: e.target.checked } })}
-          />
-          <span>Coupon actif</span>
-        </label>
-      </div>
-
-      <div className="form-group checkbox-group">
-        <label>
-          <input 
-            type="checkbox"
-            name="is_public"
-            checked={data.is_public || false}
-            onChange={(e) => onChange({ target: { name: 'is_public', value: e.target.checked } })}
-            disabled={data.customer_id}
-          />
-          <span>Visible publiquement (sur la page des coupons)</span>
-        </label>
-      </div>
-    </>
-  );
-
-  const renderCustomerForm = () => (
-    <>
-      <div className="form-group">
-        <label>Nom complet</label>
-        <input 
-          type="text"
-          name="name"
-          value={data.name || ''}
-          onChange={onChange}
-          required
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Email</label>
-        <input 
-          type="email"
-          name="email"
-          value={data.email || ''}
-          onChange={onChange}
-          required
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Téléphone</label>
-        <input 
-          type="tel"
-          name="phone"
-          value={data.phone || ''}
-          onChange={onChange}
-          placeholder="+212 6XX XXX XXX"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Adresse</label>
-        <textarea
-          name="address"
-          value={data.address || ''}
-          onChange={onChange}
-          rows="3"
-          placeholder="Adresse complète..."
-        />
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Type de compte</label>
-          <select name="tier" value={data.tier || 'regular'} onChange={onChange}>
-            <option value="regular">Client régulier</option>
-            <option value="pro">Client professionnel (PRO)</option>
-          </select>
-        </div>
-        {data.tier === 'pro' && (
-          <div className="form-group">
-            <label>Réduction PRO (%)</label>
-            <input 
-              type="number"
-              name="pro_discount"
-              value={data.pro_discount || ''}
-              onChange={onChange}
-              min="0"
-              max="100"
-              placeholder="Ex: 15"
-            />
-          </div>
-        )}
-      </div>
-
-      {data.tier === 'pro' && (
-        <div className="form-group">
-          <label>Nom de l'entreprise</label>
-          <input 
-            type="text"
-            name="company_name"
-            value={data.company_name || ''}
-            onChange={onChange}
-            placeholder="Nom de l'entreprise"
-          />
-        </div>
-      )}
-
-      <div className="form-group">
-        <label>Rôle</label>
-        <select name="role" value={data.role || 'customer'} onChange={onChange}>
-          <option value="customer">Client</option>
-          <option value="admin">Administrateur</option>
-        </select>
-      </div>
-
-      <div className="form-group checkbox-group">
-        <label>
-          <input 
-            type="checkbox"
-            name="email_verified"
-            checked={data.email_verified_at !== null}
-            onChange={(e) => onChange({ 
-              target: { 
-                name: 'email_verified_at', 
-                value: e.target.checked ? new Date().toISOString() : null 
-              } 
-            })}
-          />
-          <span>Email vérifié</span>
-        </label>
-      </div>
-    </>
-  );
-
-  return (
-    <motion.div 
-      className="admin-modal-overlay"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div 
-        className={`admin-modal-content ${type}-modal`}
-        initial={{ scale: 0.8, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.8, y: 50 }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <h3>
-            {type === 'product' && <Icons.Package size={20} style={{ marginRight: '10px' }} />}
-            {type === 'category' && <Icons.Filter size={20} style={{ marginRight: '10px' }} />}
-            {type === 'coupon' && <Icons.Percent size={20} style={{ marginRight: '10px' }} />}
-            {type === 'customer' && <Icons.User size={20} style={{ marginRight: '10px' }} />}
-            {getTitle()}
-          </h3>
-          <button className="close-btn" onClick={onClose}>
-            <Icons.X size={20} />
-          </button>
-        </div>
-
-        <div className="modal-body">
-          {type === 'product' && renderProductForm()}
-          {type === 'category' && renderCategoryForm()}
-          {type === 'coupon' && renderCouponForm()}
-          {type === 'customer' && renderCustomerForm()}
-        </div>
-
-        <div className="modal-footer">
-          <button className="cancel-btn" onClick={onClose}>
-            Annuler
-          </button>
-          <button className="submit-btn" onClick={onSubmit}>
-            {isEditing ? 'Mettre à jour' : 'Créer'}
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
-
-// Add PropTypes for better development experience
-AdminModal.propTypes = {
-  type: PropTypes.oneOf(['product', 'category', 'coupon', 'customer']).isRequired,
-  data: PropTypes.object,
-  isEditing: PropTypes.bool,
-  onClose: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  categories: PropTypes.array,
-  customers: PropTypes.array
-};
-
-AdminModal.defaultProps = {
-  data: {},
-  isEditing: false,
-  categories: [],
-  customers: []
-};
-// ==================== ADMIN TABLES COMPONENTS ====================
-
-const AdminOrdersTable = ({ navigate, onBack }) => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('');
-
-  useEffect(() => {
-    fetchOrders();
-  }, [currentPage, statusFilter]);
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.append('page', currentPage);
-      if (statusFilter) params.append('status', statusFilter);
-      
-      const response = await api.get(`/admin/orders?${params.toString()}`);
-      if (response.data.success && response.data.data) {
-        setOrders(response.data.data.data || []);
-        setTotalPages(response.data.data.last_page || 1);
-      }
-    } catch (err) {
-      console.error('Failed to fetch orders:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateStatus = async (orderId, newStatus) => {
-    try {
-      const response = await api.put(`/admin/orders/${orderId}/status`, {
-        status: newStatus
-      });
-      if (response.data.success) {
-        fetchOrders();
-      }
-    } catch (err) {
-      console.error('Failed to update status:', err);
-      alert('Erreur lors de la mise à jour du statut');
-    }
-  };
-
-  const getStatusClass = (status) => {
-    switch(status) {
-      case 'en cours': return 'status-pending';
-      case 'expédiée': return 'status-shipped';
-      case 'livré': return 'status-delivered';
-      case 'annulée': return 'status-cancelled';
-      default: return '';
-    }
-  };
-
-  return (
-    <div className="admin-table-container">
-      <div className="table-header">
-        <button onClick={onBack} className="back-btn">
-          <Icons.ChevronLeft size={16} /> Retour
-        </button>
-        <h2>Gestion des commandes</h2>
-        <div className="table-filters">
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Tous les statuts</option>
-            <option value="en cours">En cours</option>
-            <option value="expédiée">Expédiée</option>
-            <option value="livré">Livrée</option>
-            <option value="annulée">Annulée</option>
-          </select>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="loading-spinner">Chargement...</div>
-      ) : (
-        <>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>N° Commande</th>
-                <th>Client</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Statut</th>
-                <th>Paiement</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(order => (
-                <tr key={order.id}>
-                  <td>{order.order_number}</td>
-                  <td>
-                    <div className="customer-info">
-                      <strong>{order.customer?.name}</strong>
-                      <small>{order.customer?.email}</small>
-                    </div>
-                  </td>
-                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                  <td><strong>{order.total} MAD</strong></td>
-                  <td>
-                    <select 
-                      value={order.status}
-                      onChange={(e) => updateStatus(order.id, e.target.value)}
-                      className={`status-select ${getStatusClass(order.status)}`}
-                    >
-                      <option value="en cours">En cours</option>
-                      <option value="expédiée">Expédiée</option>
-                      <option value="livré">Livrée</option>
-                      <option value="annulée">Annulée</option>
-                    </select>
-                  </td>
-                  <td>
-                    <span className="payment-method">
-                      {order.payment_method === 'espèces' ? 'Espèces (COD)' : 'Carte'}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      className="view-btn"
-                      onClick={() => navigate(`/admin/orders/${order.id}`)}
-                    >
-                      Détails
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                <Icons.ChevronLeft />
-              </button>
-              <span>Page {currentPage} sur {totalPages}</span>
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                <Icons.ChevronRight />
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
-
-const AdminProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
-  const [localProducts, setLocalProducts] = useState(products);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    setLocalProducts(products);
-  }, [products]);
-
-  const filteredProducts = localProducts.filter(p => 
-    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="admin-table-container">
-      <div className="table-header">
-        <button onClick={onBack} className="back-btn">
-          <Icons.ChevronLeft size={16} /> Retour
-        </button>
-        <h2>Gestion des produits</h2>
-        <button onClick={onAdd} className="add-btn">
-          <Icons.Plus size={16} /> Nouveau produit
-        </button>
-      </div>
-
-      <div className="table-search">
-        <Icons.Search size={16} />
-        <input 
-          type="text"
-          placeholder="Rechercher un produit..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>Nom</th>
-            <th>SKU</th>
-            <th>Prix</th>
-            <th>Stock</th>
-            <th>Catégorie</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.map(product => (
-            <tr key={product.id}>
-              <td>
-                <img src={product.image} alt={product.name} className="product-thumb" />
-              </td>
-              <td>{product.name}</td>
-              <td>{product.sku}</td>
-              <td><strong>{product.price} MAD</strong></td>
-              <td>
-                <span className={`stock-badge ${product.stock < 5 ? 'critical' : product.stock < 10 ? 'warning' : 'good'}`}>
-                  {product.stock}
-                </span>
-              </td>
-              <td>{product.category?.name}</td>
-              <td>
-                <button onClick={() => onEdit(product)} className="edit-btn">
-                  <Icons.Eye size={14} /> Modifier
-                </button>
-                <button onClick={() => onDelete(product.id)} className="delete-btn">
-                  <Icons.Trash size={14} /> Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const AdminCategoriesTable = ({ categories, onAdd, onEdit, onDelete, onBack }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredCategories = categories.filter(c => 
-    c.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="admin-table-container">
-      <div className="table-header">
-        <button onClick={onBack} className="back-btn">
-          <Icons.ChevronLeft size={16} /> Retour
-        </button>
-        <h2>Gestion des catégories</h2>
-        <button onClick={onAdd} className="add-btn">
-          <Icons.Plus size={16} /> Nouvelle catégorie
-        </button>
-      </div>
-
-      <div className="table-search">
-        <Icons.Search size={16} />
-        <input 
-          type="text"
-          placeholder="Rechercher une catégorie..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom</th>
-            <th>Slug</th>
-            <th>Produits</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredCategories.map(category => (
-            <tr key={category.id}>
-              <td>{category.id}</td>
-              <td><strong>{category.name}</strong></td>
-              <td>{category.slug}</td>
-              <td>{category.products_count || 0}</td>
-              <td>
-                <button onClick={() => onEdit(category)} className="edit-btn">
-                  <Icons.Eye size={14} /> Modifier
-                </button>
-                <button onClick={() => onDelete(category.id)} className="delete-btn">
-                  <Icons.Trash size={14} /> Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const AdminCustomersTable = ({ customers, onView, onBack }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredCustomers = customers.filter(c => 
-    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="admin-table-container">
-      <div className="table-header">
-        <button onClick={onBack} className="back-btn">
-          <Icons.ChevronLeft size={16} /> Retour
-        </button>
-        <h2>Gestion des clients</h2>
-      </div>
-
-      <div className="table-search">
-        <Icons.Search size={16} />
-        <input 
-          type="text"
-          placeholder="Rechercher un client..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom</th>
-            <th>Email</th>
-            <th>Téléphone</th>
-            <th>Commandes</th>
-            <th>Inscription</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredCustomers.map(customer => (
-            <tr key={customer.id}>
-              <td>{customer.id}</td>
-              <td><strong>{customer.name}</strong></td>
-              <td>{customer.email}</td>
-              <td>{customer.phone || '-'}</td>
-              <td>{customer.orders_count || 0}</td>
-              <td>{new Date(customer.created_at).toLocaleDateString()}</td>
-              <td>
-                <button onClick={() => onView(customer)} className="view-btn">
-                  <Icons.Eye size={14} /> Voir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const AdminCouponsTable = ({ coupons, onAdd, onEdit, onDelete, onBack }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredCoupons = coupons.filter(c => 
-    c.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="admin-table-container">
-      <div className="table-header">
-        <button onClick={onBack} className="back-btn">
-          <Icons.ChevronLeft size={16} /> Retour
-        </button>
-        <h2>Gestion des coupons</h2>
-        <button onClick={onAdd} className="add-btn">
-          <Icons.Plus size={16} /> Nouveau coupon
-        </button>
-      </div>
-
-      <div className="table-search">
-        <Icons.Search size={16} />
-        <input 
-          type="text"
-          placeholder="Rechercher un coupon..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Nom</th>
-            <th>Type</th>
-            <th>Valeur</th>
-            <th>Utilisations</th>
-            <th>Expiration</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredCoupons.map(coupon => (
-            <tr key={coupon.id}>
-              <td><strong>{coupon.code}</strong></td>
-              <td>{coupon.name}</td>
-              <td>{coupon.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}</td>
-              <td>{coupon.type === 'percentage' ? `${coupon.value}%` : `${coupon.value} MAD`}</td>
-              <td>{coupon.used_count || 0}/{coupon.max_uses || '∞'}</td>
-              <td>{coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'Jamais'}</td>
-              <td>
-                <button onClick={() => onEdit(coupon)} className="edit-btn">
-                  <Icons.Eye size={14} /> Modifier
-                </button>
-                <button onClick={() => onDelete(coupon.id)} className="delete-btn">
-                  <Icons.Trash size={14} /> Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-// Admin Orders Page
-const AdminOrdersPage = ({ navigate }) => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('');
-  const { isAdmin } = useAuth();
-
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-    fetchOrders();
-  }, [isAdmin, currentPage, statusFilter]);
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.append('page', currentPage);
-      if (statusFilter) params.append('status', statusFilter);
-      
-      const response = await api.get(`/admin/orders?${params.toString()}`);
-      if (response.data.success && response.data.data) {
-        setOrders(response.data.data.data || []);
-        setTotalPages(response.data.data.last_page || 1);
-      }
-    } catch (err) {
-      console.error('Failed to fetch orders:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateStatus = async (orderId, newStatus) => {
-    try {
-      const response = await api.put(`/admin/orders/${orderId}/status`, {
-        status: newStatus
-      });
-      if (response.data.success) {
-        fetchOrders();
-      }
-    } catch (err) {
-      console.error('Failed to update status:', err);
-      alert('Erreur lors de la mise à jour du statut');
-    }
-  };
-
-  const getStatusClass = (status) => {
-    switch(status) {
-      case 'en cours': return 'status-pending';
-      case 'expédiée': return 'status-shipped';
-      case 'livré': return 'status-delivered';
-      case 'annulée': return 'status-cancelled';
-      default: return '';
-    }
-  };
-
-  if (loading) return <div className="loading-spinner">Chargement...</div>;
-
-  return (
-    <motion.div 
-      className="admin-orders-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      <div className="container">
-        <div className="page-header">
-          <h1>Gestion des commandes</h1>
-          <button onClick={() => navigate('/admin')} className="back-btn">
-            ← Retour
-          </button>
-        </div>
-
-        <div className="filters">
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Tous les statuts</option>
-            <option value="en cours">En cours</option>
-            <option value="expédiée">Expédiée</option>
-            <option value="livré">Livrée</option>
-            <option value="annulée">Annulée</option>
-          </select>
-        </div>
-
-        <div className="orders-table-container">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>N° Commande</th>
-                <th>Client</th>
-                <th>Email</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(order => (
-                <tr key={order.id}>
-                  <td>{order.order_number}</td>
-                  <td>{order.customer?.name}</td>
-                  <td>{order.customer?.email}</td>
-                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                  <td>{order.total} MAD</td>
-                  <td>
-                    <select 
-                      value={order.status}
-                      onChange={(e) => updateStatus(order.id, e.target.value)}
-                      className={`status-select ${getStatusClass(order.status)}`}
-                    >
-                      <option value="en cours">En cours</option>
-                      <option value="expédiée">Expédiée</option>
-                      <option value="livré">Livrée</option>
-                      <option value="annulée">Annulée</option>
-                    </select>
-                  </td>
-                  <td>
-                    <button 
-                      className="view-btn"
-                      onClick={() => navigate(`/admin/orders/${order.id}`)}
-                    >
-                      Détails
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              <Icons.ChevronLeft />
-            </button>
-            <span>Page {currentPage} sur {totalPages}</span>
-            <button 
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              <Icons.ChevronRight />
-            </button>
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-};
-
-// Admin Order Detail Page
-const AdminOrderDetailPage = ({ navigate }) => {
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const { isAdmin } = useAuth();
-
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-    const path = window.location.pathname;
-    const orderId = path.split('/').pop();
-    fetchOrder(orderId);
-  }, [isAdmin]);
-
-  const fetchOrder = async (orderId) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/orders/${orderId}`);
-      if (response.data.success && response.data.data) {
-        setOrder(response.data.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch order:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateStatus = async (newStatus) => {
-    try {
-      const response = await api.put(`/admin/orders/${order.id}/status`, {
-        status: newStatus
-      });
-      if (response.data.success) {
-        setOrder({...order, status: newStatus});
-        alert('Statut mis à jour avec succès');
-      }
-    } catch (err) {
-      console.error('Failed to update status:', err);
-      alert('Erreur lors de la mise à jour');
-    }
-  };
-
-  const getStatusClass = (status) => {
-    switch(status) {
-      case 'en cours': return 'status-pending';
-      case 'expédiée': return 'status-shipped';
-      case 'livré': return 'status-delivered';
-      case 'annulée': return 'status-cancelled';
-      default: return '';
-    }
-  };
-
-  if (loading) return <div className="loading-spinner">Chargement...</div>;
-  if (!order) return <div className="not-found">Commande non trouvée</div>;
-
-  return (
-    <motion.div 
-      className="admin-order-detail"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      <div className="container">
-        <div className="page-header">
-          <button onClick={() => navigate('/admin/orders')} className="back-btn">
-            ← Retour aux commandes
-          </button>
-          <h1>Commande #{order.order_number}</h1>
-        </div>
-
-        <div className="order-status-section">
-          <span className={`status-badge-large ${getStatusClass(order.status)}`}>
-            {order.status}
-          </span>
-          <div className="status-actions">
-            <button 
-              onClick={() => updateStatus('en cours')}
-              className="status-btn pending"
-              disabled={order.status === 'en cours'}
-            >
-              En cours
-            </button>
-            <button 
-              onClick={() => updateStatus('expédiée')}
-              className="status-btn shipped"
-              disabled={order.status === 'expédiée'}
-            >
-              Expédiée
-            </button>
-            <button 
-              onClick={() => updateStatus('livré')}
-              className="status-btn delivered"
-              disabled={order.status === 'livré'}
-            >
-              Livrée
-            </button>
-            <button 
-              onClick={() => updateStatus('annulée')}
-              className="status-btn cancelled"
-              disabled={order.status === 'annulée'}
-            >
-              Annulée
-            </button>
-          </div>
-        </div>
-
-        <div className="order-details-grid">
-          <div className="detail-card">
-            <h3>Informations client</h3>
-            <p><strong>Nom:</strong> {order.customer?.name}</p>
-            <p><strong>Email:</strong> {order.customer?.email}</p>
-            <p><strong>Téléphone:</strong> {order.customer?.phone || 'Non renseigné'}</p>
-          </div>
-
-          <div className="detail-card">
-            <h3>Adresse de livraison</h3>
-            <p>{order.shipping_address}</p>
-          </div>
-
-          <div className="detail-card">
-            <h3>Informations de paiement</h3>
-            <p><strong>Méthode:</strong> {order.payment_method === 'carte' ? 'Carte bancaire' : 'Espèces (COD)'}</p>
-            <p><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</p>
-          </div>
-
-          {order.coupon && (
-            <div className="detail-card">
-              <h3>Coupon appliqué</h3>
-              <p><strong>Code:</strong> {order.coupon.code}</p>
-              <p><strong>Réduction:</strong> -{order.discount_amount} MAD</p>
-            </div>
-          )}
-        </div>
-
-        <div className="order-items-section">
-          <h2>Articles commandés</h2>
-          <table className="items-table">
-            <thead>
-              <tr>
-                <th>Produit</th>
-                <th>Prix unitaire</th>
-                <th>Quantité</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.product_name}</td>
-                  <td>{item.price} MAD</td>
-                  <td>{item.quantity}</td>
-                  <td>{(item.price * item.quantity).toFixed(2)} MAD</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colSpan="3" className="text-right">Sous-total:</td>
-                <td>{order.subtotal} MAD</td>
-              </tr>
-              {order.discount_amount > 0 && (
-                <tr>
-                  <td colSpan="3" className="text-right">Réduction:</td>
-                  <td>-{order.discount_amount} MAD</td>
-                </tr>
-              )}
-              <tr>
-                <td colSpan="3" className="text-right">Livraison:</td>
-                <td>{order.shipping > 0 ? order.shipping + ' MAD' : 'Gratuite'}</td>
-              </tr>
-              <tr>
-                <td colSpan="3" className="text-right">TVA (20%):</td>
-                <td>{order.tax} MAD</td>
-              </tr>
-              <tr className="total-row">
-                <td colSpan="3" className="text-right">Total:</td>
-                <td><strong>{order.total} MAD</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-// ==================== ABOUT PAGE ====================
-// ==================== ABOUT PAGE ====================
-const AboutPage = () => {
-  const stats = [
-    { icon: Icons.Star, value: '20+', label: "Années d'expérience" },
-    { icon: Icons.Users, value: '500+', label: 'Clients professionnels' },
-    { icon: Icons.Package, value: '1200+', label: 'Produits disponibles' },
-    { icon: Icons.Truck, value: '48h', label: 'Délai de livraison' }
-  ];
-
-  const categories = [
-    {
-      title: '🧪 Tubes de Prélèvement',
-      description: 'Tubes PRP, tubes gel, tubes secs et toute la gamme de tubes vacutainer pour l\'analyse biologique et la médecine régénérative.',
-      icon: '🧪'
-    },
-    {
-      title: '💉 Aiguilles & Accessoires',
-      description: 'Aiguilles de prélèvement, systèmes de collecte sécurisés, lancettes et accessoires pour chaque protocole clinique.',
-      icon: '💉'
-    },
-    {
-      title: '🏺 Consommables de Laboratoire',
-      description: 'Pipettes, embouts, plaques, tubes Eppendorf, milieux de culture et tout le consommable quotidien de vos laboratoires.',
-      icon: '🏺'
-    },
-    {
-      title: '⚗️ Réactifs de Laboratoire',
-      description: 'Réactifs pour biochimie, hématologie, immunologie, sérologie et microbiologie, compatibles avec les automates du marché.',
-      icon: '⚗️'
-    },
-    {
-      title: '🔬 Analyseurs de Laboratoire',
-      description: 'Automates d\'hématologie, biochimie, immunologie et urines. Installation, maintenance et formation incluses.',
-      icon: '🔬'
-    },
-    {
-      title: '⚙️ Équipements de Laboratoire',
-      description: 'Centrifugeuses, réfrigérateurs médicaux, hottes, autoclaves, microscopes et équipements de protection individuelle.',
-      icon: '⚙️'
-    }
-  ];
-
-  const whyChooseUs = [
-    {
-      title: '🏅 Produits Certifiés & Homologués',
-      description: 'Tous nos produits sont conformes aux normes CE, ISO et aux exigences du Ministère de la Santé marocain.'
-    },
-    {
-      title: '🚚 Livraison Rapide Partout au Maroc',
-      description: 'Réseau logistique couvrant l\'ensemble du territoire national avec un délai garanti de 24 à 48 heures.'
-    },
-    {
-      title: '💰 Tarifs Professionnels Exclusifs',
-      description: 'Programme de tarification dédié aux professionnels agréés avec remises progressives selon le volume de commande.'
-    },
-    {
-      title: '🎓 Expertise & Conseil Technique',
-      description: 'Une équipe de techniciens qualifiés disponible pour vous conseiller, former et assurer la maintenance de vos équipements.'
-    },
-    {
-      title: '🔄 Stock Permanent & Disponibilité',
-      description: 'Plus de 1 200 références disponibles en stock permanent pour garantir la continuité de vos activités sans interruption.'
-    },
-    {
-      title: '🤝 Relation Durable & Service Après-Vente',
-      description: 'Un interlocuteur dédié pour chaque client professionnel, un SAV réactif et un accompagnement sur le long terme.'
-    }
-  ];
-
-  const values = [
-    {
-      title: 'Notre Mission',
-      description: 'Fournir aux professionnels de santé marocains des équipements, réactifs et consommables de laboratoire de haute qualité, avec un service client réactif et des délais de livraison fiables sur l\'ensemble du territoire national.',
-      icon: '🎯'
-    },
-    {
-      title: 'Notre Vision',
-      description: 'Devenir la référence incontournable pour l\'approvisionnement en matériel médico-laboratoire au Maroc, en construisant des partenariats durables fondés sur la confiance, l\'expertise et l\'innovation continue.',
-      icon: '🔭'
-    },
-    {
-      title: 'Nos Valeurs',
-      description: 'Qualité sans compromis, intégrité dans chaque transaction, réactivité face aux besoins de nos clients, et engagement constant pour l\'amélioration de la santé au Maroc.',
-      icon: '💎'
-    }
-  ];
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 12
-      }
-    }
-  };
-
-  const scaleVariants = {
-    hidden: { scale: 0.8, opacity: 0 },
-    visible: {
-      scale: 1,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 200,
-        damping: 15
-      }
-    }
-  };
-
-  const fadeInVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.8 }
-    }
-  };
-
-  return (
-    <motion.div 
-      className="about-page-enhanced"
-      initial="hidden"
-      animate="visible"
-      variants={fadeInVariants}
-    >
-      {/* Hero Section with Parallax */}
-      <motion.section 
-        className="about-hero-enhanced"
-        variants={containerVariants}
-      >
-        <div className="hero-overlay"></div>
-        <div className="container">
-          <motion.div 
-            className="hero-content-enhanced"
-            variants={containerVariants}
-          >
-            <motion.span 
-              className="hero-badge-enhanced"
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-            >
-              🧬 À Propos de Nous
-            </motion.span>
-            
-            <motion.h1 
-              variants={itemVariants}
-            >
-              Votre Partenaire de
-              <motion.span 
-                className="highlight-text"
-                animate={{ 
-                  textShadow: ["0 0 0 rgba(109, 158, 235, 0)", "0 0 20px rgba(109, 158, 235, 0.5)", "0 0 0 rgba(109, 158, 235, 0)"]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                Confiance
-              </motion.span>
-              <br />en Laboratoire
-            </motion.h1>
-            
-            <motion.p 
-              className="hero-subtitle-enhanced"
-              variants={itemVariants}
-            >
-              Depuis notre création, TECLAB accompagne les professionnels de la santé avec des 
-              solutions de qualité supérieure pour les laboratoires, cliniques et établissements 
-              médicaux au Maroc.
-            </motion.p>
-          </motion.div>
-        </div>
-        
-        {/* Animated floating elements */}
-        <motion.div 
-          className="floating-element element-1"
-          animate={{ 
-            y: [0, -20, 0],
-            rotate: [0, 5, 0]
-          }}
-          transition={{ duration: 6, repeat: Infinity }}
-        />
-        <motion.div 
-          className="floating-element element-2"
-          animate={{ 
-            y: [0, 20, 0],
-            rotate: [0, -5, 0]
-          }}
-          transition={{ duration: 7, repeat: Infinity }}
-        />
-        <motion.div 
-          className="floating-element element-3"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.6, 0.3]
-          }}
-          transition={{ duration: 5, repeat: Infinity }}
-        />
-      </motion.section>
-
-      {/* Stats Section with Counter Animation */}
-      <motion.section 
-        className="about-stats-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <div className="container">
-          <div className="stats-grid-enhanced">
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={index}
-                className="stat-item-enhanced"
-                variants={scaleVariants}
-                whileHover={{ 
-                  y: -10,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
-                }}
-              >
-                <motion.div 
-                  className="stat-icon-enhanced"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <stat.icon size={40} />
-                </motion.div>
-                <motion.div 
-                  className="stat-value-enhanced"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ 
-                    type: "spring",
-                    stiffness: 100,
-                    delay: 0.2 + index * 0.1
-                  }}
-                >
-                  {stat.value}
-                </motion.div>
-                <div className="stat-label-enhanced">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* History Section with Reveal Animation */}
-      <motion.section 
-        className="about-history-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-      >
-        <div className="container">
-          <div className="history-grid-enhanced">
-            <motion.div 
-              className="history-text-enhanced"
-              variants={itemVariants}
-            >
-              <motion.h2
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100 }}
-              >
-                Notre Histoire
-              </motion.h2>
-              
-              <motion.h3
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.1 }}
-              >
-                Qui sommes-nous ?
-              </motion.h3>
-              
-              <motion.p
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
-              >
-                TECLAB est une entreprise marocaine spécialisée dans la distribution de matériel 
-                et de consommables pour les laboratoires d'analyse médicale, les cliniques, les 
-                cabinets médicaux et les établissements de santé.
-              </motion.p>
-              
-              <motion.p
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
-              >
-                Fondée avec une ambition claire — rendre accessible aux professionnels de santé 
-                marocains des produits de haute qualité à des prix compétitifs — TECLAB s'est 
-                imposée comme un acteur incontournable du secteur médical au Maroc.
-              </motion.p>
-              
-              <motion.p
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
-              >
-                Notre équipe est composée de spécialistes passionnés qui comprennent les exigences 
-                du monde médical et s'engagent à fournir un service irréprochable, du conseil à 
-                la livraison.
-              </motion.p>
-            </motion.div>
-            
-            <motion.div 
-              className="history-badge-enhanced"
-              variants={scaleVariants}
-              whileHover={{ 
-                scale: 1.1,
-                rotate: 5,
-                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
-              }}
-            >
-              <motion.span 
-                className="badge-icon-enhanced"
-                animate={{ 
-                  rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                🔬
-              </motion.span>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Quality Commitment Section */}
-      <motion.section 
-        className="about-quality-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <div className="container">
-          <motion.div 
-            className="quality-content-enhanced"
-            variants={itemVariants}
-          >
-            <motion.h2
-              animate={{ 
-                color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
-              }}
-              transition={{ duration: 5, repeat: Infinity }}
-            >
-              Notre Engagement Qualité
-            </motion.h2>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              Chaque produit que nous distribuons est rigoureusement sélectionné auprès de 
-              fournisseurs certifiés, garantissant fiabilité, précision et conformité aux 
-              normes internationales en vigueur.
-            </motion.p>
-            
-            <motion.div 
-              className="quality-badge-enhanced"
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 30px rgba(109, 158, 235, 0.3)"
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <motion.span 
-                className="check-icon-enhanced"
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                ✅
-              </motion.span>
-              <span>Fournisseurs certifiés ISO & CE</span>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Values Section with Card Flip Effect */}
-      <motion.section 
-        className="about-values-section-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-      >
-        <div className="container">
-          <div className="values-grid-enhanced">
-            {values.map((value, index) => (
-              <motion.div 
-                key={index}
-                className="value-card-enhanced"
-                variants={itemVariants}
-                whileHover={{ 
-                  y: -15,
-                  boxShadow: "0 30px 60px rgba(109, 158, 235, 0.2)"
-                }}
-              >
-                <motion.div 
-                  className="value-icon-enhanced"
-                  animate={{ 
-                    rotate: [0, 5, -5, 0],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{ duration: 3, delay: index * 0.2, repeat: Infinity }}
-                >
-                  {value.icon}
-                </motion.div>
-                <h3>{value.title}</h3>
-                <p>{value.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Categories Section */}
-      <motion.section 
-        className="about-categories-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-      >
-        <div className="container">
-          <motion.h2 
-            className="section-title-enhanced"
-            variants={itemVariants}
-          >
-            Ce que nous proposons
-          </motion.h2>
-          
-          <motion.p 
-            className="section-subtitle-enhanced"
-            variants={itemVariants}
-          >
-            Une gamme complète de produits et services pour répondre à tous vos besoins 
-            en laboratoire et équipements médicaux.
-          </motion.p>
-
-          <div className="categories-grid-enhanced">
-            {categories.map((category, index) => (
-              <motion.div 
-                key={index}
-                className="category-card-enhanced"
-                variants={itemVariants}
-                whileHover={{ 
-                  y: -10,
-                  scale: 1.02,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
-                }}
-                custom={index}
-              >
-                <motion.div 
-                  className="category-icon-enhanced"
-                  animate={{ 
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{ duration: 4, delay: index * 0.1, repeat: Infinity }}
-                >
-                  {category.icon}
-                </motion.div>
-                <h3>{category.title}</h3>
-                <p>{category.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Why Choose Us Section */}
-      <motion.section 
-        className="why-choose-us-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-      >
-        <div className="container">
-          <motion.h2 
-            className="section-title-enhanced"
-            variants={itemVariants}
-          >
-            Pourquoi choisir TECLAB ?
-          </motion.h2>
-          
-          <motion.p 
-            className="section-subtitle-enhanced"
-            variants={itemVariants}
-          >
-            Nous ne sommes pas de simples distributeurs — nous sommes vos partenaires 
-            dans l'excellence médicale.
-          </motion.p>
-
-          <div className="why-choose-grid-enhanced">
-            {whyChooseUs.map((item, index) => (
-              <motion.div 
-                key={index}
-                className="why-choose-card-enhanced"
-                variants={itemVariants}
-                whileHover={{ 
-                  x: 10,
-                  boxShadow: "0 15px 30px rgba(109, 158, 235, 0.2)"
-                }}
-              >
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Contact Info - ONLY MAIL AND PHONE, NO LINKS TO OTHER PAGES */}
-      <motion.section 
-        className="about-contact-enhanced"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <div className="container">
-          <div className="contact-info-grid-enhanced">
-            <motion.div 
-              className="contact-info-card-enhanced"
-              variants={itemVariants}
-              whileHover={{ y: -10 }}
-            >
-              <motion.h3
-                animate={{ 
-                  color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
-                }}
-                transition={{ duration: 5, repeat: Infinity }}
-              >
-                Besoin d'un conseil technique ?
-              </motion.h3>
-              <p>
-                Notre équipe spécialisée vous accompagne dans le choix de vos équipements 
-                et consommables de laboratoire.
-              </p>
-            </motion.div>
-            
-            <motion.div 
-              className="contact-info-card-enhanced highlight"
-              variants={itemVariants}
-              whileHover={{ 
-                scale: 1.02,
-                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
-              }}
-            >
-              <motion.div 
-                className="phone-icon-enhanced"
-                animate={{ 
-                  rotate: [0, 15, -15, 0],
-                  scale: [1, 1.2, 1]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                📞
-              </motion.div>
-              
-              <h4>Appelez-nous 24/7</h4>
-              
-              <motion.a 
-                href="tel:+212808626102" 
-                className="phone-number-enhanced"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                +212 808 626 102
-              </motion.a>
-              
-              <motion.p 
-                className="address-enhanced"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                654 LOT TGHAT II RTE MEKNES VILLA 30000 SECTEUR 0601, Fez, MAROC
-              </motion.p>
-              
-              <motion.a 
-                href="mailto:info@teclab.ma" 
-                className="email-enhanced"
-                whileHover={{ scale: 1.05, color: "#ff6b6b" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                info@teclab.ma
-              </motion.a>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-    </motion.div>
-  );
-};
 // ==================== MAIN APP ====================
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -8063,86 +8694,83 @@ function App() {
   };
 
   const renderPage = () => {
-  const basePath = currentPath.split('?')[0];
-  
-  // Public routes
-  if (basePath === '/') return <HomePage navigate={navigate} />;
-  if (basePath === '/about') return <AboutPage navigate={navigate} />;
-  if (basePath === '/products') return <ProductsPage navigate={navigate} />;
-  if (basePath.startsWith('/product/')) return <ProductDetailPage navigate={navigate} />;
-  if (basePath === '/categories') return <CategoriesPage navigate={navigate} />;
-  if (basePath === '/cart') return <CartPage navigate={navigate} />;
-  if (basePath === '/checkout') return <CheckoutPage navigate={navigate} />;
-  if (basePath === '/login') return <LoginPage navigate={navigate} />;
-  if (basePath === '/register') return <RegisterPage navigate={navigate} />;
-  if (basePath === '/dashboard') return <DashboardPage navigate={navigate} />;
-  if (basePath === '/orders') return <OrdersPage navigate={navigate} />;
-  if (basePath.startsWith('/orders/')) return <OrderDetailPage navigate={navigate} />;
-  if (basePath === '/verify-email/success') return <VerificationSuccessPage navigate={navigate} />;
-  if (basePath === '/verify-email/error') return <VerificationErrorPage navigate={navigate} />;
-  
-  // User pages
-  if (basePath === '/wishlist') return <WishlistPage navigate={navigate} />;
-  if (basePath === '/coupons') return <CouponsPage navigate={navigate} />;
-  
-  // Admin routes - THESE SHOULD BE HERE
-// Admin routes
-if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
-if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
-if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
-if (basePath === '/admin/emails') return <EmailCampaign />;
-  // 404
-  return (
-    <div className="not-found">
-      <h1>404</h1>
-      <p>Page non trouvée</p>
-      <button className="btn-primary" onClick={() => navigate('/')}>
-        Retour à l'accueil
-      </button>
-    </div>
-  );
-};
-  return (
-    <>
-    <BrowserRouter>
+    const basePath = currentPath.split('?')[0];
     
-  <AuthProvider>
-    <CartProvider>
-      <ProductProvider>
-        <CouponProvider>
-          <FavoritesProvider> {/* Add this */}
-            <div className="App">
-              <Header currentPath={currentPath} navigate={navigate} />
-              <main className="main-content">
-                {renderPage()}
-              </main>
-              <Footer navigate={navigate} />
-              
-              <AnimatePresence>
-                {showBackToTop && (
-                  <motion.div 
-                    className="back-to-top"
-                    onClick={scrollToTop}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Icons.ArrowUp />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </FavoritesProvider> {/* Add this */}
-        </CouponProvider>
-      </ProductProvider>
-    </CartProvider>
-  </AuthProvider>
-  
-  </BrowserRouter>
-  </>
-);
+    // Public routes
+    if (basePath === '/') return <HomePage navigate={navigate} />;
+    if (basePath === '/about') return <AboutPage />;
+    if (basePath === '/products') return <ProductsPage navigate={navigate} />;
+    if (basePath.startsWith('/product/')) return <ProductDetailPage navigate={navigate} />;
+    if (basePath === '/categories') return <CategoriesPage navigate={navigate} />;
+    if (basePath === '/cart') return <CartPage navigate={navigate} />;
+    if (basePath === '/checkout') return <CheckoutPage navigate={navigate} />;
+    if (basePath === '/login') return <LoginPage navigate={navigate} />;
+    if (basePath === '/register') return <RegisterPage navigate={navigate} />;
+    if (basePath === '/dashboard') return <DashboardPage navigate={navigate} />;
+    if (basePath === '/orders') return <OrdersPage navigate={navigate} />;
+    if (basePath.startsWith('/orders/')) return <OrderDetailPage navigate={navigate} />;
+    if (basePath === '/verify-email/success') return <VerificationSuccessPage navigate={navigate} />;
+    if (basePath === '/verify-email/error') return <VerificationErrorPage navigate={navigate} />;
+    
+    // User pages
+    if (basePath === '/wishlist') return <WishlistPage navigate={navigate} />;
+    if (basePath === '/coupons') return <CouponsPage navigate={navigate} />;
+    
+    // Admin routes
+    if (basePath === '/admin') return <AdminDashboardPage navigate={navigate} />;
+    if (basePath === '/admin/orders') return <AdminOrdersPage navigate={navigate} />;
+    if (basePath.startsWith('/admin/orders/')) return <AdminOrderDetailPage navigate={navigate} />;
+    if (basePath === '/admin/emails') return <EmailCampaign />;
+    
+    // 404
+    return (
+      <div className="not-found">
+        <h1>404</h1>
+        <p>Page non trouvée</p>
+        <button className="btn-primary" onClick={() => navigate('/')}>
+          Retour à l'accueil
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <ProductProvider>
+            <CouponProvider>
+              <FavoritesProvider>
+                <div className="App">
+                  <Header currentPath={currentPath} navigate={navigate} />
+                  <main className="main-content">
+                    {renderPage()}
+                  </main>
+                  <Footer navigate={navigate} />
+                  
+                  <AnimatePresence>
+                    {showBackToTop && (
+                      <motion.div 
+                        className="back-to-top"
+                        onClick={scrollToTop}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Icons.ArrowUp />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </FavoritesProvider>
+            </CouponProvider>
+          </ProductProvider>
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
 export default App;
