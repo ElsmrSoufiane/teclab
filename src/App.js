@@ -7998,6 +7998,7 @@ AdminModal.defaultProps = {
 };
 // Admin Dashboard Page
 // ==================== ADMIN DASHBOARD PAGE COMPLETE ====================
+// ==================== ADMIN DASHBOARD PAGE COMPLETE ====================
 const AdminDashboardPage = ({ navigate }) => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
@@ -8020,9 +8021,11 @@ const AdminDashboardPage = ({ navigate }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
   
-  // Pagination
+  // Pagination - ÉTAT CENTRALISÉ
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(20);
+  const [tableLoading, setTableLoading] = useState(false);
   
   const { user, isAdmin } = useAuth();
 
@@ -8093,94 +8096,171 @@ const AdminDashboardPage = ({ navigate }) => {
     }
   };
 
-  // Fetch all products
+  // ==================== FONCTIONS DE PAGINATION ====================
+  
+  // Fetch products with pagination
   const fetchProducts = async (page = 1) => {
+    console.log('📦 fetchProducts appelé avec page:', page);
+    setTableLoading(true);
+    
     try {
-      const response = await api.get(`/admin/products?page=${page}`);
+      const response = await api.get(`/admin/products?page=${page}&per_page=${itemsPerPage}`);
+      console.log('📦 Réponse API produits:', response.data);
+      
       if (response.data.success) {
-        setProducts(response.data.data.data || []);
-        setTotalPages(response.data.data.last_page || 1);
-        setCurrentPage(response.data.data.current_page || 1);
+        // La structure de pagination de Laravel
+        const paginatedData = response.data.data;
+        
+        console.log('📦 Données paginées reçues:', {
+          current_page: paginatedData.current_page,
+          last_page: paginatedData.last_page,
+          total: paginatedData.total,
+          count: paginatedData.data?.length
+        });
+        
+        setProducts(paginatedData.data || []);
+        setCurrentPage(paginatedData.current_page || page);
+        setTotalPages(paginatedData.last_page || 1);
       }
     } catch (err) {
-      console.error('Failed to fetch products:', err);
+      console.error('❌ Failed to fetch products:', err);
       alert('Erreur lors du chargement des produits');
+    } finally {
+      setTableLoading(false);
     }
   };
 
-  // Fetch all customers
+  // Fetch customers with pagination
   const fetchCustomers = async (page = 1) => {
+    console.log('👥 fetchCustomers appelé avec page:', page);
+    setTableLoading(true);
+    
     try {
-      const response = await api.get(`/admin/customers?page=${page}`);
+      const response = await api.get(`/admin/customers?page=${page}&per_page=${itemsPerPage}`);
+      console.log('👥 Réponse API clients:', response.data);
+      
       if (response.data.success) {
-        setCustomers(response.data.data.data || []);
-        setTotalPages(response.data.data.last_page || 1);
-        setCurrentPage(response.data.data.current_page || 1);
+        const paginatedData = response.data.data;
+        setCustomers(paginatedData.data || []);
+        setCurrentPage(paginatedData.current_page || page);
+        setTotalPages(paginatedData.last_page || 1);
       }
     } catch (err) {
-      console.error('Failed to fetch customers:', err);
+      console.error('❌ Failed to fetch customers:', err);
       alert('Erreur lors du chargement des clients');
+    } finally {
+      setTableLoading(false);
     }
   };
 
-  // Fetch all coupons
+  // Fetch coupons with pagination
   const fetchCoupons = async (page = 1) => {
+    console.log('🏷️ fetchCoupons appelé avec page:', page);
+    setTableLoading(true);
+    
     try {
-      const response = await api.get(`/admin/coupons?page=${page}`);
+      const response = await api.get(`/admin/coupons?page=${page}&per_page=${itemsPerPage}`);
+      console.log('🏷️ Réponse API coupons:', response.data);
+      
       if (response.data.success) {
-        setCoupons(response.data.data.data || []);
-        setTotalPages(response.data.data.last_page || 1);
-        setCurrentPage(response.data.data.current_page || 1);
+        const paginatedData = response.data.data;
+        setCoupons(paginatedData.data || []);
+        setCurrentPage(paginatedData.current_page || page);
+        setTotalPages(paginatedData.last_page || 1);
       }
     } catch (err) {
-      console.error('Failed to fetch coupons:', err);
+      console.error('❌ Failed to fetch coupons:', err);
       alert('Erreur lors du chargement des coupons');
+    } finally {
+      setTableLoading(false);
     }
   };
 
-  // Fetch all orders
+  // Fetch orders with pagination
   const fetchOrders = async (page = 1, status = '') => {
+    console.log('📋 fetchOrders appelé avec page:', page);
+    setTableLoading(true);
+    
     try {
-      let url = `/admin/orders?page=${page}`;
+      let url = `/admin/orders?page=${page}&per_page=${itemsPerPage}`;
       if (status) url += `&status=${status}`;
       
       const response = await api.get(url);
+      console.log('📋 Réponse API commandes:', response.data);
+      
       if (response.data.success) {
-        setOrders(response.data.data.data || []);
-        setTotalPages(response.data.data.last_page || 1);
-        setCurrentPage(response.data.data.current_page || 1);
+        const paginatedData = response.data.data;
+        setOrders(paginatedData.data || []);
+        setCurrentPage(paginatedData.current_page || page);
+        setTotalPages(paginatedData.last_page || 1);
       }
     } catch (err) {
-      console.error('Failed to fetch orders:', err);
+      console.error('❌ Failed to fetch orders:', err);
       alert('Erreur lors du chargement des commandes');
+    } finally {
+      setTableLoading(false);
     }
   };
 
-  // Handle tab change
+  // Handle tab change with reset pagination
   const handleTabChange = (tab) => {
+    console.log('🔄 Changement d\'onglet vers:', tab);
     setActiveTab(tab);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset à la page 1
     
-    if (tab === 'products') fetchProducts();
-    if (tab === 'customers') fetchCustomers();
-    if (tab === 'coupons') fetchCoupons();
-    if (tab === 'orders') fetchOrders();
+    if (tab === 'products') fetchProducts(1);
+    if (tab === 'customers') fetchCustomers(1);
+    if (tab === 'coupons') fetchCoupons(1);
+    if (tab === 'orders') fetchOrders(1);
   };
+
+  // Handle page change - FONCTION CRITIQUE POUR LA PAGINATION
+  const handlePageChange = (newPage) => {
+    console.log('📄 handlePageChange appelé avec page:', newPage);
+    console.log('📄 Onglet actif:', activeTab);
+    console.log('📄 Page actuelle avant changement:', currentPage);
+    
+    // Éviter les changements inutiles
+    if (newPage === currentPage) {
+      console.log('📄 Même page, ignoré');
+      return;
+    }
+    
+    if (newPage < 1 || newPage > totalPages) {
+      console.log('📄 Page hors limites, ignoré');
+      return;
+    }
+    
+    // Mettre à jour l'état local
+    setCurrentPage(newPage);
+    
+    // Recharger les données en fonction de l'onglet actif
+    console.log('📄 Rechargement des données pour la page', newPage);
+    
+    if (activeTab === 'products') {
+      fetchProducts(newPage);
+    } else if (activeTab === 'customers') {
+      fetchCustomers(newPage);
+    } else if (activeTab === 'coupons') {
+      fetchCoupons(newPage);
+    } else if (activeTab === 'orders') {
+      fetchOrders(newPage);
+    }
+  };
+
+  // ==================== CRUD OPERATIONS ====================
 
   // Open modal for adding/editing
   const openModal = (type, item = null) => {
     setModalType(type);
     
     if (item) {
-      // Editing existing item
       setEditingItem(item);
       
-      // Format data based on type
       if (type === 'product') {
-        // Récupérer TOUTES les images du produit
+        // Récupérer toutes les images du produit
         let productImages = [];
         
-        // Priorité: images_array > images (relation) > image (seule)
         if (item.images_array && Array.isArray(item.images_array)) {
           productImages = item.images_array;
         } else if (item.images && Array.isArray(item.images)) {
@@ -8188,8 +8268,6 @@ const AdminDashboardPage = ({ navigate }) => {
         } else if (item.image) {
           productImages = [item.image];
         }
-        
-        console.log('📸 Images chargées pour édition:', productImages);
         
         setFormData({
           id: item.id,
@@ -8244,7 +8322,6 @@ const AdminDashboardPage = ({ navigate }) => {
         });
       }
     } else {
-      // Creating new item - set default values
       setEditingItem(null);
       
       if (type === 'product') {
@@ -8307,7 +8384,6 @@ const AdminDashboardPage = ({ navigate }) => {
       let dataToSend = { ...formData };
       
       if (modalType === 'product') {
-        // Gérer les features
         if (dataToSend.features && !Array.isArray(dataToSend.features)) {
           dataToSend.features = [dataToSend.features];
         }
@@ -8316,12 +8392,8 @@ const AdminDashboardPage = ({ navigate }) => {
           dataToSend.features = dataToSend.features.filter(f => f && f.trim() !== '');
         }
         
-        // Gérer les images - TRÈS IMPORTANT
         if (dataToSend.images && Array.isArray(dataToSend.images)) {
-          // Nettoyer les URLs vides
           dataToSend.images = dataToSend.images.filter(img => img && img.trim() !== '');
-          
-          // L'image principale est la première du tableau
           if (dataToSend.images.length > 0) {
             dataToSend.image = dataToSend.images[0];
           }
@@ -8329,12 +8401,9 @@ const AdminDashboardPage = ({ navigate }) => {
           dataToSend.images = [];
         }
         
-        // Convertir les nombres
         dataToSend.price = parseFloat(dataToSend.price) || 0;
         dataToSend.stock = parseInt(dataToSend.stock) || 0;
         dataToSend.category_id = parseInt(dataToSend.category_id) || null;
-        
-        console.log('📤 Données envoyées au serveur:', dataToSend);
       }
       
       if (modalType === 'product') {
@@ -8362,32 +8431,24 @@ const AdminDashboardPage = ({ navigate }) => {
       if (response?.data.success) {
         setShowModal(false);
         
-        // Refresh data based on type
         if (modalType === 'product') {
-          if (activeTab === 'products') fetchProducts();
-          else fetchDashboardData(); // For low stock list
-          
-          alert(editingItem ? 'Produit mis à jour avec succès' : 'Produit créé avec succès');
-          
-          // Vérifier la réponse du serveur
-          if (response.data.data.product) {
-            console.log('✅ Produit sauvegardé avec images:', response.data.data.product.images);
-          }
+          if (activeTab === 'products') fetchProducts(currentPage);
+          else fetchDashboardData();
         }
         if (modalType === 'category') {
-          fetchDashboardData(); // Refresh categories
-          alert(editingItem ? 'Catégorie mise à jour avec succès' : 'Catégorie créée avec succès');
+          fetchDashboardData();
+          if (activeTab === 'products') fetchProducts(currentPage);
         }
         if (modalType === 'coupon') {
-          if (activeTab === 'coupons') fetchCoupons();
-          else fetchDashboardData(); // For recent coupons
-          alert(editingItem ? 'Coupon mis à jour avec succès' : 'Coupon créé avec succès');
+          if (activeTab === 'coupons') fetchCoupons(currentPage);
+          else fetchDashboardData();
         }
         if (modalType === 'customer') {
-          if (activeTab === 'customers') fetchCustomers();
-          else fetchDashboardData(); // For recent customers
-          alert('Client mis à jour avec succès');
+          if (activeTab === 'customers') fetchCustomers(currentPage);
+          else fetchDashboardData();
         }
+        
+        alert(editingItem ? 'Élément mis à jour avec succès' : 'Élément créé avec succès');
       }
     } catch (err) {
       console.error('Failed to save:', err);
@@ -8398,6 +8459,8 @@ const AdminDashboardPage = ({ navigate }) => {
 
   // Handle delete
   const handleDelete = async (type, id) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
+    
     try {
       let response;
       
@@ -8410,21 +8473,20 @@ const AdminDashboardPage = ({ navigate }) => {
       }
       
       if (response?.data.success) {
-        // Refresh data based on type
         if (type === 'product') {
-          if (activeTab === 'products') fetchProducts();
+          if (activeTab === 'products') fetchProducts(currentPage);
           else fetchDashboardData();
         }
         if (type === 'category') {
           fetchDashboardData();
-          if (activeTab === 'products') fetchProducts();
+          if (activeTab === 'products') fetchProducts(currentPage);
         }
         if (type === 'coupon') {
-          if (activeTab === 'coupons') fetchCoupons();
+          if (activeTab === 'coupons') fetchCoupons(currentPage);
           else fetchDashboardData();
         }
         
-        alert(response.data.message || 'Élément supprimé avec succès');
+        alert('Élément supprimé avec succès');
       }
     } catch (err) {
       console.error('Failed to delete:', err);
@@ -8780,7 +8842,8 @@ const AdminDashboardPage = ({ navigate }) => {
                 onBack={() => handleTabChange('dashboard')}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
+                loading={tableLoading}
               />
             )}
 
@@ -8796,7 +8859,8 @@ const AdminDashboardPage = ({ navigate }) => {
                 onBack={() => handleTabChange('dashboard')}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
+                loading={tableLoading}
               />
             )}
 
@@ -8822,7 +8886,8 @@ const AdminDashboardPage = ({ navigate }) => {
                 onBack={() => handleTabChange('dashboard')}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
+                loading={tableLoading}
               />
             )}
 
@@ -8838,7 +8903,8 @@ const AdminDashboardPage = ({ navigate }) => {
                 onBack={() => handleTabChange('dashboard')}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
+                loading={tableLoading}
               />
             )}
           </div>
