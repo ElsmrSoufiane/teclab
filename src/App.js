@@ -1302,6 +1302,7 @@ const Carousel = () => {
 };
 
 // Product Card Component
+// ==================== PRODUCT CARD WITH PRO DISCOUNT ====================
 const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
@@ -1309,11 +1310,35 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const navigate = useNavigate();
+  const { isPro, proDiscount } = useAuth();
+
+  // Calculate discounted price for pro users
+  const getDisplayPrice = () => {
+    if (isPro && proDiscount > 0 && product.original_price) {
+      return product.price; // Already discounted from API
+    }
+    return product.price;
+  };
+
+  const getOriginalPrice = () => {
+    if (isPro && proDiscount > 0 && product.original_price) {
+      return product.original_price;
+    }
+    return null;
+  };
+
+  const displayPrice = getDisplayPrice();
+  const originalPrice = getOriginalPrice();
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
     if (onAddToCart && product) {
-      onAddToCart(product, 1, navigate);
+      const productToAdd = {
+        ...product,
+        price: displayPrice,
+        original_price: originalPrice
+      };
+      onAddToCart(productToAdd, 1, navigate);
       setAdded(true);
       setTimeout(() => setAdded(false), 1000);
     }
@@ -1360,7 +1385,13 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
           <span className="product-badge">{product.badge}</span>
         )}
         
-        {product.original_price && (
+        {isPro && proDiscount > 0 && product.original_price && (
+          <span className="product-discount pro-discount">
+            -{proDiscount}% PRO
+          </span>
+        )}
+        
+        {!isPro && product.original_price && (
           <span className="product-discount">
             -{Math.round((1 - product.price / product.original_price) * 100)}%
           </span>
@@ -1426,11 +1457,21 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
         </div>
 
         <div className="product-price">
-          <span className="current-price">{product.price} MAD</span>
-          {product.original_price && (
-            <span className="original-price">{product.original_price} MAD</span>
+          <span className={`current-price ${isPro ? 'pro-price' : ''}`}>
+            {displayPrice} MAD
+          </span>
+          {originalPrice && (
+            <span className="original-price">{originalPrice} MAD</span>
           )}
         </div>
+
+        {isPro && proDiscount > 0 && (
+          <div className="pro-badge-container">
+            <span className="pro-badge-small">
+              <Icons.Percent size={10} /> PRIX PRO -{proDiscount}%
+            </span>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -4046,22 +4087,55 @@ const CategoriesPage = ({ navigate }) => {
 };
 
 // ==================== CART PAGE ====================
+// ==================== CART PAGE WITH PRO DISCOUNT ====================
 const CartPage = ({ navigate }) => {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const { validateCoupon, appliedCoupon, discount, removeCoupon } = useCoupons();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isPro, proDiscount } = useAuth();
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
-  const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
-  const subtotal = typeof cartTotal === 'number' ? cartTotal : parseFloat(cartTotal) || 0;
+  // Calculate totals with pro discount consideration
+  const calculateSubtotal = () => {
+    return cartItems.reduce((sum, item) => {
+      // Use the price that's already discounted from API
+      return sum + (item.price * item.quantity);
+    }, 0);
+  };
+
+  const calculateOriginalSubtotal = () => {
+    return cartItems.reduce((sum, item) => {
+      // Use original price if available
+      const originalPrice = item.original_price || item.price;
+      return sum + (originalPrice * item.quantity);
+    }, 0);
+  };
+
+  const calculateProSavings = () => {
+    return cartItems.reduce((sum, item) => {
+      if (item.original_price && item.original_price > item.price) {
+        return sum + ((item.original_price - item.price) * item.quantity);
+      }
+      return sum;
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal();
+  const originalSubtotal = calculateOriginalSubtotal();
+  const proSavings = calculateProSavings();
   
+  const discountAmount = typeof discount === 'number' ? discount : parseFloat(discount) || 0;
   const subtotalAfterDiscount = subtotal - discountAmount;
   const shipping = subtotalAfterDiscount > 1000 ? 0 : 50;
-  const tax = subtotalAfterDiscount * 0.2;
+  const tax = subtotalAfterDiscount * 0.20; // 20% TVA
   const grandTotal = subtotalAfterDiscount + shipping + tax;
+
+  const formatPrice = (value) => {
+    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return num.toFixed(2);
+  };
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -4074,9 +4148,6 @@ const CartPage = ({ navigate }) => {
     setCouponSuccess('');
 
     try {
-      console.log('🔍 Applying coupon:', couponCode);
-      console.log('🔍 Cart subtotal:', subtotal);
-      
       await validateCoupon(couponCode, subtotal);
       setCouponCode('');
       setCouponSuccess('✅ Coupon appliqué avec succès!');
@@ -4094,11 +4165,6 @@ const CartPage = ({ navigate }) => {
     removeCoupon();
     setCouponSuccess('');
     setCouponError('');
-  };
-
-  const formatPrice = (value) => {
-    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
-    return num.toFixed(2);
   };
 
   if (cartItems.length === 0) {
@@ -4131,6 +4197,19 @@ const CartPage = ({ navigate }) => {
       <div className="container">
         <h1>Mon Panier</h1>
 
+        {/* Pro Discount Banner */}
+        {isPro && proSavings > 0 && (
+          <div className="pro-discount-banner">
+            <div className="pro-banner-content">
+              <Icons.Percent size={24} />
+              <div>
+                <h3>Économies PRO -{proDiscount}%</h3>
+                <p>Vous économisez <strong>{formatPrice(proSavings)} MAD</strong> sur ce panier</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="cart-layout">
           <div className="cart-items">
             {cartItems.map((item) => (
@@ -4146,7 +4225,29 @@ const CartPage = ({ navigate }) => {
                   <h3 onClick={() => navigate(`/product/${item.slug}`)} style={{ cursor: 'pointer' }}>
                     {item.name}
                   </h3>
-                  <span className="item-price">{formatPrice(item.price)} MAD</span>
+                  
+                  {/* Price display with pro discount */}
+                  <div className="item-price-section">
+                    {item.original_price && item.original_price > item.price ? (
+                      <>
+                        <span className="current-price">{formatPrice(item.price)} MAD</span>
+                        <span className="original-price">{formatPrice(item.original_price)} MAD</span>
+                        {isPro && (
+                          <span className="pro-discount-badge">
+                            -{proDiscount}% PRO
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="item-price">{formatPrice(item.price)} MAD</span>
+                    )}
+                  </div>
+                  
+                  {item.stock < 5 && (
+                    <span className="low-stock-warning">
+                      Plus que {item.stock} en stock
+                    </span>
+                  )}
                 </div>
 
                 <div className="item-quantity">
@@ -4166,7 +4267,13 @@ const CartPage = ({ navigate }) => {
                 </div>
 
                 <div className="item-total">
-                  {formatPrice(item.price * item.quantity)} MAD
+                  <span className="total-label">Total:</span>
+                  <span className="total-value">{formatPrice(item.price * item.quantity)} MAD</span>
+                  {item.original_price && (
+                    <span className="original-total">
+                      {formatPrice(item.original_price * item.quantity)} MAD
+                    </span>
+                  )}
                 </div>
 
                 <button 
@@ -4238,36 +4345,62 @@ const CartPage = ({ navigate }) => {
               )}
             </div>
 
-            <div className="summary-row">
-              <span>Sous-total</span>
-              <span>{formatPrice(subtotal)} MAD</span>
-            </div>
-            
-            {discountAmount > 0 && (
-              <div className="summary-row discount">
-                <span>Réduction ({appliedCoupon?.code})</span>
-                <span>-{formatPrice(discountAmount)} MAD</span>
+            {/* Detailed summary with pro discount breakdown */}
+            <div className="summary-details">
+              {isPro && originalSubtotal > subtotal && (
+                <>
+                  <div className="summary-row">
+                    <span>Sous-total (Prix public)</span>
+                    <span className="original-price-text">{formatPrice(originalSubtotal)} MAD</span>
+                  </div>
+                  <div className="summary-row pro-discount">
+                    <span>
+                      Réduction PRO (-{proDiscount}%)
+                      <span className="pro-badge-small">PRO</span>
+                    </span>
+                    <span className="discount-amount">-{formatPrice(proSavings)} MAD</span>
+                  </div>
+                </>
+              )}
+              
+              <div className="summary-row">
+                <span>Sous-total après réduction PRO</span>
+                <span>{formatPrice(subtotal)} MAD</span>
               </div>
-            )}
-            
-            <div className="summary-row">
-              <span>Sous-total après réduction</span>
-              <span>{formatPrice(subtotalAfterDiscount)} MAD</span>
-            </div>
-            
-            <div className="summary-row">
-              <span>Livraison</span>
-              <span>{shipping === 0 ? 'Gratuite' : `${formatPrice(shipping)} MAD`}</span>
-            </div>
+              
+              {discountAmount > 0 && (
+                <div className="summary-row discount">
+                  <span>Réduction coupon ({appliedCoupon?.code})</span>
+                  <span>-{formatPrice(discountAmount)} MAD</span>
+                </div>
+              )}
+              
+              <div className="summary-row">
+                <span>Sous-total final</span>
+                <span>{formatPrice(subtotalAfterDiscount)} MAD</span>
+              </div>
+              
+              <div className="summary-row">
+                <span>Livraison</span>
+                <span>{shipping === 0 ? 'Gratuite' : `${formatPrice(shipping)} MAD`}</span>
+              </div>
 
-            <div className="summary-row">
-              <span>TVA (20%)</span>
-              <span>{formatPrice(tax)} MAD</span>
-            </div>
-            
-            <div className="summary-row total">
-              <span>Total</span>
-              <span>{formatPrice(grandTotal)} MAD</span>
+              <div className="summary-row">
+                <span>TVA (20%)</span>
+                <span>{formatPrice(tax)} MAD</span>
+              </div>
+              
+              <div className="summary-row total">
+                <span>Total TTC</span>
+                <span>{formatPrice(grandTotal)} MAD</span>
+              </div>
+
+              {shipping === 0 && (
+                <div className="free-shipping-note">
+                  <Icons.Truck size={16} />
+                  <span>Livraison gratuite (commande > 1000 MAD)</span>
+                </div>
+              )}
             </div>
 
             {isAuthenticated ? (
