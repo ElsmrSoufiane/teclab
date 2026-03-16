@@ -6599,12 +6599,64 @@ const OrdersTable = ({ orders, onStatusChange, onRefresh, onView, onBack, curren
 // ==================== PRODUCTS TABLE COMPONENT ====================
 // Dans ProductsTable, améliorez l'affichage des images :
 
+// ==================== PRODUCTS TABLE ROBUSTE ====================
 const ProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
+  const [localProducts, setLocalProducts] = useState([]);
 
-  const filteredProducts = products.filter(p => 
+  // Mettre à jour les produits locaux quand les props changent
+  useEffect(() => {
+    console.log('📦 Produits reçus dans tableau:', products);
+    
+    // Formater les produits pour s'assurer qu'ils ont une structure cohérente
+    const formatted = (products || []).map(product => {
+      // Extraire les images de manière sécurisée
+      let images = [];
+      
+      // Priorité 1: images_array (format simplifié)
+      if (product.images_array && Array.isArray(product.images_array)) {
+        images = product.images_array;
+      }
+      // Priorité 2: images (relation complète)
+      else if (product.images && Array.isArray(product.images)) {
+        images = product.images.map(img => 
+          typeof img === 'string' ? img : (img.image_path || img)
+        );
+      }
+      // Priorité 3: image seule
+      else if (product.image) {
+        images = [product.image];
+      }
+      
+      // Nettoyer les images (enlever les null/undefined)
+      images = images.filter(img => img && typeof img === 'string');
+      
+      return {
+        ...product,
+        // S'assurer que toutes les propriétés existent
+        id: product.id || 0,
+        name: product.name || 'Sans nom',
+        sku: product.sku || 'N/A',
+        price: product.price || 0,
+        stock: product.stock || 0,
+        brand: product.brand || '',
+        category: product.category || { name: 'Non catégorisé' },
+        // Images formatées
+        displayImages: images,
+        displayImage: images[0] || 'https://via.placeholder.com/50',
+        hasMultipleImages: images.length > 1,
+        imagesCount: images.length
+      };
+    });
+    
+    console.log('📦 Produits formatés:', formatted);
+    setLocalProducts(formatted);
+  }, [products]);
+
+  // Filtrer par recherche
+  const filteredProducts = localProducts.filter(p => 
     p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -6615,13 +6667,34 @@ const ProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
     setShowGallery(true);
   };
 
+  // Si aucun produit
+  if (!localProducts || localProducts.length === 0) {
+    return (
+      <div className="admin-table-container">
+        <div className="table-header">
+          <button onClick={onBack} className="back-btn">
+            <Icons.ChevronLeft size={16} /> Retour
+          </button>
+          <h2>Gestion des produits</h2>
+          <button onClick={onAdd} className="add-btn">
+            <Icons.Plus size={16} /> Nouveau produit
+          </button>
+        </div>
+        <div className="empty-state">
+          <Icons.Package size={48} />
+          <p>Aucun produit trouvé</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-table-container">
       <div className="table-header">
         <button onClick={onBack} className="back-btn">
           <Icons.ChevronLeft size={16} /> Retour
         </button>
-        <h2>Gestion des produits</h2>
+        <h2>Gestion des produits ({localProducts.length})</h2>
         <button onClick={onAdd} className="add-btn">
           <Icons.Plus size={16} /> Nouveau produit
         </button>
@@ -6635,95 +6708,120 @@ const ProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        {searchTerm && (
+          <button className="clear-search" onClick={() => setSearchTerm('')}>
+            <Icons.X size={14} />
+          </button>
+        )}
       </div>
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>Nom</th>
-            <th>SKU</th>
-            <th>Prix</th>
-            <th>Stock</th>
-            <th>Catégorie</th>
-            <th>Marque</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.length === 0 ? (
+      <div className="table-responsive">
+        <table className="admin-table">
+          <thead>
             <tr>
-              <td colSpan="8" style={{ textAlign: 'center', padding: '30px' }}>
-                Aucun produit trouvé
-              </td>
+              <th>Image</th>
+              <th>Nom</th>
+              <th>SKU</th>
+              <th>Prix</th>
+              <th>Stock</th>
+              <th>Catégorie</th>
+              <th>Marque</th>
+              <th>Actions</th>
             </tr>
-          ) : (
-            filteredProducts.map(product => {
-              const images = product.images_array || 
-                           (product.images ? product.images.map(img => img.image_path) : []) ||
-                           (product.image ? [product.image] : []);
-              
-              return (
-                <tr key={product.id}>
-                  <td>
-                    <div className="product-images-cell">
-                      {images.length > 0 ? (
-                        <div className="image-stack">
-                          <img 
-                            src={images[0] || 'https://via.placeholder.com/50'} 
-                            alt={product.name} 
-                            className="product-thumb"
-                            onError={(e) => e.target.src = 'https://via.placeholder.com/50'}
-                          />
-                          {images.length > 1 && (
-                            <span className="image-count-badge" onClick={() => viewGallery(product)}>
-                              +{images.length - 1}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
+          </thead>
+          <tbody>
+            {filteredProducts.map(product => (
+              <tr key={product.id}>
+                <td>
+                  <div className="product-images-cell">
+                    {product.displayImages && product.displayImages.length > 0 ? (
+                      <div className="image-stack">
                         <img 
-                          src="https://via.placeholder.com/50?text=No+Image" 
-                          alt="No image" 
+                          src={product.displayImage} 
+                          alt={product.name} 
                           className="product-thumb"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/50?text=Erreur';
+                          }}
                         />
-                      )}
-                    </div>
-                  </td>
-                  <td>{product.name}</td>
-                  <td><code>{product.sku}</code></td>
-                  <td><strong>{product.price} MAD</strong></td>
-                  <td>
-                    <span className={`stock-badge ${
-                      product.stock < 5 ? 'critical' : 
-                      product.stock < 10 ? 'warning' : 'good'
-                    }`}>
-                      {product.stock}
+                        {product.hasMultipleImages && (
+                          <span 
+                            className="image-count-badge" 
+                            onClick={() => viewGallery(product)}
+                            title="Voir toutes les images"
+                          >
+                            +{product.imagesCount - 1}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <img 
+                        src="https://via.placeholder.com/50?text=No+Image" 
+                        alt="No image" 
+                        className="product-thumb"
+                        style={{ opacity: 0.5 }}
+                      />
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <strong>{product.name}</strong>
+                  {product.featured && (
+                    <span className="featured-badge" title="Produit en vedette">
+                      <Icons.Star size={12} />
                     </span>
-                  </td>
-                  <td>{product.category?.name || '-'}</td>
-                  <td>{product.brand || '-'}</td>
-                  <td>
-                    <button onClick={() => onEdit(product)} className="edit-btn">
+                  )}
+                </td>
+                <td><code>{product.sku}</code></td>
+                <td>
+                  <strong>{typeof product.price === 'number' ? product.price.toFixed(2) : product.price} MAD</strong>
+                  {product.original_price && product.original_price > product.price && (
+                    <div style={{ fontSize: '11px', color: '#999', textDecoration: 'line-through' }}>
+                      {product.original_price} MAD
+                    </div>
+                  )}
+                </td>
+                <td>
+                  <span className={`stock-badge ${
+                    product.stock < 5 ? 'critical' : 
+                    product.stock < 10 ? 'warning' : 'good'
+                  }`}>
+                    {product.stock} unité{product.stock > 1 ? 's' : ''}
+                  </span>
+                </td>
+                <td>{product.category?.name || '-'}</td>
+                <td>{product.brand || '-'}</td>
+                <td>
+                  <div className="action-buttons-cell">
+                    <button onClick={() => onEdit(product)} className="edit-btn" title="Modifier">
                       <Icons.Eye size={14} /> Modifier
                     </button>
-                    <button onClick={() => onDelete(product.id)} className="delete-btn">
-                      <Icons.Trash size={14} /> Supprimer
-                    </button>
-                    {images.length > 1 && (
-                      <button onClick={() => viewGallery(product)} className="gallery-btn">
+                    {product.hasMultipleImages && (
+                      <button 
+                        onClick={() => viewGallery(product)} 
+                        className="gallery-btn" 
+                        title="Voir la galerie"
+                      >
                         <Icons.Image size={14} /> Galerie
                       </button>
                     )}
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+                    <button 
+                      onClick={() => onDelete(product.id)} 
+                      className="delete-btn" 
+                      title="Supprimer"
+                    >
+                      <Icons.Trash size={14} /> Supprimer
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Modal de galerie d'images */}
+      {/* Modal de galerie */}
       <AnimatePresence>
         {showGallery && selectedProduct && (
           <motion.div 
@@ -6751,22 +6849,52 @@ const ProductsTable = ({ products, onAdd, onEdit, onDelete, onBack }) => {
               </div>
               
               <div className="gallery-body">
-                {(() => {
-                  const images = selectedProduct.images_array || 
-                               (selectedProduct.images ? selectedProduct.images.map(img => img.image_path) : []) ||
-                               (selectedProduct.image ? [selectedProduct.image] : []);
-                  
-                  return images.map((img, index) => (
-                    <div key={index} className="gallery-image-item">
+                {selectedProduct.displayImages.map((img, index) => (
+                  <div key={index} className="gallery-image-item">
+                    <div className="gallery-image-wrapper">
                       <img 
                         src={img} 
                         alt={`${selectedProduct.name} ${index + 1}`}
-                        onError={(e) => e.target.src = 'https://via.placeholder.com/200?text=Erreur'}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/200?text=Image+invalide';
+                        }}
                       />
-                      {index === 0 && <span className="primary-badge">Principale</span>}
+                      {index === 0 && (
+                        <span className="primary-badge">
+                          <Icons.Star size={12} /> Principale
+                        </span>
+                      )}
                     </div>
-                  ));
-                })()}
+                    <div className="gallery-image-info">
+                      <span className="image-index">Image {index + 1}</span>
+                      <a 
+                        href={img} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="image-link"
+                        title="Ouvrir dans un nouvel onglet"
+                      >
+                        <Icons.ExternalLink size={14} />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="modal-footer">
+                <button className="cancel-btn" onClick={() => setShowGallery(false)}>
+                  Fermer
+                </button>
+                <button 
+                  className="submit-btn" 
+                  onClick={() => {
+                    setShowGallery(false);
+                    onEdit(selectedProduct);
+                  }}
+                >
+                  <Icons.Eye size={14} /> Modifier le produit
+                </button>
               </div>
             </motion.div>
           </motion.div>
