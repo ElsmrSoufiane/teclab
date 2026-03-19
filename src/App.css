@@ -14560,3 +14560,408 @@ p {
     }
   }
 }
+/* ==================== CONSISTENT BUTTON SYSTEM ==================== */
+
+/* Base button styles - no animations by default */
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-danger,
+.btn-success,
+button[type="submit"],
+.auth-box form button,
+.login-btn,
+.register-btn,
+.se-connecter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  line-height: 1;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  /* Remove any animations by default */
+  animation: none;
+}
+
+/* Primary button - main actions */
+.btn-primary,
+.auth-box form button,
+.login-btn,
+.se-connecter-btn {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(109, 158, 235, 0.2);
+}
+
+/* Secondary button - alternative actions */
+.btn-secondary,
+.register-btn {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+/* Outline button - less prominent */
+.btn-outline {
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* Danger button - destructive actions */
+.btn-danger {
+  background: #ff4444;
+  color: white;
+}
+
+/* Success button - positive actions */
+.btn-success {
+  background: #4caf50;
+  color: white;
+}
+
+/* Hover states - only on desktop */
+@media (min-width: 769px) {
+  .btn-primary:hover,
+  .auth-box form button:hover,
+  .login-btn:hover,
+  .se-connecter-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(109, 158, 235, 0.3);
+  }
+
+  .btn-secondary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .btn-outline:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+  }
+
+  .btn-danger:hover {
+    background: #ff6666;
+    transform: translateY(-2px);
+  }
+
+  .btn-success:hover {
+    background: #5cb85c;
+    transform: translateY(-2px);
+  }
+}
+
+/* Mobile/touch states */
+@media (max-width: 768px) {
+  .btn-primary:active,
+  .auth-box form button:active,
+  .login-btn:active,
+  .se-connecter-btn:active {
+    background: var(--primary-dark);
+    transform: scale(0.98);
+  }
+
+  .btn-secondary:active {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(0.98);
+  }
+
+  .btn-outline:active {
+    background: var(--bg-light);
+    transform: scale(0.98);
+  }
+
+  .btn-danger:active,
+  .btn-success:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ==================== SPECIFIC "SE CONNECTER" BUTTON ==================== */
+
+/* Header login button */
+.se-connecter-btn {
+  /* Specific styles for header version */
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 20px;
+  box-shadow: none;
+  min-height: 40px;
+}
+
+@media (min-width: 769px) {
+  .se-connecter-btn:hover {
+    background: white;
+    color: var(--primary-color);
+    border-color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@media (max-width: 768px) {
+  .se-connecter-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+  
+  .se-connecter-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.96);
+  }
+}
+
+/* Cart page login button */
+.checkout-login .login-btn {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  width: 100%;
+  margin: 10px 0;
+  padding: 14px;
+  font-size: 15px;
+}
+
+/* Auth page buttons */
+.auth-box form button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+/* Disabled state for all buttons */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-outline:disabled,
+.btn-danger:disabled,
+.btn-success:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ==================== BUTTON SIZES ==================== */
+
+/* Small buttons */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 6px;
+  min-height: 32px;
+}
+
+/* Large buttons */
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 16px;
+  border-radius: 10px;
+  min-height: 52px;
+}
+
+/* Full width buttons */
+.btn-block {
+  width: 100%;
+}
+
+/* Icon only buttons */
+.btn-icon-only {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.btn-icon-only.btn-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.btn-icon-only.btn-lg {
+  width: 48px;
+  height: 48px;
+}
+
+/* ==================== BUTTON GROUPS ==================== */
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ==================== FIX FOR SPECIFIC PAGES ==================== */
+
+/* Fix for cart page login button that wasn't showing */
+.cart-summary .checkout-login {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.cart-summary .checkout-login p {
+  margin-bottom: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+.cart-summary .login-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 14px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.cart-summary .login-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .cart-summary .login-btn {
+    padding: 16px;
+    font-size: 16px;
+  }
+  
+  .cart-summary .login-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Fix for register link */
+.register-link {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: inherit;
+}
+
+.register-link:hover {
+  color: var(--primary-dark);
+}
+
+/* ==================== LOADING STATE ==================== */
+
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: button-spin 0.6s linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== RESPONSIVE BUTTONS ==================== */
+
+@media (max-width: 768px) {
+  /* Stack buttons on mobile */
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-group .btn-primary,
+  .btn-group .btn-secondary,
+  .btn-group .btn-outline {
+    width: 100%;
+  }
+  
+  /* Make buttons easier to tap */
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .btn-danger,
+  .btn-success,
+  .se-connecter-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+  
+  /* Full width for auth buttons */
+  .auth-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .auth-actions .btn-primary,
+  .auth-actions .btn-secondary {
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .se-connecter-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+  
+  .btn-icon-only {
+    width: 36px;
+    height: 36px;
+  }
+}
