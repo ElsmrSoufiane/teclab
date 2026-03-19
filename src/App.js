@@ -6734,6 +6734,7 @@ const OrdersTable = ({ orders, onStatusChange, onRefresh, onView, onBack, curren
 
 // ==================== PRODUCTS TABLE ROBUSTE ====================
 // ==================== PRODUCTS TABLE COMPLETE AVEC PAGINATION ====================
+// ==================== PRODUCTS TABLE COMPONENT CORRIGÉ ====================
 const ProductsTable = ({ 
   products, 
   categories, 
@@ -6744,7 +6745,8 @@ const ProductsTable = ({
   onBack, 
   currentPage, 
   totalPages, 
-  onPageChange 
+  onPageChange,
+  loading 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -6754,35 +6756,28 @@ const ProductsTable = ({
   // Mettre à jour les produits locaux quand les props changent
   useEffect(() => {
     console.log('📦 Produits reçus dans tableau:', products);
-    console.log('📦 Page actuelle:', currentPage);
-    console.log('📦 Total pages:', totalPages);
     
     // Formater les produits pour s'assurer qu'ils ont une structure cohérente
     const formatted = (products || []).map(product => {
       // Extraire les images de manière sécurisée
       let images = [];
       
-      // Priorité 1: images_array (format simplifié)
       if (product.images_array && Array.isArray(product.images_array)) {
         images = product.images_array;
       }
-      // Priorité 2: images (relation complète)
       else if (product.images && Array.isArray(product.images)) {
         images = product.images.map(img => 
           typeof img === 'string' ? img : (img.image_path || img)
         );
       }
-      // Priorité 3: image seule
       else if (product.image) {
         images = [product.image];
       }
       
-      // Nettoyer les images (enlever les null/undefined)
       images = images.filter(img => img && typeof img === 'string');
       
       return {
         ...product,
-        // S'assurer que toutes les propriétés existent
         id: product.id || 0,
         name: product.name || 'Sans nom',
         sku: product.sku || 'N/A',
@@ -6790,7 +6785,6 @@ const ProductsTable = ({
         stock: product.stock || 0,
         brand: product.brand || '',
         category: product.category || { name: 'Non catégorisé' },
-        // Images formatées
         displayImages: images,
         displayImage: images[0] || 'https://via.placeholder.com/50',
         hasMultipleImages: images.length > 1,
@@ -6798,9 +6792,8 @@ const ProductsTable = ({
       };
     });
     
-    console.log('📦 Produits formatés:', formatted);
     setLocalProducts(formatted);
-  }, [products, currentPage]);
+  }, [products]);
 
   // Filtrer par recherche
   const filteredProducts = localProducts.filter(p => 
@@ -6814,7 +6807,44 @@ const ProductsTable = ({
     setShowGallery(true);
   };
 
-  // Si aucun produit
+  const handleAdd = () => {
+    // ✅ Réinitialiser la recherche quand on ajoute
+    setSearchTerm('');
+    onAdd();
+  };
+
+  const handleEdit = (product) => {
+    // ✅ Réinitialiser la recherche quand on modifie
+    setSearchTerm('');
+    onEdit(product);
+  };
+
+  const handleDelete = (id) => {
+    // ✅ Réinitialiser la recherche quand on supprime
+    setSearchTerm('');
+    onDelete(id);
+  };
+
+  if (loading) {
+    return (
+      <div className="admin-table-container">
+        <div className="table-header">
+          <button onClick={onBack} className="back-btn">
+            <Icons.ChevronLeft size={16} /> Retour
+          </button>
+          <h2>Gestion des produits</h2>
+          <button onClick={handleAdd} className="add-btn">
+            <Icons.Plus size={16} /> Nouveau produit
+          </button>
+        </div>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Chargement des produits...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!localProducts || localProducts.length === 0) {
     return (
       <div className="admin-table-container">
@@ -6823,7 +6853,7 @@ const ProductsTable = ({
             <Icons.ChevronLeft size={16} /> Retour
           </button>
           <h2>Gestion des produits</h2>
-          <button onClick={onAdd} className="add-btn">
+          <button onClick={handleAdd} className="add-btn">
             <Icons.Plus size={16} /> Nouveau produit
           </button>
         </div>
@@ -6844,10 +6874,10 @@ const ProductsTable = ({
         <h2>
           Gestion des produits 
           <span className="product-count-badge">
-            {localProducts.length} sur {totalPages * 20 || localProducts.length}
+            {filteredProducts.length} / {localProducts.length} affichés
           </span>
         </h2>
-        <button onClick={onAdd} className="add-btn">
+        <button onClick={handleAdd} className="add-btn">
           <Icons.Plus size={16} /> Nouveau produit
         </button>
       </div>
@@ -6959,7 +6989,7 @@ const ProductsTable = ({
                   <td>{product.brand || '-'}</td>
                   <td>
                     <div className="action-buttons-cell">
-                      <button onClick={() => onEdit(product)} className="edit-btn" title="Modifier">
+                      <button onClick={() => handleEdit(product)} className="edit-btn" title="Modifier">
                         <Icons.Eye size={14} /> Modifier
                       </button>
                       {product.hasMultipleImages && (
@@ -6972,7 +7002,7 @@ const ProductsTable = ({
                         </button>
                       )}
                       <button 
-                        onClick={() => onDelete(product.id)} 
+                        onClick={() => handleDelete(product.id)} 
                         className="delete-btn" 
                         title="Supprimer"
                       >
@@ -7006,7 +7036,6 @@ const ProductsTable = ({
             <div className="page-numbers">
               {[...Array(totalPages)].map((_, i) => {
                 const pageNum = i + 1;
-                // Afficher seulement quelques pages pour éviter l'encombrement
                 if (
                   pageNum === 1 ||
                   pageNum === totalPages ||
@@ -7112,7 +7141,7 @@ const ProductsTable = ({
                   className="submit-btn" 
                   onClick={() => {
                     setShowGallery(false);
-                    onEdit(selectedProduct);
+                    handleEdit(selectedProduct);
                   }}
                 >
                   <Icons.Eye size={14} /> Modifier le produit
@@ -8456,7 +8485,8 @@ const AdminDashboardPage = ({ navigate }) => {
       }
     } else {
       setEditingItem(null);
-      
+      // Dans handleSubmit, modifiez la partie PUT
+
       if (type === 'product') {
         setFormData({
           name: '',
