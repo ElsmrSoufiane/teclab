@@ -14965,3 +14965,179 @@ button:disabled {
     height: 36px;
   }
 }
+/* ==================== FIX FOR "SE CONNECTER" BUTTON ANIMATION ==================== */
+
+/* Remove animation from all buttons by default */
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-danger,
+.btn-success,
+.se-connecter-btn,
+.login-btn,
+.register-btn,
+.auth-box form button,
+.checkout-login .login-btn,
+.cart-summary .login-btn,
+.coupons-page .btn-primary,
+.auth-required-coupons .btn-primary {
+  animation: none !important;
+  transition: all 0.2s ease;
+}
+
+/* Ensure buttons are visible in coupons page */
+.coupons-page .btn-primary,
+.auth-required-coupons .btn-primary {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+.auth-required-coupons .btn-primary:hover {
+  background: var(--primary-dark) !important;
+}
+
+/* Fix for cart page login button */
+.cart-summary .login-btn {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 10px 0;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Fix for auth-required section in coupons page */
+.auth-required-coupons {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f9f9f9;
+  border-radius: 16px;
+  margin: 40px 0;
+  border: 1px solid #e0e0e0;
+}
+
+.auth-required-coupons svg {
+  stroke: #999;
+  margin-bottom: 20px;
+}
+
+.auth-required-coupons h2 {
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 24px;
+}
+
+.auth-required-coupons p {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.auth-buttons .btn-primary {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(109, 158, 235, 0.3);
+}
+
+.auth-buttons .btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.auth-buttons .btn-secondary {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.auth-buttons .btn-secondary:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Fix for any invisible buttons */
+button[style*="display: none"] {
+  display: inline-flex !important;
+}
+
+/* Ensure buttons are visible on colored backgrounds */
+.btn-primary {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Mobile fixes */
+@media (max-width: 768px) {
+  .auth-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .auth-buttons .btn-primary,
+  .auth-buttons .btn-secondary {
+    width: 100%;
+    max-width: 280px;
+    padding: 16px;
+  }
+  
+  .cart-summary .login-btn {
+    padding: 16px;
+    font-size: 16px;
+  }
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+  .auth-required-coupons {
+    padding: 40px 15px;
+  }
+  
+  .auth-required-coupons h2 {
+    font-size: 20px;
+  }
+  
+  .auth-required-coupons p {
+    font-size: 14px;
+  }
+  
+  .auth-buttons .btn-primary,
+  .auth-buttons .btn-secondary {
+    max-width: 100%;
+  }
+}
