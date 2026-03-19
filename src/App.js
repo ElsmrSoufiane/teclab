@@ -8,9 +8,26 @@ import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
 
 // ==================== LOGIN PROMPT MODAL COMPONENT ====================
-const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) => {
+// ==================== LOGIN PROMPT MODAL COMPONENT (optionnel - amélioré) ====================
+const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null, context = 'favorites' }) => {
   // Don't render anything if modal is not open
   if (!isOpen) return null;
+
+  const getTitle = () => {
+    if (context === 'favorites') return 'Ajouter aux favoris';
+    return 'Ajouter au panier';
+  };
+
+  const getMessage = () => {
+    if (context === 'favorites') {
+      return productName 
+        ? `Pour ajouter « ${productName} » à vos favoris`
+        : 'Pour ajouter des produits à vos favoris';
+    }
+    return productName 
+      ? `Pour ajouter « ${productName} » à votre panier`
+      : 'Pour ajouter des articles à votre panier';
+  };
 
   return (
     <motion.div 
@@ -39,16 +56,10 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
         <h3 className="modal-title">Connexion requise</h3>
 
         <div className="modal-message">
-          {productName ? (
-            <p>
-              Pour ajouter <strong>« {productName} »</strong> à votre panier, 
-              vous devez d'abord vous connecter à votre compte.
-            </p>
-          ) : (
-            <p>
-              Vous devez être connecté pour ajouter des articles à votre panier.
-            </p>
-          )}
+          <p>
+            {getMessage()}, 
+            vous devez d'abord vous connecter à votre compte.
+          </p>
         </div>
 
         <div className="modal-options">
@@ -81,9 +92,8 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
             className="register-link"
             onClick={() => {
               onClose();
-              if (onConfirm.register) {
-                onConfirm.register();
-              }
+              // Rediriger vers la page d'inscription
+              window.location.href = '/register';
             }}
           >
             Créer un compte
@@ -93,7 +103,6 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
     </motion.div>
   );
 };
-
 // ==================== ICON COMPONENTS ====================
 // ==================== ICON COMPONENTS COMPLET ====================
 const Icons = {
@@ -618,10 +627,14 @@ const AuthProvider = ({ children }) => {
 };
 
 // ==================== FAVORITES PROVIDER ====================
+// ==================== FAVORITES PROVIDER CORRIGÉ ====================
 const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState(null);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -648,7 +661,9 @@ const FavoritesProvider = ({ children }) => {
 
   const addToFavorites = async (productId) => {
     if (!isAuthenticated) {
-      alert('Veuillez vous connecter pour ajouter aux favoris');
+      // ✅ Utiliser le modal au lieu de alert()
+      setPendingProductId(productId);
+      setShowLoginModal(true);
       return false;
     }
 
@@ -693,6 +708,20 @@ const FavoritesProvider = ({ children }) => {
 
   const favoritesCount = favorites.length;
 
+  const handleLoginConfirm = () => {
+    if (pendingProductId) {
+      // Sauvegarder l'intention d'ajouter aux favoris après connexion
+      localStorage.setItem('pending_favorite', pendingProductId);
+    }
+    setShowLoginModal(false);
+    navigate('/login');
+  };
+
+  const handleModalClose = () => {
+    setShowLoginModal(false);
+    setPendingProductId(null);
+  };
+
   const value = {
     favorites,
     loading,
@@ -704,10 +733,21 @@ const FavoritesProvider = ({ children }) => {
     refreshFavorites: fetchFavorites
   };
 
-  return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
+  return (
+    <FavoritesContext.Provider value={value}>
+      {children}
+      <LoginPromptModal 
+        isOpen={showLoginModal}
+        onClose={handleModalClose}
+        onConfirm={handleLoginConfirm}
+        productName={pendingProductId ? "ce produit" : null}
+      />
+    </FavoritesContext.Provider>
+  );
 };
 
 // ==================== CART PROVIDER ====================
+// ==================== CART PROVIDER (déjà correct) ====================
 const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -889,6 +929,193 @@ const CartProvider = ({ children }) => {
 };
 
 // ==================== PRODUCT PROVIDER ====================
+// ==================== PRODUCT PROVIDER COMPLET ====================
+// ==================== PRODUCT CARD WITH PRO DISCOUNT CORRIGÉ ====================
+
+// ==================== COUPON PROVIDER ====================
+const CouponProvider = ({ children }) => {
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0);
+  const { isAuthenticated, user } = useAuth();
+
+  const fetchCoupons = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/coupons');
+      if (response.data.success && response.data.data) {
+        let couponsData = response.data.data;
+        
+        if (isAuthenticated && user) {
+          couponsData = couponsData.filter(coupon => 
+            coupon.customer_id === user.id
+          );
+        } else {
+          couponsData = [];
+        }
+        
+        setCoupons(couponsData);
+      }
+    } catch (err) {
+      console.error('Failed to fetch coupons:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCoupons();
+    } else {
+      setCoupons([]);
+    }
+  }, [isAuthenticated, user?.id]);
+
+  const validateCoupon = async (code, orderAmount) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/coupons/validate', {
+        code,
+        order_amount: orderAmount
+      });
+      
+      if (response.data.success && response.data.data) {
+        const { coupon, discount: discountAmount } = response.data.data;
+        setAppliedCoupon(coupon);
+        setDiscount(discountAmount);
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Invalid coupon');
+      }
+    } catch (err) {
+      console.error('Failed to validate coupon:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscount(0);
+  };
+
+  const couponsCount = coupons.length;
+
+  const value = {
+    coupons,
+    loading,
+    couponsCount,
+    appliedCoupon,
+    discount,
+    validateCoupon,
+    removeCoupon,
+    refreshCoupons: fetchCoupons
+  };
+
+  return <CouponContext.Provider value={value}>{children}</CouponContext.Provider>;
+};
+
+// ==================== COMPONENTS ====================
+
+// Carousel Component
+const Carousel = () => {
+  const [offers, setOffers] = useState([
+    {
+      id: 1,
+      title: 'Livraison Gratuite',
+      subtitle: 'Pour toute commande > 1000DH',
+      image: 'https://www.teclab.ma/storage/products/generated-image-c96cf929-90af-4249-aced-bea1c63d6f5d.png',
+      bgColor: '#6d9eeb',
+      textColor: '#ffffff'
+    },
+    {
+      id: 2,
+      title: 'Promotion Spéciale',
+      subtitle: 'Jusqu\'à -25% sur une sélection',
+      image: 'https://www.teclab.ma/storage/products/generated-image-7aeac712-54fd-49ab-a84e-62610d086010.png',
+      bgColor: '#ff6b6b',
+      textColor: '#ffffff'
+    },
+    {
+      id: 3,
+      title: 'Nouveaux Produits',
+      subtitle: 'Découvrez notre nouvelle gamme',
+      image: 'https://www.teclab.ma/storage/products/generated-image-f19f78ff-6f6e-46de-9f9d-21a88cdea097.png',
+      bgColor: '#4ecdc4',
+      textColor: '#ffffff'
+    }
+  ]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % offers.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="carousel-container">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          className="carousel-slide"
+          style={{ backgroundColor: offers[currentIndex].bgColor }}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="carousel-content">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ color: offers[currentIndex].textColor }}
+            >
+              {offers[currentIndex].title}
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              style={{ color: offers[currentIndex].textColor }}
+            >
+              {offers[currentIndex].subtitle}
+            </motion.p>
+            <motion.button 
+              className="carousel-btn"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              En savoir plus
+            </motion.button>
+          </div>
+          <motion.div 
+            className="carousel-image"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <img src={offers[currentIndex].image} alt={offers[currentIndex].title} />
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+      
+      <button className="carousel-nav carousel-prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}>
+        <Icons.ChevronLeft />
+      </button>
+      <button className="carousel-nav carousel-next" onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}>
+        <Icons.ChevronRight />
+      </button>
+    </div>
+  );
+};
 // ==================== PRODUCT PROVIDER COMPLET ====================
 const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
@@ -1116,193 +1343,9 @@ const ProductProvider = ({ children }) => {
     </ProductContext.Provider>
   );
 };
-// ==================== COUPON PROVIDER ====================
-const CouponProvider = ({ children }) => {
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [discount, setDiscount] = useState(0);
-  const { isAuthenticated, user } = useAuth();
-
-  const fetchCoupons = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get('/coupons');
-      if (response.data.success && response.data.data) {
-        let couponsData = response.data.data;
-        
-        if (isAuthenticated && user) {
-          couponsData = couponsData.filter(coupon => 
-            coupon.customer_id === user.id
-          );
-        } else {
-          couponsData = [];
-        }
-        
-        setCoupons(couponsData);
-      }
-    } catch (err) {
-      console.error('Failed to fetch coupons:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchCoupons();
-    } else {
-      setCoupons([]);
-    }
-  }, [isAuthenticated, user?.id]);
-
-  const validateCoupon = async (code, orderAmount) => {
-    setLoading(true);
-    try {
-      const response = await api.post('/coupons/validate', {
-        code,
-        order_amount: orderAmount
-      });
-      
-      if (response.data.success && response.data.data) {
-        const { coupon, discount: discountAmount } = response.data.data;
-        setAppliedCoupon(coupon);
-        setDiscount(discountAmount);
-        return response.data.data;
-      } else {
-        throw new Error(response.data.error || 'Invalid coupon');
-      }
-    } catch (err) {
-      console.error('Failed to validate coupon:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-    setDiscount(0);
-  };
-
-  const couponsCount = coupons.length;
-
-  const value = {
-    coupons,
-    loading,
-    couponsCount,
-    appliedCoupon,
-    discount,
-    validateCoupon,
-    removeCoupon,
-    refreshCoupons: fetchCoupons
-  };
-
-  return <CouponContext.Provider value={value}>{children}</CouponContext.Provider>;
-};
-
-// ==================== COMPONENTS ====================
-
-// Carousel Component
-const Carousel = () => {
-  const [offers, setOffers] = useState([
-    {
-      id: 1,
-      title: 'Livraison Gratuite',
-      subtitle: 'Pour toute commande > 1000DH',
-      image: 'https://www.teclab.ma/storage/products/generated-image-c96cf929-90af-4249-aced-bea1c63d6f5d.png',
-      bgColor: '#6d9eeb',
-      textColor: '#ffffff'
-    },
-    {
-      id: 2,
-      title: 'Promotion Spéciale',
-      subtitle: 'Jusqu\'à -25% sur une sélection',
-      image: 'https://www.teclab.ma/storage/products/generated-image-7aeac712-54fd-49ab-a84e-62610d086010.png',
-      bgColor: '#ff6b6b',
-      textColor: '#ffffff'
-    },
-    {
-      id: 3,
-      title: 'Nouveaux Produits',
-      subtitle: 'Découvrez notre nouvelle gamme',
-      image: 'https://www.teclab.ma/storage/products/generated-image-f19f78ff-6f6e-46de-9f9d-21a88cdea097.png',
-      bgColor: '#4ecdc4',
-      textColor: '#ffffff'
-    }
-  ]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % offers.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="carousel-container">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          className="carousel-slide"
-          style={{ backgroundColor: offers[currentIndex].bgColor }}
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -100 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="carousel-content">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              style={{ color: offers[currentIndex].textColor }}
-            >
-              {offers[currentIndex].title}
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              style={{ color: offers[currentIndex].textColor }}
-            >
-              {offers[currentIndex].subtitle}
-            </motion.p>
-            <motion.button 
-              className="carousel-btn"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              En savoir plus
-            </motion.button>
-          </div>
-          <motion.div 
-            className="carousel-image"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <img src={offers[currentIndex].image} alt={offers[currentIndex].title} />
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
-      
-      <button className="carousel-nav carousel-prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}>
-        <Icons.ChevronLeft />
-      </button>
-      <button className="carousel-nav carousel-next" onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}>
-        <Icons.ChevronRight />
-      </button>
-    </div>
-  );
-};
-
 // Product Card Component
 // ==================== PRODUCT CARD WITH PRO DISCOUNT ====================
+// ==================== PRODUCT CARD WITH PRO DISCOUNT CORRIGÉ ====================
 const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
@@ -1350,7 +1393,8 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
     
     setFavoriteLoading(true);
     try {
-      await onToggleFavorite(product.id, isFavorite);
+      // ✅ Passer le nom du produit pour l'afficher dans le modal
+      await onToggleFavorite(product.id, isFavorite, product.name);
     } finally {
       setFavoriteLoading(false);
     }
@@ -1476,7 +1520,6 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
     </motion.div>
   );
 };
-
 // ==================== RATING COMPONENTS ====================
 
 // Review Star Display Component
@@ -4427,6 +4470,7 @@ const CartPage = ({ navigate }) => {
 };
 
 // ==================== LOGIN PAGE ====================
+// ==================== LOGIN PAGE CORRIGÉ ====================
 const LoginPage = ({ navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -4443,7 +4487,22 @@ const LoginPage = ({ navigate }) => {
     try {
       await login(email, password);
       
+      // ✅ Vérifier s'il y a un favori en attente
+      const pendingFavorite = localStorage.getItem('pending_favorite');
+      // ✅ Vérifier s'il y a un article de panier en attente
       const pendingItem = localStorage.getItem('pending_cart_item');
+      
+      if (pendingFavorite) {
+        try {
+          const favoriteData = JSON.parse(pendingFavorite);
+          await api.post(`/favorites/${favoriteData.product_id}`);
+          localStorage.removeItem('pending_favorite');
+          alert(`✅ "${favoriteData.product_name || 'Produit'}" ajouté à vos favoris !`);
+        } catch (err) {
+          console.error('Failed to add pending favorite:', err);
+        }
+      }
+      
       if (pendingItem) {
         try {
           const item = JSON.parse(pendingItem);
@@ -4512,7 +4571,6 @@ const LoginPage = ({ navigate }) => {
     </motion.div>
   );
 };
-
 // ==================== REGISTER PAGE ====================
 const RegisterPage = ({ navigate }) => {
   const [formData, setFormData] = useState({
