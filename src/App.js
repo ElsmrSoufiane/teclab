@@ -46,7 +46,7 @@ const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null }) =>
             </p>
           ) : (
             <p>
-              Pour ajouter ce produit à vos favoris, vous devez d'abord vous connecter à votre compte.
+              Vous devez être connecté pour ajouter des articles à votre panier.
             </p>
           )}
         </div>
@@ -617,12 +617,10 @@ const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// ==================== FAVORITES PROVIDER MODIFIÉ ====================
+// ==================== FAVORITES PROVIDER ====================
 const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [pendingProductId, setPendingProductId] = useState(null);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -650,8 +648,7 @@ const FavoritesProvider = ({ children }) => {
 
   const addToFavorites = async (productId) => {
     if (!isAuthenticated) {
-      setPendingProductId(productId);
-      setShowLoginModal(true);
+      alert('Veuillez vous connecter pour ajouter aux favoris');
       return false;
     }
 
@@ -683,12 +680,6 @@ const FavoritesProvider = ({ children }) => {
   };
 
   const toggleFavorite = async (productId, isFavorite) => {
-    if (!isAuthenticated) {
-      setPendingProductId(productId);
-      setShowLoginModal(true);
-      return false;
-    }
-    
     if (isFavorite) {
       return await removeFromFavorites(productId);
     } else {
@@ -702,19 +693,6 @@ const FavoritesProvider = ({ children }) => {
 
   const favoritesCount = favorites.length;
 
-  const handleLoginConfirm = (navigate) => {
-    if (pendingProductId) {
-      localStorage.setItem('pending_favorite', pendingProductId);
-    }
-    setShowLoginModal(false);
-    navigate('/login');
-  };
-
-  const handleModalClose = () => {
-    setShowLoginModal(false);
-    setPendingProductId(null);
-  };
-
   const value = {
     favorites,
     loading,
@@ -723,11 +701,7 @@ const FavoritesProvider = ({ children }) => {
     removeFromFavorites,
     toggleFavorite,
     checkIsFavorite,
-    refreshFavorites: fetchFavorites,
-    showLoginModal,
-    handleLoginConfirm,
-    handleModalClose,
-    pendingProductId
+    refreshFavorites: fetchFavorites
   };
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
@@ -898,16 +872,18 @@ const CartProvider = ({ children }) => {
     updateQuantity,
     removeFromCart,
     clearCart,
-    refreshCart: fetchCart,
-    showLoginModal,
-    handleLoginConfirm,
-    handleModalClose,
-    pendingProduct
+    refreshCart: fetchCart
   };
 
   return (
     <CartContext.Provider value={value}>
       {children}
+      <LoginPromptModal 
+        isOpen={showLoginModal}
+        onClose={handleModalClose}
+        onConfirm={(navigate) => handleLoginConfirm(navigate)}
+        productName={pendingProduct?.product?.name}
+      />
     </CartContext.Provider>
   );
 };
@@ -4450,7 +4426,7 @@ const CartPage = ({ navigate }) => {
   );
 };
 
-// ==================== LOGIN PAGE MODIFIÉE ====================
+// ==================== LOGIN PAGE ====================
 const LoginPage = ({ navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -4458,7 +4434,6 @@ const LoginPage = ({ navigate }) => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const { addToCart } = useCart();
-  const { addToFavorites } = useFavorites();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -4468,20 +4443,6 @@ const LoginPage = ({ navigate }) => {
     try {
       await login(email, password);
       
-      // Vérifier s'il y a un favori en attente
-      const pendingFavoriteId = localStorage.getItem('pending_favorite');
-      if (pendingFavoriteId) {
-        try {
-          await addToFavorites(parseInt(pendingFavoriteId));
-          localStorage.removeItem('pending_favorite');
-          alert('Produit ajouté à vos favoris !');
-          navigate('/wishlist');
-        } catch (err) {
-          console.error('Failed to add pending favorite:', err);
-        }
-      }
-      
-      // Vérifier s'il y a un article de panier en attente
       const pendingItem = localStorage.getItem('pending_cart_item');
       if (pendingItem) {
         try {
@@ -4494,7 +4455,7 @@ const LoginPage = ({ navigate }) => {
           console.error('Failed to add pending item:', err);
           navigate('/');
         }
-      } else if (!pendingFavoriteId) {
+      } else {
         navigate('/');
       }
     } catch (err) {
@@ -9106,8 +9067,7 @@ const AdminDashboardPage = ({ navigate }) => {
 // please refer to the previous messages in our conversation.
 // Due to length constraints, I'm including only the main App function below.
 
-// ==================== MAIN APP MODIFIÉ ====================
-// ==================== MAIN APP CORRIGÉ ====================
+// ==================== MAIN APP ====================
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showBackToTop, setShowBackToTop] = useState(false);
