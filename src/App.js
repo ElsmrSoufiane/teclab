@@ -9107,25 +9107,10 @@ const AdminDashboardPage = ({ navigate }) => {
 // Due to length constraints, I'm including only the main App function below.
 
 // ==================== MAIN APP MODIFIÉ ====================
+// ==================== MAIN APP CORRIGÉ ====================
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  
-  // Récupérer les états du contexte Favorites
-  const { 
-    showLoginModal: showFavoritesModal, 
-    handleLoginConfirm: handleFavoritesLoginConfirm, 
-    handleModalClose: handleFavoritesModalClose,
-    pendingProductId 
-  } = useFavorites();
-  
-  // Récupérer les états du contexte Cart
-  const { 
-    showLoginModal: showCartModal, 
-    handleLoginConfirm: handleCartLoginConfirm, 
-    handleModalClose: handleCartModalClose,
-    pendingProduct 
-  } = useCart();
 
   const navigate = (path) => {
     window.history.pushState({}, '', path);
@@ -9218,22 +9203,6 @@ function App() {
                     {renderPage()}
                   </main>
                   <Footer navigate={navigate} />
-                  
-                  {/* Modal pour les favoris */}
-                  <LoginPromptModal 
-                    isOpen={showFavoritesModal}
-                    onClose={handleFavoritesModalClose}
-                    onConfirm={(navigate) => handleFavoritesLoginConfirm(navigate)}
-                    productName={null}
-                  />
-                  
-                  {/* Modal pour le panier */}
-                  <LoginPromptModal 
-                    isOpen={showCartModal}
-                    onClose={handleCartModalClose}
-                    onConfirm={(navigate) => handleCartLoginConfirm(navigate)}
-                    productName={pendingProduct?.product?.name}
-                  />
                   
                   <AnimatePresence>
                     {showBackToTop && (
