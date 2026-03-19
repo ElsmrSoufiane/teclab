@@ -14020,3 +14020,169 @@ p {
     cursor: pointer;
   }
 }
+/* ==================== IMPROVED MOBILE CART ICON ==================== */
+
+/* Base cart icon styles (already in your CSS, enhanced for mobile) */
+.cart-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Enhanced mobile cart icon */
+@media (max-width: 768px) {
+  .cart-icon {
+    /* Larger touch target */
+    min-width: 48px;
+    min-height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: background 0.2s ease;
+  }
+
+  .cart-icon:active {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(0.95);
+  }
+
+  .cart-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: white !important;
+    stroke-width: 2;
+  }
+
+  /* Improved counter badge */
+  .cart-icon .count {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 20px;
+    height: 20px;
+    background: #ff3b30; /* Brighter red */
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border: 2px solid var(--primary-color); /* Contrast border */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  /* For double-digit numbers */
+  .cart-icon .count.count-double {
+    min-width: 24px;
+    font-size: 10px;
+    padding: 0 4px;
+  }
+
+  /* For triple-digit numbers (99+) */
+  .cart-icon .count.count-triple {
+    min-width: 28px;
+    font-size: 9px;
+    padding: 0 3px;
+  }
+
+  /* Animation when count updates */
+  .cart-icon .count.update {
+    animation: cartPulse 0.3s ease-out;
+  }
+
+  @keyframes cartPulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+      background: #ff5252;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/* Even smaller screens (iPhone SE, etc.) */
+@media (max-width: 380px) {
+  .cart-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .cart-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .cart-icon .count {
+    top: 0px;
+    right: 0px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    border-width: 1.5px;
+  }
+
+  .cart-icon .count.count-double {
+    min-width: 22px;
+  }
+
+  .cart-icon .count.count-triple {
+    min-width: 26px;
+    font-size: 8px;
+  }
+}
+
+/* For devices with notches/dynamic island */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    .cart-icon {
+      /* Ensure it's not too close to the edge on notched phones */
+      margin-right: env(safe-area-inset-right);
+    }
+  }
+}
+
+/* Optional: Add a subtle glow effect when items are added */
+.cart-icon.has-items .count {
+  box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+}
+
+/* If you want a different style for empty cart */
+.cart-icon .count.empty {
+  display: none; /* Hide when 0, or show as small dot */
+}
+
+/* Alternative: Show a small dot instead of zero */
+.cart-icon .count.zero {
+  min-width: 8px;
+  height: 8px;
+  background: #999;
+  font-size: 0;
+  padding: 0;
+  top: 5px;
+  right: 5px;
+  border: 2px solid var(--primary-color);
+}
+
+/* Style for when cart is loading */
+.cart-icon.loading .count {
+  background: #999;
+  animation: cartLoading 1s infinite;
+}
+
+@keyframes cartLoading {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
