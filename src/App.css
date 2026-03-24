@@ -16119,3 +16119,310 @@ button:disabled,
   z-index: 10 !important;
   pointer-events: none !important;
 }
+
+/* ==================== FIX FOR PRODUCT DETAIL BUTTONS - COMPACT LAYOUT ==================== */
+
+.product-detail-page .product-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin: 20px 0 30px !important;
+}
+
+/* Quantity selector - make more compact */
+.product-detail-page .quantity-selector {
+  display: inline-flex !important;
+  flex-shrink: 0 !important;
+  height: 42px !important;
+}
+
+.product-detail-page .quantity-selector button {
+  width: 38px !important;
+  height: 42px !important;
+}
+
+.product-detail-page .quantity-selector input {
+  width: 50px !important;
+  height: 42px !important;
+}
+
+/* Add to cart and buy now - more compact */
+.product-detail-page .add-to-cart-btn,
+.product-detail-page .buy-now-btn {
+  display: inline-flex !important;
+  flex-shrink: 0 !important;
+  padding: 0 16px !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  min-width: auto !important;
+  width: auto !important;
+}
+
+/* Wishlist button - more compact */
+.product-detail-page .wishlist-btn {
+  display: inline-flex !important;
+  flex-shrink: 0 !important;
+  padding: 0 14px !important;
+  height: 42px !important;
+  font-size: 13px !important;
+}
+
+/* Share button - keep square */
+.product-detail-page .share-btn {
+  display: inline-flex !important;
+  flex-shrink: 0 !important;
+  width: 42px !important;
+  height: 42px !important;
+}
+
+/* Remove any flex:1 that might be causing issues */
+.product-detail-page .add-to-cart-btn,
+.product-detail-page .buy-now-btn,
+.product-detail-page .wishlist-btn {
+  flex: 0 0 auto !important;
+}
+
+/* ==================== IF STILL NOT FITTING, USE THIS FOR SMALLER DESKTOP ==================== */
+@media (max-width: 850px) {
+  .product-detail-page .product-actions {
+    gap: 6px !important;
+  }
+  
+  .product-detail-page .add-to-cart-btn,
+  .product-detail-page .buy-now-btn {
+    padding: 0 12px !important;
+    font-size: 13px !important;
+  }
+  
+  .product-detail-page .wishlist-btn {
+    padding: 0 10px !important;
+    font-size: 12px !important;
+  }
+  
+  .product-detail-page .wishlist-btn span {
+    display: none !important;
+  }
+  
+  .product-detail-page .wishlist-btn svg {
+    margin: 0 !important;
+  }
+}
+
+/* ==================== MOBILE - STACK VERTICALLY ==================== */
+@media (max-width: 650px) {
+  .product-detail-page .product-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .product-detail-page .quantity-selector {
+    width: 100% !important;
+  }
+  
+  .product-detail-page .quantity-selector button {
+    width: 48px !important;
+  }
+  
+  .product-detail-page .quantity-selector input {
+    flex: 1 !important;
+  }
+  
+  .product-detail-page .add-to-cart-btn,
+  .product-detail-page .buy-now-btn,
+  .product-detail-page .wishlist-btn,
+  .product-detail-page .share-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  .product-detail-page .wishlist-btn span {
+    display: inline !important;
+  }
+}
+
+/* ==================== FIX BUTTONS POSITION - RESTORE ORIGINAL ==================== */
+
+/* Remove any absolute positioning or bottom alignment */
+.product-detail .product-actions,
+.product-detail-page .product-actions {
+  position: relative !important;
+  bottom: auto !important;
+  top: auto !important;
+  margin-top: 20px !important;
+  margin-bottom: 30px !important;
+}
+
+/* Make sure the product info container is not pushing buttons down */
+.product-detail .product-info,
+.product-detail-page .product-info {
+  display: block !important;
+  position: relative !important;
+}
+
+/* Reset any flex properties that might be causing vertical alignment issues */
+.product-detail-page .product-info {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+/* Ensure buttons stay at the top of their container */
+.product-detail-page .product-actions {
+  order: 0 !important;
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Remove any margin that might be pushing content down */
+.product-detail-page .product-info > * {
+  margin-top: 0 !important;
+}
+
+.product-detail-page .product-description,
+.product-detail-page .product-features,
+.product-detail-page .product-additional {
+  margin-top: 20px !important;
+}
+/* ==================== POSITION BUTTONS HIGHER ON DESKTOP ==================== */
+
+/* On desktop/large screens, move buttons up */
+@media (min-width: 769px) {
+  .product-detail-page .product-actions {
+    position: relative !important;
+    margin-top: -280px !important;
+    margin-bottom: 80px !important;
+    z-index: 5 !important;
+  }
+  
+  /* Push the description down to make space */
+  .product-detail-page .product-description,
+  .product-detail-page .product-features {
+    margin-top: 40px !important;
+  }
+}
+
+/* Keep mobile layout as is */
+@media (max-width: 768px) {
+  .product-detail-page .product-actions {
+    margin-top: 20px !important;
+    margin-bottom: 20px !important;
+    position: relative !important;
+  }
+}
+
+
+
+/* ==================== FORCE BUTTONS HIGHER ON LARGE SCREENS ==================== */
+
+@media (min-width: 992px) {
+  .product-detail-page .product-info {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+    position: relative !important;
+  }
+  
+  /* Push description and features down with less space */
+  .product-detail-page .product-description,
+  .product-detail-page .product-features {
+    margin-top: 10px !important;
+  }
+  
+  /* Make buttons appear right after stock status */
+  .product-detail-page .product-actions {
+    margin-top: 5px !important;
+    margin-bottom: 15px !important;
+    order: 0 !important;
+  }
+  
+  /* Reduce spacing between price and buttons */
+  .product-detail-page .product-stock {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Reduce spacing in price section */
+  .product-detail-page .product-price-section {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Compact the product info elements */
+  .product-detail-page .product-info h1 {
+    margin-bottom: 12px !important;
+  }
+  
+  .product-detail-page .product-meta {
+    margin-bottom: 10px !important;
+  }
+  
+  .product-detail-page .product-rating-summary {
+    margin-bottom: 12px !important;
+  }
+  
+  /* Push description after buttons */
+  .product-detail-page .product-description {
+    order: 1 !important;
+    margin-top: 20px !important;
+  }
+  
+  .product-detail-page .product-features {
+    order: 2 !important;
+  }
+  
+  .product-detail-page .product-additional {
+    order: 3 !important;
+  }
+}
+
+/* ==================== FIX MODAL CLOSE BUTTON ==================== */
+.modal-close-btn {
+  background: #f0f0f0 !important;
+  border: none !important;
+  color: #666 !important;
+  transition: all 0.2s ease !important;
+}
+
+.modal-close-btn:hover {
+  background: #e0e0e0 !important;
+  color: #333 !important;
+  transform: rotate(90deg) !important;
+}
+
+.modal-close-btn svg {
+  stroke: currentColor !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* ==================== FIX PRODUCT PAGE + AND - BUTTONS ==================== */
+/* Quantity selector buttons (+ and -) */
+.quantity-selector button {
+  background: #f5f5f5 !important;
+  border: none !important;
+  width: 44px !important;
+  height: 44px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #2c3e50 !important;
+  transition: all 0.2s ease !important;
+}
+
+.quantity-selector button:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+}
+
+.quantity-selector button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Make sure the + and - icons are visible */
+.quantity-selector button svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke: currentColor !important;
+}
