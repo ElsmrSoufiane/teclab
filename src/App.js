@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
+import React, { useState, useEffect, createContext, useContext, useRef,useCallback } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
@@ -2369,6 +2369,7 @@ const CouponsPage = ({ navigate }) => {
 
 // ==================== HEADER COMPONENT ====================
 // ==================== OPTIMIZED HEADER (No Framer Motion) ====================
+// ==================== COMPLETE WORKING HEADER COMPONENT ====================
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -2376,12 +2377,14 @@ const Header = ({ currentPath, navigate }) => {
   const [searchInput, setSearchInput] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const categoryMenuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
-  const { setSearchQuery, categories } = useProducts();
+  const { setSearchQuery, categories, setSelectedCategory, selectedCategory } = useProducts();
   const { favoritesCount } = useFavorites();
   const { couponsCount } = useCoupons();
 
+  // Detect mobile screen
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -2391,16 +2394,21 @@ const Header = ({ currentPath, navigate }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Close category menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target)) {
         setShowCategoryMenu(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        // Don't close mobile menu when clicking inside
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Handle search form submission
   const handleSearch = (e) => {
     e.preventDefault();
     setSearchQuery(searchInput);
@@ -2408,16 +2416,71 @@ const Header = ({ currentPath, navigate }) => {
     setShowSearch(false);
   };
 
+  // Handle logout
   const handleLogout = async () => {
     await logout();
     navigate('/');
     setShowMobileMenu(false);
   };
 
+  // FIXED: Category click handler - This is the key function
   const handleCategoryClick = (categoryId, categoryName) => {
+    console.log('🏷️ Category clicked:', { categoryId, categoryName });
+    
+    // Close all menus
     setShowCategoryMenu(false);
     setShowMobileMenu(false);
+    
+    // Clear any existing search query when selecting a category
+    setSearchQuery('');
+    
+    // Update selected category in context
+    if (setSelectedCategory) {
+      setSelectedCategory(categoryId);
+    }
+    
+    // Navigate to products page with category parameter
     navigate(`/products?category=${categoryId}`);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle all categories click
+  const handleAllCategoriesClick = () => {
+    console.log('🏷️ All categories clicked');
+    
+    setShowCategoryMenu(false);
+    setShowMobileMenu(false);
+    setSearchQuery('');
+    
+    if (setSelectedCategory) {
+      setSelectedCategory(null);
+    }
+    
+    navigate('/products');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle logo click
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    setShowCategoryMenu(false);
+    setShowMobileMenu(false);
+    setSearchQuery('');
+    
+    if (setSelectedCategory) {
+      setSelectedCategory(null);
+    }
+    
+    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Format count for display
+  const formatCount = (count) => {
+    if (count > 99) return '99+';
+    return count;
   };
 
   return (
@@ -2434,6 +2497,7 @@ const Header = ({ currentPath, navigate }) => {
         <div className="header-top">
           <div className="container">
             <div className="header-left">
+              {/* Mobile Menu Button */}
               <button 
                 className="menu-toggle mobile-only" 
                 onClick={() => setShowMobileMenu(true)}
@@ -2442,10 +2506,16 @@ const Header = ({ currentPath, navigate }) => {
                 <Icons.Menu />
               </button>
 
-              <a href="/" className="logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+              {/* Logo */}
+              <a 
+                href="/" 
+                className="logo" 
+                onClick={handleLogoClick}
+              >
                 <img src="https://www.teclab.ma/storage/products/partenaires/teclab-logo-320px.png" alt="TECLAB" />
               </a>
 
+              {/* Desktop Category Button */}
               {!isMobile && (
                 <button 
                   className="menu-toggle desktop-only" 
@@ -2457,6 +2527,7 @@ const Header = ({ currentPath, navigate }) => {
               )}
             </div>
 
+            {/* Desktop Search Form */}
             {!isMobile && (
               <form className="search-form desktop-only" onSubmit={handleSearch}>
                 <input 
@@ -2471,7 +2542,9 @@ const Header = ({ currentPath, navigate }) => {
               </form>
             )}
 
+            {/* Header Icons */}
             <div className="header-right">
+              {/* Mobile Search Toggle */}
               {isMobile && (
                 <button 
                   className="header-icon mobile-search-toggle"
@@ -2482,6 +2555,7 @@ const Header = ({ currentPath, navigate }) => {
                 </button>
               )}
 
+              {/* Coupons Icon */}
               <a 
                 href="/coupons" 
                 className="header-icon coupons-icon" 
@@ -2490,12 +2564,13 @@ const Header = ({ currentPath, navigate }) => {
               >
                 <Icons.Percent />
                 {isAuthenticated && couponsCount > 0 && (
-                  <span className="count coupons-count">
-                    {couponsCount}
+                  <span className={`count ${couponsCount > 99 ? 'overflow' : ''}`}>
+                    {formatCount(couponsCount)}
                   </span>
                 )}
               </a>
               
+              {/* Wishlist Icon */}
               <a 
                 href="/wishlist" 
                 className="header-icon wishlist-icon" 
@@ -2504,12 +2579,13 @@ const Header = ({ currentPath, navigate }) => {
               >
                 <Icons.Heart />
                 {isAuthenticated && favoritesCount > 0 && (
-                  <span className="count wishlist-count">
-                    {favoritesCount}
+                  <span className={`count ${favoritesCount > 99 ? 'overflow' : ''}`}>
+                    {formatCount(favoritesCount)}
                   </span>
                 )}
               </a>
               
+              {/* Cart Icon */}
               <div className="ps-cart--mini">
                 <a 
                   href="/cart" 
@@ -2518,12 +2594,13 @@ const Header = ({ currentPath, navigate }) => {
                   aria-label="Panier"
                 >
                   <Icons.ShoppingBag />
-                  <span className="count cart-count">
-                    {cartCount}
+                  <span className={`count ${cartCount > 99 ? 'overflow' : ''}`}>
+                    {formatCount(cartCount)}
                   </span>
                 </a>
               </div>
 
+              {/* Desktop User Menu */}
               {!isMobile && (
                 <div className="user-menu desktop-only">
                   <Icons.User />
@@ -2562,6 +2639,7 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         </div>
 
+        {/* Mobile Search Bar */}
         {showSearch && isMobile && (
           <div className="mobile-search-bar">
             <form onSubmit={handleSearch}>
@@ -2587,16 +2665,36 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         )}
 
+        {/* Desktop Categories Mega Menu */}
         {showCategoryMenu && !isMobile && (
           <div className="categories-mega-menu desktop-only" ref={categoryMenuRef}>
             <div className="container">
               <div className="categories-grid-header">
+                {/* All Categories Option */}
+                <div 
+                  className="category-menu-item all-categories"
+                  onClick={handleAllCategoriesClick}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="category-menu-icon">
+                    <Icons.Package size={20} />
+                  </div>
+                  <div className="category-menu-content">
+                    <h4>Toutes les catégories</h4>
+                    <span className="category-menu-count">
+                      Voir tous les produits
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Individual Categories */}
                 {categories.length > 0 ? (
                   categories.map(category => (
                     <div 
                       key={category.id}
-                      className="category-menu-item"
+                      className={`category-menu-item ${selectedCategory === category.id.toString() ? 'active' : ''}`}
                       onClick={() => handleCategoryClick(category.id, category.name)}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className="category-menu-icon">
                         <Icons.Package size={20} />
@@ -2617,9 +2715,10 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         )}
 
+        {/* Mobile Menu */}
         {showMobileMenu && (
           <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
-            <div className="mobile-menu-content" onClick={e => e.stopPropagation()}>
+            <div className="mobile-menu-content" ref={mobileMenuRef} onClick={e => e.stopPropagation()}>
               <div className="mobile-menu-header">
                 <div className="mobile-user-info">
                   {isAuthenticated ? (
@@ -2653,6 +2752,7 @@ const Header = ({ currentPath, navigate }) => {
               </div>
 
               <div className="mobile-menu-body">
+                {/* Mobile Stats */}
                 {isAuthenticated && (
                   <div className="mobile-stats">
                     <div className="stat-item" onClick={() => { setShowMobileMenu(false); navigate('/wishlist'); }}>
@@ -2670,6 +2770,7 @@ const Header = ({ currentPath, navigate }) => {
                   </div>
                 )}
 
+                {/* Navigation Links */}
                 <div className="mobile-menu-section">
                   <h4>Navigation</h4>
                   <div className="mobile-links-list">
@@ -2706,25 +2807,39 @@ const Header = ({ currentPath, navigate }) => {
                   </div>
                 </div>
 
+                {/* Categories Section */}
                 <div className="mobile-menu-section">
-                  <h4>Catégories populaires</h4>
+                  <h4>Catégories</h4>
                   <div className="mobile-categories-list">
-                    {categories.slice(0, 8).map(category => (
-                      <a 
+                    {/* All Categories Option */}
+                    <div 
+                      className="mobile-category-link all-categories"
+                      onClick={() => {
+                        handleAllCategoriesClick();
+                        setShowMobileMenu(false);
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <span className="category-name">Toutes les catégories</span>
+                      <span className="category-count">Voir tout</span>
+                    </div>
+                    
+                    {/* Individual Categories */}
+                    {categories.slice(0, 10).map(category => (
+                      <div 
                         key={category.id}
-                        href={`/products?category=${category.id}`}
-                        className="mobile-category-link"
-                        onClick={(e) => {
-                          e.preventDefault();
+                        className={`mobile-category-link ${selectedCategory === category.id.toString() ? 'active' : ''}`}
+                        onClick={() => {
+                          handleCategoryClick(category.id, category.name);
                           setShowMobileMenu(false);
-                          navigate(`/products?category=${category.id}`);
                         }}
+                        style={{ cursor: 'pointer' }}
                       >
                         <span className="category-name">{category.name}</span>
                         <span className="category-count">{category.products_count || 0}</span>
-                      </a>
+                      </div>
                     ))}
-                    {categories.length > 8 && (
+                    {categories.length > 10 && (
                       <a 
                         href="/categories"
                         className="view-all-categories"
@@ -2740,6 +2855,7 @@ const Header = ({ currentPath, navigate }) => {
                   </div>
                 </div>
 
+                {/* Account Section */}
                 {isAuthenticated && (
                   <div className="mobile-menu-section">
                     <h4>Mon compte</h4>
@@ -2788,6 +2904,7 @@ const Header = ({ currentPath, navigate }) => {
                   </div>
                 )}
 
+                {/* Info Section */}
                 <div className="mobile-menu-section">
                   <h4>Informations</h4>
                   <div className="mobile-links-list">
@@ -2814,6 +2931,7 @@ const Header = ({ currentPath, navigate }) => {
                   </div>
                 </div>
 
+                {/* Logout Button */}
                 {isAuthenticated && (
                   <button onClick={handleLogout} className="mobile-logout-btn">
                     <Icons.LogOut size={18} /> Déconnexion
@@ -2928,6 +3046,7 @@ const HomePage = ({ navigate }) => {
 
 // ==================== PRODUCTS PAGE ====================
 // ==================== PRODUCTS PAGE COMPLETE ====================
+// ==================== FIXED PRODUCTS PAGE WITH PROPER CATEGORY FILTERING ====================
 const ProductsPage = ({ navigate }) => {
   const {
     filteredProducts,
@@ -2950,7 +3069,8 @@ const ProductsPage = ({ navigate }) => {
     clearBrands,
     priceRange,
     setPriceRange,
-    getActiveFiltersCount
+    getActiveFiltersCount,
+    refreshProducts
   } = useProducts();
   
   const { addToCart } = useCart();
@@ -2961,70 +3081,163 @@ const ProductsPage = ({ navigate }) => {
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
   const [showAllBrands, setShowAllBrands] = useState(false);
 
-  // Récupérer le nom de la catégorie depuis l'URL
+  // SYNC WITH URL PARAMETERS ON MOUNT AND URL CHANGE
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const categoryId = params.get('category');
+    const search = params.get('search');
+    const sort = params.get('sort');
+    const minPrice = params.get('min_price');
+    const maxPrice = params.get('max_price');
+    const brandsParam = params.get('brands');
     
+    console.log('🔍 URL Parameters detected:', {
+      categoryId,
+      search,
+      sort,
+      minPrice,
+      maxPrice,
+      brandsParam
+    });
+    
+    // Update search query from URL
+    if (search) {
+      setSearchQuery(search);
+    }
+    
+    // Update sort from URL
+    if (sort) {
+      setSortBy(sort);
+    }
+    
+    // Update price range from URL
+    if (minPrice || maxPrice) {
+      setPriceRange({
+        min: minPrice ? parseFloat(minPrice) : 0,
+        max: maxPrice ? parseFloat(maxPrice) : 50000
+      });
+    }
+    
+    // Update brands from URL
+    if (brandsParam) {
+      const brandsArray = brandsParam.split(',');
+      // Clear existing brands and add new ones
+      clearBrands();
+      brandsArray.forEach(brand => {
+        toggleBrand(brand);
+      });
+    }
+    
+    // Update category from URL
     if (categoryId && categories.length > 0) {
+      const category = categories.find(c => c.id.toString() === categoryId);
+      if (category) {
+        console.log('✅ Setting category from URL:', category.name, 'ID:', categoryId);
+        setSelectedCategory(categoryId);
+        setSelectedCategoryName(category.name);
+      }
+    } else {
+      setSelectedCategory(null);
+      setSelectedCategoryName('');
+    }
+    
+  }, [window.location.search, categories]); // Re-run when URL changes or categories load
+
+  // UPDATE URL WHEN CATEGORY CHANGES
+  const updateURL = useCallback(() => {
+    const params = new URLSearchParams();
+    
+    if (selectedCategory) {
+      params.set('category', selectedCategory);
+    }
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+    if (sortBy && sortBy !== 'featured') {
+      params.set('sort', sortBy);
+    }
+    if (priceRange.min > 0) {
+      params.set('min_price', priceRange.min);
+    }
+    if (priceRange.max < 50000) {
+      params.set('max_price', priceRange.max);
+    }
+    if (selectedBrands.length > 0) {
+      params.set('brands', selectedBrands.join(','));
+    }
+    
+    const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+    console.log('🔄 Updating URL to:', newUrl);
+    navigate(newUrl, { replace: true });
+  }, [selectedCategory, searchQuery, sortBy, priceRange, selectedBrands, navigate]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    updateURL();
+  }, [selectedCategory, searchQuery, sortBy, priceRange.min, priceRange.max, selectedBrands, updateURL]);
+
+  // Handle category change
+  const handleCategoryChange = (categoryId) => {
+    console.log('🏷️ Category clicked:', categoryId);
+    
+    if (categoryId === null) {
+      // Clear category filter
+      setSelectedCategory(null);
+      setSelectedCategoryName('');
+    } else {
+      // Set new category
       const category = categories.find(c => c.id.toString() === categoryId);
       if (category) {
         setSelectedCategory(categoryId);
         setSelectedCategoryName(category.name);
+        console.log('✅ Category set to:', category.name);
       }
     }
-  }, [categories]);
-
-  // Mettre à jour le nom de la catégorie quand elle change
-  useEffect(() => {
-    if (selectedCategory && categories.length > 0) {
-      const category = categories.find(c => c.id.toString() === selectedCategory);
-      if (category) {
-        setSelectedCategoryName(category.name);
-      }
-    } else {
-      setSelectedCategoryName('');
-    }
-  }, [selectedCategory, categories]);
-
-  // Changer de catégorie
-  const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
+    
+    // Reset to page 1 when category changes
     setCurrentPage(1);
-    if (categoryId) {
-      navigate(`/products?category=${categoryId}`);
-    } else {
-      navigate('/products');
+  };
+
+  // Handle search with Enter key
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setCurrentPage(1);
     }
   };
 
-  // Réinitialiser tous les filtres
+  // Clear all filters
   const handleClearFilters = () => {
+    console.log('🗑️ Clearing all filters');
     clearFilters();
-    if (window.location.search) {
-      navigate('/products');
-    }
+    setSelectedCategory(null);
+    setSelectedCategoryName('');
+    setSearchQuery('');
+    setCurrentPage(1);
+    navigate('/products');
   };
 
-  // Marques à afficher (limitées à 8 si showAllBrands est false)
+  // Clear search only
+  const handleClearSearch = () => {
+    console.log('🔍 Clearing search');
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
+
+  // Displayed brands
   const displayedBrands = showAllBrands ? brands : brands.slice(0, 8);
   const hasMoreBrands = brands.length > 8;
-
-  // Nombre de filtres actifs
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <motion.div 
-      className="products-page redesigned"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
-      {/* Header avec titre et compteur */}
+    <div className="products-page redesigned">
+      {/* Header */}
       <div className="page-header modern">
         <div className="container">
           <h1>
-            {selectedCategoryName ? selectedCategoryName : 'Tous nos produits'}
+            {selectedCategoryName ? selectedCategoryName : 
+             searchQuery ? `Résultats pour "${searchQuery}"` : 
+             'Tous nos produits'}
           </h1>
           <div className="page-header-info">
             <p className="products-count">{totalProducts} produits trouvés</p>
@@ -3033,13 +3246,18 @@ const ProductsPage = ({ navigate }) => {
                 {activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}
               </span>
             )}
+            {searchQuery && (
+              <button className="clear-search-btn" onClick={handleClearSearch}>
+                <Icons.X size={14} /> Effacer la recherche
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <div className="container">
         <div className="products-layout redesigned">
-          {/* Sidebar - Filtres Desktop */}
+          {/* Sidebar Filters */}
           <aside className="sidebar redesigned">
             <div className="filter-sidebar redesigned">
               <div className="filter-header">
@@ -3051,7 +3269,7 @@ const ProductsPage = ({ navigate }) => {
                 )}
               </div>
               
-              {/* Filtre par catégories */}
+              {/* Categories Filter */}
               <div className="filter-section">
                 <h4>Catégories</h4>
                 <div className="category-list">
@@ -3074,7 +3292,7 @@ const ProductsPage = ({ navigate }) => {
                 </div>
               </div>
 
-              {/* Filtre par marques */}
+              {/* Brands Filter */}
               <div className="filter-section">
                 <div className="filter-section-header">
                   <h4>Marques</h4>
@@ -3123,7 +3341,7 @@ const ProductsPage = ({ navigate }) => {
                 </div>
               </div>
 
-              {/* Filtre par prix */}
+              {/* Price Filter */}
               <div className="filter-section">
                 <h4>Prix maximum</h4>
                 <div className="price-range">
@@ -3142,7 +3360,7 @@ const ProductsPage = ({ navigate }) => {
                 </div>
               </div>
 
-              {/* Tri */}
+              {/* Sort Filter */}
               <div className="filter-section">
                 <h4>Trier par</h4>
                 <select 
@@ -3158,7 +3376,6 @@ const ProductsPage = ({ navigate }) => {
                 </select>
               </div>
 
-              {/* Bouton réinitialiser */}
               <button className="clear-filters-btn" onClick={handleClearFilters}>
                 <Icons.X size={16} /> Réinitialiser tous les filtres
               </button>
@@ -3167,7 +3384,7 @@ const ProductsPage = ({ navigate }) => {
 
           {/* Main Content */}
           <main className="products-main redesigned">
-            {/* Barre d'outils */}
+            {/* Toolbar */}
             <div className="products-toolbar redesigned">
               <div className="search-box redesigned">
                 <Icons.Search className="search-icon" />
@@ -3176,9 +3393,10 @@ const ProductsPage = ({ navigate }) => {
                   placeholder="Rechercher un produit..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
                 />
                 {searchQuery && (
-                  <button className="clear-search" onClick={() => setSearchQuery('')}>
+                  <button className="clear-search" onClick={handleClearSearch}>
                     <Icons.X size={16} />
                   </button>
                 )}
@@ -3195,9 +3413,22 @@ const ProductsPage = ({ navigate }) => {
                 )}
               </button>
 
-              {/* Résumé des filtres actifs */}
+              {/* Active Filters Display */}
               {activeFiltersCount > 0 && (
                 <div className="active-filters">
+                  {selectedCategory && (
+                    <div className="active-filter-group">
+                      <span className="filter-label">Catégorie:</span>
+                      <div className="filter-tags">
+                        <span className="filter-tag">
+                          {selectedCategoryName}
+                          <button onClick={() => handleCategoryChange(null)}>
+                            <Icons.X size={12} />
+                          </button>
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {selectedBrands.length > 0 && (
                     <div className="active-filter-group">
                       <span className="filter-label">Marques:</span>
@@ -3213,11 +3444,24 @@ const ProductsPage = ({ navigate }) => {
                       </div>
                     </div>
                   )}
+                  {searchQuery && (
+                    <div className="active-filter-group">
+                      <span className="filter-label">Recherche:</span>
+                      <div className="filter-tags">
+                        <span className="filter-tag">
+                          "{searchQuery}"
+                          <button onClick={handleClearSearch}>
+                            <Icons.X size={12} />
+                          </button>
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Grille de produits */}
+            {/* Products Grid */}
             {loading ? (
               <div className="loading-container">
                 <div className="spinner"></div>
@@ -3303,125 +3547,112 @@ const ProductsPage = ({ navigate }) => {
         </div>
       </div>
 
-      {/* Modal de filtres mobile */}
-      <AnimatePresence>
-        {showFilter && (
-          <motion.div 
-            className="mobile-filter-modal redesigned"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowFilter(false)}
-          >
-            <motion.div 
-              className="mobile-filter-content redesigned"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25 }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="mobile-filter-header">
-                <h3>Filtres</h3>
-                <button className="close-btn" onClick={() => setShowFilter(false)}>
-                  <Icons.X />
-                </button>
-              </div>
+      {/* Mobile Filter Modal */}
+      {showFilter && (
+        <div className="mobile-filter-modal redesigned" onClick={() => setShowFilter(false)}>
+          <div className="mobile-filter-content redesigned" onClick={e => e.stopPropagation()}>
+            <div className="mobile-filter-header">
+              <h3>Filtres</h3>
+              <button className="close-btn" onClick={() => setShowFilter(false)}>
+                <Icons.X />
+              </button>
+            </div>
 
-              <div className="mobile-filter-body">
-                {/* Catégories */}
-                <div className="filter-section">
-                  <h4>Catégories</h4>
-                  <div className="category-list mobile">
+            <div className="mobile-filter-body">
+              {/* Categories */}
+              <div className="filter-section">
+                <h4>Catégories</h4>
+                <div className="category-list mobile">
+                  <button
+                    className={`category-btn ${!selectedCategory ? 'active' : ''}`}
+                    onClick={() => {
+                      handleCategoryChange(null);
+                      setShowFilter(false);
+                    }}
+                  >
+                    Toutes les catégories
+                  </button>
+                  {categories.map(cat => (
                     <button
-                      className={`category-btn ${!selectedCategory ? 'active' : ''}`}
+                      key={cat.id}
+                      className={`category-btn ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
                       onClick={() => {
-                        handleCategoryChange(null);
+                        handleCategoryChange(cat.id.toString());
+                        setShowFilter(false);
                       }}
                     >
-                      Toutes les catégories
+                      {cat.name}
+                      <span className="category-count">{cat.products_count || 0}</span>
                     </button>
-                    {categories.map(cat => (
-                      <button
-                        key={cat.id}
-                        className={`category-btn ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
-                        onClick={() => {
-                          handleCategoryChange(cat.id.toString());
-                        }}
-                      >
-                        {cat.name}
-                        <span className="category-count">{cat.products_count || 0}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Marques */}
-                <div className="filter-section">
-                  <h4>Marques</h4>
-                  <div className="brand-list mobile">
-                    {brands.map(brand => (
-                      <label key={brand} className="brand-item">
-                        <input
-                          type="checkbox"
-                          checked={selectedBrands.includes(brand)}
-                          onChange={() => toggleBrand(brand)}
-                        />
-                        <span className="brand-name">{brand}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Prix */}
-                <div className="filter-section">
-                  <h4>Prix maximum</h4>
-                  <div className="price-range">
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="50000" 
-                      value={priceRange.max}
-                      onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
-                      className="price-slider"
-                    />
-                    <div className="price-display">
-                      <span>0 MAD</span>
-                      <span className="max-price">{priceRange.max} MAD</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tri */}
-                <div className="filter-section">
-                  <h4>Trier par</h4>
-                  <select 
-                    value={sortBy} 
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="sort-select"
-                  >
-                    <option value="featured">En vedette</option>
-                    <option value="price-asc">Prix: croissant</option>
-                    <option value="price-desc">Prix: décroissant</option>
-                    <option value="name-asc">Nom: A-Z</option>
-                    <option value="name-desc">Nom: Z-A</option>
-                  </select>
+                  ))}
                 </div>
               </div>
 
-              <div className="mobile-filter-footer">
-                <button className="clear-btn" onClick={handleClearFilters}>
-                  Effacer tout
-                </button>
-                <button className="apply-btn" onClick={() => setShowFilter(false)}>
-                  Appliquer
-                </button>
+              {/* Brands */}
+              <div className="filter-section">
+                <h4>Marques</h4>
+                <div className="brand-list mobile">
+                  {brands.map(brand => (
+                    <label key={brand} className="brand-item">
+                      <input
+                        type="checkbox"
+                        checked={selectedBrands.includes(brand)}
+                        onChange={() => toggleBrand(brand)}
+                      />
+                      <span className="brand-name">{brand}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+
+              {/* Price */}
+              <div className="filter-section">
+                <h4>Prix maximum</h4>
+                <div className="price-range">
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="50000" 
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                    className="price-slider"
+                  />
+                  <div className="price-display">
+                    <span>0 MAD</span>
+                    <span className="max-price">{priceRange.max} MAD</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sort */}
+              <div className="filter-section">
+                <h4>Trier par</h4>
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="sort-select"
+                >
+                  <option value="featured">En vedette</option>
+                  <option value="price-asc">Prix: croissant</option>
+                  <option value="price-desc">Prix: décroissant</option>
+                  <option value="name-asc">Nom: A-Z</option>
+                  <option value="name-desc">Nom: Z-A</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mobile-filter-footer">
+              <button className="clear-btn" onClick={handleClearFilters}>
+                Effacer tout
+              </button>
+              <button className="apply-btn" onClick={() => setShowFilter(false)}>
+                Appliquer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 // ==================== PRODUCT DETAIL PAGE ====================
