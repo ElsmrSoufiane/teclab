@@ -15067,3 +15067,265 @@ img {
     transform: none !important;
   }
 }
+
+
+/* ==================== FIX FOR BUTTON VISIBILITY ON BLUE BACKGROUNDS ==================== */
+
+/* Fix for buttons on blue backgrounds (header, auth pages, etc.) */
+.header .menu-toggle,
+.header .menu-toggle.desktop-only {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+}
+
+.header .menu-toggle:hover,
+.header .menu-toggle.desktop-only:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Fix for "Se connecter" and "Inscription" buttons in header user dropdown */
+.user-dropdown .logout-btn,
+.user-dropdown a,
+.user-dropdown button {
+  color: #333 !important;
+  background: transparent !important;
+}
+
+.user-dropdown .logout-btn:hover,
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background: #f5f5f5 !important;
+  color: #6d9eeb !important;
+}
+
+/* Fix for "Créer un compte" link in login prompt modal */
+.register-link {
+  color: #6d9eeb !important;
+  background: transparent !important;
+  text-decoration: underline !important;
+}
+
+.register-link:hover {
+  color: #4a7fc9 !important;
+}
+
+/* Fix for "Déconnexion" button in mobile menu */
+.mobile-logout-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.mobile-logout-btn:hover {
+  background: #c82333 !important;
+}
+
+/* Fix for auth buttons in mobile menu */
+.mobile-auth-links a {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.mobile-auth-links a:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Fix for "Créer un compte" button on register page */
+.auth-box .btn-primary,
+.auth-box form button,
+.auth-box .btn-secondary {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.auth-box .btn-secondary {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+}
+
+.auth-box .btn-secondary:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+}
+
+/* Fix for login button in cart summary */
+.cart-summary .login-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cart-summary .login-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+}
+
+/* Fix for "Se connecter" button in auth-required sections */
+.auth-required .btn-primary,
+.auth-required-coupons .btn-primary {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-required .btn-secondary,
+.auth-required-coupons .btn-secondary {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-required .btn-secondary:hover,
+.auth-required-coupons .btn-secondary:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+}
+
+/* Fix for all other primary buttons (keep consistent) */
+.btn-primary,
+.add-to-cart-btn,
+.checkout-btn,
+.place-order-btn,
+.apply-coupon-btn,
+.submit-btn,
+.save-btn,
+.resend-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover,
+.add-to-cart-btn:hover,
+.checkout-btn:hover,
+.place-order-btn:hover,
+.apply-coupon-btn:hover,
+.submit-btn:hover,
+.save-btn:hover,
+.resend-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(109, 158, 235, 0.3);
+}
+
+/* Fix for secondary buttons */
+.btn-secondary,
+.cancel-btn,
+.clear-cart,
+.clear-btn {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  font-weight: 600 !important;
+}
+
+.btn-secondary:hover,
+.cancel-btn:hover,
+.clear-cart:hover,
+.clear-btn:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  transform: translateY(-2px);
+}
+
+/* Fix for danger buttons */
+.remove-favorite-btn,
+.delete-btn,
+.cancel-order-btn,
+.remove-item {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.remove-favorite-btn:hover,
+.delete-btn:hover,
+.cancel-order-btn:hover,
+.remove-item:hover {
+  background: #c82333 !important;
+  transform: translateY(-2px);
+}
+
+/* Fix for success buttons */
+.save-btn,
+.use-btn {
+  background: #28a745 !important;
+  color: white !important;
+}
+
+.save-btn:hover,
+.use-btn:hover {
+  background: #218838 !important;
+}
+
+/* Fix for filter buttons */
+.category-btn.active {
+  background: #6d9eeb !important;
+  color: white !important;
+}
+
+/* Fix for pagination active button */
+.pagination .page-number.active {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+/* Ensure text in buttons is always visible */
+button,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-success {
+  color: white !important;
+}
+
+.btn-secondary {
+  color: #6d9eeb !important;
+}
+
+.btn-secondary:hover {
+  color: white !important;
+}
+
+/* Fix for disabled buttons */
+button:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Fix for mobile touch targets */
+@media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  button {
+    min-height: 44px;
+  }
+}
