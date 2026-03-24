@@ -14582,3 +14582,376 @@ p {
     margin-left: 0;
   }
 }
+
+
+/* ==================== IMPROVED COUNT BADGES ON NAVBAR ICONS ==================== */
+
+/* Base count badge styles */
+.header-icon .count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff6b6b;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-family: 'Inter', sans-serif;
+  line-height: 1;
+  letter-spacing: -0.3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: 2px solid var(--primary-color);
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+/* For double-digit numbers (10-99) */
+.header-icon .count.count-double {
+  min-width: 22px;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+/* For triple-digit numbers (100+) */
+.header-icon .count.count-triple {
+  min-width: 28px;
+  font-size: 9px;
+  padding: 0 3px;
+}
+
+/* Hover effect */
+.header-icon:hover .count {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+}
+
+/* Animation when count updates */
+@keyframes countPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    background: #ff5252;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.header-icon .count.update {
+  animation: countPulse 0.3s ease-out;
+}
+
+/* ==================== MOBILE OPTIMIZATION (Small Screens) ==================== */
+
+@media (max-width: 768px) {
+  /* Larger touch targets for header icons */
+  .header-icon {
+    position: relative;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: background 0.2s ease;
+  }
+  
+  .header-icon:active {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(0.95);
+  }
+  
+  /* Adjust icon size for mobile */
+  .header-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.8;
+  }
+  
+  /* Count badge positioning for mobile */
+  .header-icon .count {
+    top: 2px;
+    right: 2px;
+    min-width: 20px;
+    height: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    border-width: 2px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+  
+  /* Double digit on mobile */
+  .header-icon .count.count-double {
+    min-width: 24px;
+    font-size: 9px;
+  }
+  
+  /* Triple digit on mobile */
+  .header-icon .count.count-triple {
+    min-width: 30px;
+    font-size: 8px;
+  }
+}
+
+/* ==================== EXTRA SMALL SCREENS (iPhone SE, etc.) ==================== */
+
+@media (max-width: 480px) {
+  .header-icon {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .header-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .header-icon .count {
+    top: 0px;
+    right: 0px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 9px;
+    border-width: 1.5px;
+  }
+  
+  .header-icon .count.count-double {
+    min-width: 22px;
+    font-size: 8px;
+  }
+  
+  .header-icon .count.count-triple {
+    min-width: 26px;
+    font-size: 7px;
+  }
+}
+
+/* ==================== VERY SMALL SCREENS (under 360px) ==================== */
+
+@media (max-width: 360px) {
+  .header-icon {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  .header-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .header-icon .count {
+    min-width: 16px;
+    height: 16px;
+    font-size: 8px;
+    top: -2px;
+    right: -2px;
+  }
+  
+  .header-icon .count.count-double {
+    min-width: 20px;
+    font-size: 7px;
+  }
+  
+  .header-icon .count.count-triple {
+    min-width: 24px;
+    font-size: 6px;
+  }
+}
+
+/* ==================== CART ICON SPECIFIC ==================== */
+
+.cart-icon .count {
+  background: #ff6b6b;
+  border-color: white;
+}
+
+.cart-icon:hover .count {
+  background: #ff5252;
+  transform: scale(1.08);
+}
+
+/* ==================== WISHLIST ICON SPECIFIC ==================== */
+
+.wishlist-icon .count {
+  background: #ff6b6b;
+  border-color: white;
+}
+
+.wishlist-icon.active .count {
+  background: #ff4444;
+  animation: heartBeat 0.4s ease-out;
+}
+
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ==================== COUPONS ICON SPECIFIC ==================== */
+
+.coupons-icon .count {
+  background: #ffd700;
+  color: #333;
+  border-color: white;
+}
+
+/* ==================== ALTERNATIVE STYLES FOR BETTER VISIBILITY ==================== */
+
+/* Option 1: If you want a more subtle badge */
+.header-icon .count.subtle {
+  background: #ff6b6b;
+  box-shadow: none;
+  border-width: 1px;
+  font-weight: 600;
+}
+
+/* Option 2: If you want a more prominent badge */
+.header-icon .count.prominent {
+  background: #ff4444;
+  box-shadow: 0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.2);
+  border: none;
+  font-weight: 800;
+}
+
+/* Option 3: For dark backgrounds (like your blue navbar) */
+.header-icon .count.dark-bg {
+  background: #ff6b6b;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ==================== FIX FOR COUNT BADGE POSITIONING ON DIFFERENT ICONS ==================== */
+
+/* Adjust for icons with different sizes */
+.header-icon.coupons-icon .count {
+  top: -6px;
+  right: -6px;
+}
+
+.header-icon.wishlist-icon .count {
+  top: -6px;
+  right: -6px;
+}
+
+.header-icon.cart-icon .count {
+  top: -6px;
+  right: -6px;
+}
+
+@media (max-width: 768px) {
+  .header-icon.coupons-icon .count,
+  .header-icon.wishlist-icon .count,
+  .header-icon.cart-icon .count {
+    top: -2px;
+    right: -2px;
+  }
+}
+
+/* ==================== BADGE WITH NUMBER FORMATTING ==================== */
+
+/* For numbers with more than 2 digits, show 99+ */
+.header-icon .count.many {
+  font-size: 9px;
+  min-width: 28px;
+}
+
+/* For numbers over 99, show 99+ */
+.header-icon .count.overflow {
+  min-width: 32px;
+  font-size: 9px;
+  letter-spacing: -0.5px;
+}
+
+/* ==================== ADDITIONAL TOUCH IMPROVEMENTS ==================== */
+
+@media (max-width: 768px) {
+  /* Better tap feedback */
+  .header-icon:active {
+    transform: scale(0.95);
+    transition: transform 0.05s ease;
+  }
+  
+  /* Ensure count badge is always visible */
+  .header-icon .count {
+    z-index: 10;
+    pointer-events: none;
+  }
+  
+  /* Add a subtle shadow for better visibility */
+  .header-icon .count {
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  }
+}
+
+/* ==================== DARK MODE SUPPORT ==================== */
+
+@media (prefers-color-scheme: dark) {
+  .header-icon .count {
+    border-color: #2c3e50;
+  }
+  
+  .header-icon .count.dark-bg {
+    border-color: #1a1a2e;
+  }
+}
+
+/* ==================== ANIMATION FOR ADDING ITEMS ==================== */
+
+@keyframes cartBump {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cart-icon.bump .count {
+  animation: cartBump 0.3s ease-out;
+}
+
+/* ==================== ZERO COUNT HANDLING ==================== */
+
+/* Hide count when zero (optional) */
+.header-icon .count.zero {
+  display: none;
+}
+
+/* Or show a small dot instead of zero */
+.header-icon .count.zero-dot {
+  min-width: 8px;
+  height: 8px;
+  font-size: 0;
+  padding: 0;
+  top: 2px;
+  right: 2px;
+}
+
+@media (max-width: 768px) {
+  .header-icon .count.zero-dot {
+    top: 6px;
+    right: 6px;
+  }
+}
