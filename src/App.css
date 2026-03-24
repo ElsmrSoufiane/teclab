@@ -15329,3 +15329,522 @@ button:disabled,
     min-height: 44px;
   }
 }
+
+/* ==================== COMPLETE BUTTON SYSTEM - ALL BUTTONS VISIBLE ==================== */
+
+/* ==================== BASE BUTTON STYLES ==================== */
+button,
+[class*="btn"],
+[class*="button"] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+/* ==================== PRIMARY BUTTONS (Blue background) ==================== */
+.btn-primary,
+.auth-box form button,
+.login-btn,
+.se-connecter-btn,
+.checkout-btn,
+.place-order-btn,
+.add-to-cart-btn,
+.apply-coupon-btn,
+.submit-btn,
+.save-btn,
+.resend-btn,
+.reset-filters-btn,
+.view-all,
+.refresh-btn,
+.ps-cart__footer .btn-primary,
+.coupon-footer .use-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover,
+.auth-box form button:hover,
+.login-btn:hover,
+.se-connecter-btn:hover,
+.checkout-btn:hover,
+.place-order-btn:hover,
+.add-to-cart-btn:hover,
+.apply-coupon-btn:hover,
+.submit-btn:hover,
+.save-btn:hover,
+.resend-btn:hover,
+.reset-filters-btn:hover,
+.view-all:hover,
+.refresh-btn:hover,
+.coupon-footer .use-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(109, 158, 235, 0.3);
+}
+
+.btn-primary:active,
+.auth-box form button:active,
+.login-btn:active,
+.checkout-btn:active,
+.add-to-cart-btn:active {
+  transform: translateY(0);
+}
+
+/* ==================== SECONDARY BUTTONS (White background, blue border) ==================== */
+.btn-secondary,
+.cancel-btn,
+.clear-cart,
+.clear-btn,
+.clear-filters-btn,
+.clear-all-filters,
+.clear-section,
+.show-more-brands,
+.show-less-brands,
+.back-btn,
+.close-btn,
+.modal-close-btn {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-secondary:hover,
+.cancel-btn:hover,
+.clear-cart:hover,
+.clear-btn:hover,
+.clear-filters-btn:hover,
+.clear-all-filters:hover,
+.clear-section:hover,
+.show-more-brands:hover,
+.show-less-brands:hover,
+.back-btn:hover,
+.close-btn:hover,
+.modal-close-btn:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(109, 158, 235, 0.2);
+}
+
+/* ==================== DANGER BUTTONS (Red background) ==================== */
+.remove-favorite-btn,
+.delete-btn,
+.cancel-order-btn,
+.remove-item,
+.mobile-logout-btn,
+.wishlist-btn.active {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.remove-favorite-btn:hover,
+.delete-btn:hover,
+.cancel-order-btn:hover,
+.remove-item:hover,
+.mobile-logout-btn:hover,
+.wishlist-btn.active:hover {
+  background: #c82333 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* ==================== SUCCESS BUTTONS (Green background) ==================== */
+.save-btn,
+.use-btn,
+.copy-btn.copied {
+  background: #28a745 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.save-btn:hover,
+.use-btn:hover,
+.copy-btn.copied:hover {
+  background: #218838 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== WARNING BUTTONS (Orange background) ==================== */
+.warning-btn,
+.copy-btn {
+  background: #ffc107 !important;
+  color: #333 !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.warning-btn:hover,
+.copy-btn:hover {
+  background: #e0a800 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== OUTLINE BUTTONS (Transparent background) ==================== */
+.outline-btn,
+.filter-btn,
+.category-btn:not(.active) {
+  background: transparent !important;
+  color: #4a5568 !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+}
+
+.outline-btn:hover,
+.filter-btn:hover,
+.category-btn:not(.active):hover {
+  background: #f7fafc !important;
+  border-color: #cbd5e0 !important;
+}
+
+/* ==================== HEADER SPECIFIC BUTTONS ==================== */
+.header .menu-toggle,
+.header .menu-toggle.desktop-only {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+}
+
+.header .menu-toggle:hover,
+.header .menu-toggle.desktop-only:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== USER DROPDOWN BUTTONS ==================== */
+.user-dropdown .logout-btn,
+.user-dropdown a,
+.user-dropdown button {
+  background: transparent !important;
+  color: #2c3e50 !important;
+  border: none !important;
+  padding: 10px 15px !important;
+  width: 100% !important;
+  text-align: left !important;
+  font-weight: normal !important;
+  border-radius: 0 !important;
+}
+
+.user-dropdown .logout-btn:hover,
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background: #f5f5f5 !important;
+  color: #6d9eeb !important;
+}
+
+/* ==================== MOBILE MENU BUTTONS ==================== */
+.mobile-auth-links a {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  padding: 10px 20px !important;
+  border-radius: 25px !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+}
+
+.mobile-auth-links a:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px);
+}
+
+.mobile-stats .stat-item {
+  cursor: pointer !important;
+  background: white !important;
+  color: #2c3e50 !important;
+  border: 1px solid #e0e0e0 !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-stats .stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #6d9eeb !important;
+}
+
+.mobile-links-list button,
+.mobile-category-link,
+.view-all-categories {
+  background: white !important;
+  color: #2c3e50 !important;
+  border: none !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  padding: 14px 16px !important;
+  width: 100% !important;
+  text-align: left !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-links-list button:hover,
+.mobile-category-link:hover,
+.view-all-categories:hover {
+  background: #f8f9fa !important;
+  color: #6d9eeb !important;
+  padding-left: 20px !important;
+}
+
+/* ==================== AUTH PAGES BUTTONS ==================== */
+.auth-box .btn-primary,
+.auth-box form button {
+  background: #6d9eeb !important;
+  color: white !important;
+  width: 100% !important;
+  padding: 14px !important;
+  font-size: 16px !important;
+  border-radius: 8px !important;
+}
+
+.auth-box .btn-secondary {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  width: 100% !important;
+  padding: 14px !important;
+  font-size: 16px !important;
+  border-radius: 8px !important;
+}
+
+.auth-box .btn-secondary:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+}
+
+/* ==================== WISHLIST PAGE BUTTONS ==================== */
+.wishlist-item-actions .add-to-cart-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  flex: 2 !important;
+}
+
+.wishlist-item-actions .remove-favorite-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  flex: 1 !important;
+}
+
+/* ==================== CART PAGE BUTTONS ==================== */
+.cart-summary .login-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin-top: 15px !important;
+}
+
+.cart-summary .login-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== PRODUCT DETAIL PAGE BUTTONS ==================== */
+.product-detail-page .add-to-cart-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+}
+
+.product-detail-page .buy-now-btn {
+  background: #28a745 !important;
+  color: white !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+}
+
+.product-detail-page .wishlist-btn {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+}
+
+.product-detail-page .wishlist-btn.active {
+  background: #dc3545 !important;
+  color: white !important;
+  border-color: #dc3545 !important;
+}
+
+.product-detail-page .share-btn {
+  background: #f8f9fa !important;
+  color: #2c3e50 !important;
+  border: 1px solid #e0e0e0 !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  width: 48px !important;
+}
+
+/* ==================== FILTER BUTTONS ==================== */
+.category-btn.active {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+.filter-badge {
+  background: #ff6b6b !important;
+  color: white !important;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+  font-size: 11px !important;
+  margin-left: 8px !important;
+}
+
+/* ==================== PAGINATION BUTTONS ==================== */
+.pagination .page-number.active {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+.pagination-btn {
+  background: white !important;
+  border: 1px solid #e0e0e0 !important;
+  color: #2c3e50 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+/* ==================== MODAL BUTTONS ==================== */
+.modal-actions .btn-primary {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+}
+
+.modal-actions .btn-secondary {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+}
+
+/* ==================== ADMIN BUTTONS ==================== */
+.edit-btn {
+  background: #17a2b8 !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+}
+
+.view-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+}
+
+.add-btn {
+  background: #28a745 !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+}
+
+/* ==================== REGISTER LINK ==================== */
+.register-link {
+  background: none !important;
+  border: none !important;
+  color: #6d9eeb !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  padding: 0 !important;
+  margin-left: 5px !important;
+  font-size: inherit !important;
+}
+
+.register-link:hover {
+  color: #4a7fc9 !important;
+}
+
+/* ==================== DISABLED BUTTONS ==================== */
+button:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.add-to-cart-btn:disabled,
+.checkout-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+/* ==================== RESPONSIVE TOUCH TARGETS ==================== */
+@media (max-width: 768px) {
+  button,
+  .btn-primary,
+  .btn-secondary,
+  [class*="btn"] {
+    min-height: 44px !important;
+  }
+  
+  .action-btn {
+    min-height: 36px !important;
+    min-width: 36px !important;
+  }
+}
