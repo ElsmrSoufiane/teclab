@@ -3963,6 +3963,7 @@ const ProductsPage = ({ navigate }) => {
 };
 // ==================== PRODUCT DETAIL PAGE ====================
 // ==================== PRODUCT DETAIL PAGE COMPLETE ====================
+// ==================== COMPLETE FIXED PRODUCT DETAIL PAGE ====================
 const ProductDetailPage = ({ navigate }) => {
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -3971,38 +3972,75 @@ const ProductDetailPage = ({ navigate }) => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
+  const [error, setError] = useState(null);
   const { addToCart } = useCart();
   const { getProduct } = useProducts();
   const { isAuthenticated, isPro, proDiscount } = useAuth();
   const { toggleFavorite, checkIsFavorite } = useFavorites();
 
-  useEffect(() => {
+  // Get current slug from URL
+  const getCurrentSlug = () => {
     const path = window.location.pathname;
-    const slug = path.split('/').pop();
-    loadProduct(slug);
-  }, []);
+    return path.split('/').pop();
+  };
 
+  // Load product function
   const loadProduct = async (slug) => {
     setLoading(true);
+    setError(null);
+    setProduct(null);
+    setRelated([]);
+    
     try {
+      console.log('📦 Loading product with slug:', slug);
       const data = await getProduct(slug);
-      console.log('📦 Données produit complètes:', data);
       
       if (data) {
         const productData = data.product || data;
-        console.log('🖼️ Images du produit:', productData.images);
-        console.log('🖼️ Images array:', productData.images_array);
-        
+        console.log('✅ Product loaded:', productData.name);
         setProduct(productData);
         setRelated(data.related || []);
         setIsFavorite(data.is_favorite || false);
+        // Reset states when product changes
+        setSelectedImage(0);
+        setActiveTab('description');
+        setQuantity(1);
+      } else {
+        setError('Produit non trouvé');
       }
     } catch (err) {
-      console.error('Failed to load product:', err);
+      console.error('❌ Failed to load product:', err);
+      setError('Erreur lors du chargement du produit');
     } finally {
       setLoading(false);
     }
   };
+
+  // Effect to load product when URL changes
+  useEffect(() => {
+    const slug = getCurrentSlug();
+    if (slug && slug !== 'product') {
+      loadProduct(slug);
+    } else {
+      setError('Produit invalide');
+      setLoading(false);
+    }
+  }, [window.location.pathname]); // Re-run when URL path changes
+
+  // Save scroll position when leaving
+  useEffect(() => {
+    return () => {
+      // Save scroll position for wishlist/orders if coming from there
+      const referrer = document.referrer;
+      if (referrer.includes('/wishlist')) {
+        const currentScroll = window.scrollY;
+        sessionStorage.setItem('scroll_wishlist', currentScroll);
+      } else if (referrer.includes('/orders')) {
+        const currentScroll = window.scrollY;
+        sessionStorage.setItem('scroll_orders', currentScroll);
+      }
+    };
+  }, []);
 
   const handleAddToWishlist = async () => {
     if (!isAuthenticated) {
@@ -4058,11 +4096,29 @@ const ProductDetailPage = ({ navigate }) => {
     }
   };
 
+  const handleRelatedProductClick = (slug) => {
+    console.log('🔄 Navigating to related product:', slug);
+    navigate(`/product/${slug}`);
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Chargement du produit...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="not-found">
+        <Icons.AlertCircle size={64} />
+        <h2>Erreur</h2>
+        <p>{error}</p>
+        <button className="btn-primary" onClick={() => navigate('/products')}>
+          Voir tous les produits
+        </button>
       </div>
     );
   }
@@ -4080,42 +4136,24 @@ const ProductDetailPage = ({ navigate }) => {
     );
   }
 
-  // Récupérer toutes les images du produit
+  // Get all product images
   const productImages = (() => {
-    // Priorité 1: images_array (format personnalisé)
     if (product.images_array && Array.isArray(product.images_array) && product.images_array.length > 0) {
-      console.log('📸 Utilisation de images_array:', product.images_array);
       return product.images_array;
     }
-    
-    // Priorité 2: images (relation Laravel)
     if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      console.log('📸 Utilisation de images relation:', product.images);
       return product.images.map(img => img.image_path);
     }
-    
-    // Priorité 3: image seule
     if (product.image) {
-      console.log('📸 Utilisation de image seule:', product.image);
       return [product.image];
     }
-    
-    // Fallback
-    console.log('📸 Aucune image trouvée, utilisation du placeholder');
     return ['https://via.placeholder.com/500'];
   })();
-
-  console.log('🖼️ Images à afficher:', productImages);
   
   const hasProDiscount = isPro && proDiscount > 0 && product.original_price && product.original_price > product.price;
 
   return (
-    <motion.div 
-      className="product-detail-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
+    <div className="product-detail-page">
       <div className="container">
         {/* Breadcrumb */}
         <div className="breadcrumb">
@@ -4247,43 +4285,6 @@ const ProductDetailPage = ({ navigate }) => {
               )}
             </div>
 
-            {/* Description */}
-            <div className="product-description">
-              <h3>Description</h3>
-              <p>{product.description}</p>
-            </div>
-
-            {/* Features */}
-            {product.features && (
-              <div className="product-features">
-                <h3>Caractéristiques</h3>
-                <ul>
-                  {(() => {
-                    let featuresList = [];
-                    
-                    if (Array.isArray(product.features)) {
-                      featuresList = product.features;
-                    } else if (typeof product.features === 'string') {
-                      try {
-                        const parsed = JSON.parse(product.features);
-                        featuresList = Array.isArray(parsed) ? parsed : [parsed];
-                      } catch {
-                        featuresList = [product.features];
-                      }
-                    } else if (product.features) {
-                      featuresList = [String(product.features)];
-                    }
-                    
-                    return featuresList.map((feature, index) => (
-                      <li key={index}>
-                        <Icons.Check size={14} /> {feature}
-                      </li>
-                    ));
-                  })()}
-                </ul>
-              </div>
-            )}
-
             {/* Quantity and Actions */}
             <div className="product-actions">
               <div className="quantity-selector">
@@ -4341,6 +4342,43 @@ const ProductDetailPage = ({ navigate }) => {
                 <Icons.Share2 size={18} />
               </button>
             </div>
+
+            {/* Description */}
+            <div className="product-description">
+              <h3>Description</h3>
+              <p>{product.description}</p>
+            </div>
+
+            {/* Features */}
+            {product.features && (
+              <div className="product-features">
+                <h3>Caractéristiques</h3>
+                <ul>
+                  {(() => {
+                    let featuresList = [];
+                    
+                    if (Array.isArray(product.features)) {
+                      featuresList = product.features;
+                    } else if (typeof product.features === 'string') {
+                      try {
+                        const parsed = JSON.parse(product.features);
+                        featuresList = Array.isArray(parsed) ? parsed : [parsed];
+                      } catch {
+                        featuresList = [product.features];
+                      }
+                    } else if (product.features) {
+                      featuresList = [String(product.features)];
+                    }
+                    
+                    return featuresList.map((feature, index) => (
+                      <li key={index}>
+                        <Icons.Check size={14} /> {feature}
+                      </li>
+                    ));
+                  })()}
+                </ul>
+              </div>
+            )}
 
             {/* Additional Info */}
             <div className="product-additional">
@@ -4450,13 +4488,13 @@ const ProductDetailPage = ({ navigate }) => {
           <div className="related-products">
             <h3>Produits similaires</h3>
             <div className="products-grid">
-              {related.map(product => (
+              {related.map(relatedProduct => (
                 <ProductCard 
-                  key={product.id} 
-                  product={product} 
+                  key={relatedProduct.id} 
+                  product={relatedProduct} 
                   onAddToCart={addToCart}
-                  onViewDetails={(product) => navigate(`/product/${product.slug}`)}
-                  isFavorite={checkIsFavorite(product.id)}
+                  onViewDetails={() => handleRelatedProductClick(relatedProduct.slug)}
+                  isFavorite={checkIsFavorite(relatedProduct.id)}
                   onToggleFavorite={toggleFavorite}
                   isPro={isPro}
                   proDiscount={proDiscount}
@@ -4467,7 +4505,7 @@ const ProductDetailPage = ({ navigate }) => {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
