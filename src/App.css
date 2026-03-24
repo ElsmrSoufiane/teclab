@@ -13888,3 +13888,167 @@ p {
     color: white !important;
   }
 }
+
+/* ==================== MOBILE MENU WHITE TEXT FIX ==================== */
+
+/* Force all text in mobile menu header to be white */
+.mobile-menu-header,
+.mobile-menu-header *,
+.mobile-user-info,
+.mobile-user-name,
+.mobile-user-email,
+.mobile-guest,
+.mobile-guest span,
+.mobile-auth-links,
+.mobile-auth-links a,
+.mobile-menu-header .close-btn,
+.mobile-menu-header .close-btn svg {
+  color: white !important;
+  stroke: white !important;
+}
+
+/* Mobile user avatar icon */
+.mobile-user-avatar svg {
+  stroke: white !important;
+}
+
+/* Mobile auth links */
+.mobile-auth-links a {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.mobile-auth-links a:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Close button */
+.mobile-menu-header .close-btn svg {
+  stroke: white !important;
+}
+
+/* Mobile stats section - keep text dark but icons visible */
+.mobile-stats .stat-item span {
+  color: #2c3e50 !important;
+}
+
+.mobile-stats .stat-item svg {
+  stroke: #6d9eeb !important;
+}
+
+/* Mobile links section - keep text dark for readability */
+.mobile-links-list a {
+  color: #1e293b !important;
+}
+
+.mobile-links-list a svg {
+  stroke: #475569 !important;
+}
+
+/* Mobile categories */
+.mobile-category-link .category-name {
+  color: #1e293b !important;
+}
+
+.mobile-category-link .category-count {
+  color: #64748b !important;
+  background: #f1f5f9;
+}
+
+.view-all-categories {
+  color: #6d9eeb !important;
+}
+
+/* Logout button */
+.mobile-logout-btn {
+  color: #dc2626 !important;
+  background: #fee2e2 !important;
+}
+
+.mobile-logout-btn svg {
+  stroke: #dc2626 !important;
+}
+
+/* Header icons on mobile */
+@media (max-width: 768px) {
+  .header-icon svg,
+  .menu-toggle svg,
+  .mobile-search-toggle svg {
+    stroke: white !important;
+  }
+  
+  .header-icon .count {
+    background: #ff6b6b !important;
+    color: white !important;
+  }
+  
+  /* Menu toggle text */
+  .menu-toggle span {
+    color: white !important;
+  }
+}
+
+/* Fix for any white text on white background issues */
+.mobile-menu-content {
+  background: #ffffff;
+}
+
+.mobile-menu-body {
+  background: #f8fafc;
+}
+
+/* Ensure all text in mobile menu header is white - override any other styles */
+.mobile-menu-header,
+.mobile-menu-header div,
+.mobile-menu-header span,
+.mobile-menu-header p,
+.mobile-menu-header h1,
+.mobile-menu-header h2,
+.mobile-menu-header h3,
+.mobile-menu-header h4,
+.mobile-menu-header button {
+  color: white !important;
+}
+
+/* Force icons in header to be white */
+.mobile-menu-header svg {
+  stroke: white !important;
+  fill: none !important;
+}
+
+/* Make sure the user name and email are white */
+.mobile-user-name,
+.mobile-user-email {
+  color: white !important;
+}
+
+/* Guest welcome message */
+.mobile-guest span {
+  color: white !important;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Auth buttons in guest mode */
+.mobile-auth-links a {
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.mobile-auth-links a:active {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Separator between auth links */
+.mobile-auth-links .separator {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Close button hover effect */
+.mobile-menu-header .close-btn:active {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
