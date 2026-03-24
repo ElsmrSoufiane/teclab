@@ -3,11 +3,29 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
 import './App.css';
-
+import { OptimizedImage } from './OptimizedImage';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
+// Add this at the top of App.js or in a utils file
+const saveScrollPosition = (key) => {
+  const scrollY = window.scrollY;
+  sessionStorage.setItem(`scroll_${key}`, scrollY);
+  console.log(`💾 Saved scroll position for ${key}:`, scrollY);
+};
 
+const restoreScrollPosition = (key) => {
+  const savedPosition = sessionStorage.getItem(`scroll_${key}`);
+  if (savedPosition) {
+    setTimeout(() => {
+      window.scrollTo({ top: parseInt(savedPosition), behavior: 'instant' });
+      sessionStorage.removeItem(`scroll_${key}`);
+      console.log(`✅ Restored scroll position for ${key}:`, parseInt(savedPosition));
+    }, 100);
+    return true;
+  }
+  return false;
+};
 // ==================== LOGIN PROMPT MODAL COMPONENT ====================
 // ==================== LOGIN PROMPT MODAL COMPONENT (optionnel - amélioré) ====================
 const LoginPromptModal = ({ isOpen, onClose, onConfirm, productName = null, context = 'favorites' }) => {
@@ -1353,7 +1371,8 @@ const ProductProvider = ({ children }) => {
 // ==================== PRODUCT CARD WITH PRO DISCOUNT ====================
 // ==================== PRODUCT CARD WITH PRO DISCOUNT CORRIGÉ ====================
 // ==================== OPTIMIZED PRODUCT CARD (No Framer Motion) ====================
-const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
+// ==================== OPTIMIZED PRODUCT CARD (No lag) ====================
+const ProductCard = React.memo(({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
   const [added, setAdded] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -1366,12 +1385,15 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
     setIsMobile(window.innerWidth <= 768);
     
     if (!isMobile) {
-      const observer = new IntersectionObserver(([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      }, { threshold: 0.1 });
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: '100px', threshold: 0.01 }
+      );
       
       if (ref.current) {
         observer.observe(ref.current);
@@ -1439,18 +1461,19 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
       ref={ref}
       className="product-card"
       style={{
-        opacity: isInView ? 1 : 0.9,
+        opacity: isInView ? 1 : 0,
         transition: 'opacity 0.2s ease'
       }}
       onClick={handleViewDetails}
     >
       <div className="product-image-container">
-        <img 
-          src={product.image || '/placeholder.jpg'} 
-          alt={product.name || 'Product'} 
-          className="product-image"
-          loading="lazy"
-        />
+        {isInView && (
+          <OptimizedImage 
+            src={product.image || '/placeholder.jpg'} 
+            alt={product.name || 'Product'} 
+            className="product-image"
+          />
+        )}
         
         {product.badge && (
           <span className="product-badge">{product.badge}</span>
@@ -1527,7 +1550,7 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
       </div>
     </div>
   );
-};
+});
 // ==================== RATING COMPONENTS ====================
 
 // Review Star Display Component
@@ -1999,19 +2022,94 @@ const fetchReviews = async () => {
 };
 
 // ==================== WISHLIST PAGE ====================
+// ==================== FIXED WISHLIST PAGE (No scroll to top) ====================
+// ==================== COMPLETE FIXED WISHLIST PAGE ====================
+// ==================== COMPLETE FIXED WISHLIST PAGE ====================
+// ==================== FIXED WISHLIST PAGE WITH DATA CACHING ====================
 const WishlistPage = ({ navigate }) => {
   const { favorites, loading, removeFromFavorites, refreshFavorites } = useFavorites();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const { isPro, proDiscount } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredFavorites, setFilteredFavorites] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+  const [hasRestored, setHasRestored] = useState(false);
+  const [cachedFavorites, setCachedFavorites] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // Cache favorites when loaded
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    } else {
-      refreshFavorites();
+    if (favorites.length > 0 && !isInitialLoad) {
+      sessionStorage.setItem('cached_wishlist', JSON.stringify(favorites));
+      setCachedFavorites(favorites);
     }
-  }, [isAuthenticated, navigate]);
+  }, [favorites, isInitialLoad]);
+
+  // Load cached data on mount
+  useEffect(() => {
+    const cached = sessionStorage.getItem('cached_wishlist');
+    if (cached && favorites.length === 0 && !loading) {
+      const parsed = JSON.parse(cached);
+      setCachedFavorites(parsed);
+      // Filter the cached data
+      const filtered = parsed.filter(product => 
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredFavorites(filtered);
+    }
+    setIsInitialLoad(false);
+  }, []);
+
+  // Filter favorites by search term (use cached if available)
+  useEffect(() => {
+    const dataToFilter = favorites.length > 0 ? favorites : cachedFavorites;
+    if (dataToFilter.length > 0) {
+      const filtered = dataToFilter.filter(product => 
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredFavorites(filtered);
+      setCurrentPage(1);
+    } else {
+      setFilteredFavorites([]);
+    }
+  }, [favorites, cachedFavorites, searchTerm]);
+
+  // RESTORE SCROLL POSITION WHEN COMPONENT MOUNTS
+  useEffect(() => {
+    if (!hasRestored && !loading) {
+      const savedPosition = sessionStorage.getItem('scroll_wishlist');
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedPosition), behavior: 'instant' });
+          sessionStorage.removeItem('scroll_wishlist');
+        }, 150);
+      }
+      setHasRestored(true);
+    }
+  }, [loading, hasRestored]);
+
+  // Save scroll position and cache before leaving
+  useEffect(() => {
+    return () => {
+      // Save scroll position
+      const scrollY = window.scrollY;
+      sessionStorage.setItem('scroll_wishlist', scrollY);
+      
+      // Save current favorites to cache
+      if (favorites.length > 0) {
+        sessionStorage.setItem('cached_wishlist', JSON.stringify(favorites));
+      }
+    };
+  }, [favorites]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredFavorites.length / itemsPerPage);
+  const paginatedFavorites = filteredFavorites.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleAddToCart = (product) => {
     let priceToUse = product.price;
@@ -2030,17 +2128,48 @@ const WishlistPage = ({ navigate }) => {
   const handleRemoveFromFavorites = async (productId) => {
     if (window.confirm('Voulez-vous retirer ce produit de vos favoris ?')) {
       await removeFromFavorites(productId);
+      // Update cache after removal
+      const updatedFavorites = favorites.filter(p => p.id !== productId);
+      sessionStorage.setItem('cached_wishlist', JSON.stringify(updatedFavorites));
+      setCachedFavorites(updatedFavorites);
     }
   };
 
+  // Handle product click - SAVE SCROLL POSITION before navigating
+  const handleProductClick = (slug) => {
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('scroll_wishlist', currentScroll);
+    navigate(`/product/${slug}`);
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('scroll_wishlist', currentScroll);
+    setCurrentPage(page);
+  };
+
+  // Handle search
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('scroll_wishlist', currentScroll);
+    setSearchTerm(value);
+  };
+
+  const handleClearSearch = () => {
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('scroll_wishlist', currentScroll);
+    setSearchTerm('');
+  };
+
+  // Show cached data while loading
+  const displayFavorites = favorites.length > 0 ? favorites : cachedFavorites;
+  const isLoading = loading && displayFavorites.length === 0;
+
   if (!isAuthenticated) {
     return (
-      <motion.div 
-        className="wishlist-page"
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-      >
+      <div className="wishlist-page">
         <div className="container">
           <div className="auth-required">
             <Icons.Heart size={64} />
@@ -2056,11 +2185,11 @@ const WishlistPage = ({ navigate }) => {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
@@ -2069,14 +2198,9 @@ const WishlistPage = ({ navigate }) => {
     );
   }
 
-  if (favorites.length === 0) {
+  if (displayFavorites.length === 0) {
     return (
-      <motion.div 
-        className="wishlist-page empty-wishlist"
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-      >
+      <div className="wishlist-page empty-wishlist">
         <div className="container">
           <Icons.Heart size={64} />
           <h2>Votre wishlist est vide</h2>
@@ -2085,65 +2209,125 @@ const WishlistPage = ({ navigate }) => {
             Découvrir nos produits
           </button>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div 
-      className="wishlist-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
+    <div className="wishlist-page">
       <div className="container">
         <div className="page-header">
           <h1>Mes Favoris</h1>
-          <p className="favorites-count">{favorites.length} produit(s) dans votre wishlist</p>
-        </div>
-
-        <div className="wishlist-grid">
-          {favorites.map(product => (
-            <div key={product.id} className="wishlist-item">
-              <div className="wishlist-item-image" onClick={() => navigate(`/product/${product.slug}`)}>
-                <img src={product.image} alt={product.name} />
-              </div>
-              
-              <div className="wishlist-item-info">
-                <h3 onClick={() => navigate(`/product/${product.slug}`)}>{product.name}</h3>
-                <div className="product-price">
-                  <span className="current-price">{product.price} MAD</span>
-                  {product.original_price && (
-                    <span className="original-price">{product.original_price} MAD</span>
-                  )}
-                </div>
-                {product.stock > 0 ? (
-                  <span className="in-stock">En stock</span>
-                ) : (
-                  <span className="out-of-stock">Rupture de stock</span>
+          <div className="header-info">
+            <p className="favorites-count">{filteredFavorites.length} produit(s) dans votre wishlist</p>
+            {displayFavorites.length > 0 && (
+              <div className="search-box wishlist-search">
+                <Icons.Search size={16} />
+                <input 
+                  type="text"
+                  placeholder="Rechercher dans mes favoris..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+                {searchTerm && (
+                  <button className="clear-search" onClick={handleClearSearch}>
+                    <Icons.X size={14} />
+                  </button>
                 )}
               </div>
+            )}
+          </div>
+        </div>
 
-              <div className="wishlist-item-actions">
+        {filteredFavorites.length === 0 && searchTerm ? (
+          <div className="no-search-results">
+            <Icons.Search size={48} />
+            <h3>Aucun résultat</h3>
+            <p>Aucun produit ne correspond à "{searchTerm}"</p>
+            <button className="btn-primary" onClick={handleClearSearch}>
+              Effacer la recherche
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="wishlist-grid">
+              {paginatedFavorites.map(product => (
+                <div key={product.id} className="wishlist-item">
+                  <div 
+                    className="wishlist-item-image" 
+                    onClick={() => handleProductClick(product.slug)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <img src={product.image} alt={product.name} loading="lazy" />
+                  </div>
+                  
+                  <div className="wishlist-item-info">
+                    <h3 onClick={() => handleProductClick(product.slug)} style={{ cursor: 'pointer' }}>
+                      {product.name}
+                    </h3>
+                    {product.brand && <span className="product-brand">{product.brand}</span>}
+                    <div className="product-price">
+                      <span className="current-price">{product.price} MAD</span>
+                      {product.original_price && (
+                        <span className="original-price">{product.original_price} MAD</span>
+                      )}
+                    </div>
+                    {product.stock > 0 ? (
+                      <span className="in-stock">
+                        <Icons.Check size={14} /> En stock
+                      </span>
+                    ) : (
+                      <span className="out-of-stock">
+                        <Icons.X size={14} /> Rupture de stock
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="wishlist-item-actions">
+                    <button 
+                      className="add-to-cart-btn"
+                      onClick={() => handleAddToCart(product)}
+                      disabled={product.stock === 0}
+                    >
+                      <Icons.ShoppingBag /> Ajouter au panier
+                    </button>
+                    <button 
+                      className="remove-favorite-btn"
+                      onClick={() => handleRemoveFromFavorites(product.id)}
+                    >
+                      <Icons.Trash /> Retirer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="pagination wishlist-pagination">
                 <button 
-                  className="add-to-cart-btn"
-                  onClick={() => handleAddToCart(product)}
-                  disabled={product.stock === 0}
+                  className="pagination-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
                 >
-                  <Icons.ShoppingBag /> Ajouter au panier
+                  <Icons.ChevronLeft />
                 </button>
+                <span className="page-info">
+                  Page {currentPage} sur {totalPages}
+                </span>
                 <button 
-                  className="remove-favorite-btn"
-                  onClick={() => handleRemoveFromFavorites(product.id)}
+                  className="pagination-btn"
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
                 >
-                  <Icons.Trash /> Retirer
+                  <Icons.ChevronRight />
                 </button>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -3047,6 +3231,7 @@ const HomePage = ({ navigate }) => {
 // ==================== PRODUCTS PAGE ====================
 // ==================== PRODUCTS PAGE COMPLETE ====================
 // ==================== FIXED PRODUCTS PAGE WITH PROPER CATEGORY FILTERING ====================
+// ==================== COMPLETE FIXED PRODUCTS PAGE ====================
 const ProductsPage = ({ navigate }) => {
   const {
     filteredProducts,
@@ -3080,9 +3265,38 @@ const ProductsPage = ({ navigate }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
   const [showAllBrands, setShowAllBrands] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const scrollPositionRef = useRef(0);
+  const isSyncingFromURL = useRef(false);
+  const previousSelectedCategory = useRef(selectedCategory);
+
+  // Save scroll position before navigation
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem('products_scroll_position', window.scrollY);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Restore scroll position after navigation
+  useEffect(() => {
+    if (!isInitialLoad) {
+      const savedPosition = sessionStorage.getItem('products_scroll_position');
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedPosition), behavior: 'instant' });
+          sessionStorage.removeItem('products_scroll_position');
+        }, 100);
+      }
+    }
+    setIsInitialLoad(false);
+  }, []);
 
   // SYNC WITH URL PARAMETERS ON MOUNT AND URL CHANGE
   useEffect(() => {
+    isSyncingFromURL.current = true;
+    
     const params = new URLSearchParams(window.location.search);
     const categoryId = params.get('category');
     const search = params.get('search');
@@ -3100,13 +3314,16 @@ const ProductsPage = ({ navigate }) => {
       brandsParam
     });
     
+    // Save current scroll position before updating
+    scrollPositionRef.current = window.scrollY;
+    
     // Update search query from URL
-    if (search) {
+    if (search !== null && search !== searchQuery) {
       setSearchQuery(search);
     }
     
     // Update sort from URL
-    if (sort) {
+    if (sort && sort !== sortBy) {
       setSortBy(sort);
     }
     
@@ -3121,30 +3338,49 @@ const ProductsPage = ({ navigate }) => {
     // Update brands from URL
     if (brandsParam) {
       const brandsArray = brandsParam.split(',');
-      // Clear existing brands and add new ones
-      clearBrands();
-      brandsArray.forEach(brand => {
-        toggleBrand(brand);
-      });
+      // Only update if different
+      if (JSON.stringify(selectedBrands.sort()) !== JSON.stringify(brandsArray.sort())) {
+        clearBrands();
+        brandsArray.forEach(brand => {
+          toggleBrand(brand);
+        });
+      }
     }
     
     // Update category from URL
     if (categoryId && categories.length > 0) {
       const category = categories.find(c => c.id.toString() === categoryId);
       if (category) {
-        console.log('✅ Setting category from URL:', category.name, 'ID:', categoryId);
-        setSelectedCategory(categoryId);
-        setSelectedCategoryName(category.name);
+        if (selectedCategory !== categoryId) {
+          console.log('✅ Setting category from URL:', category.name, 'ID:', categoryId);
+          setSelectedCategory(categoryId);
+          setSelectedCategoryName(category.name);
+        }
       }
-    } else {
+    } else if (!categoryId && selectedCategory) {
       setSelectedCategory(null);
       setSelectedCategoryName('');
     }
     
-  }, [window.location.search, categories]); // Re-run when URL changes or categories load
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      isSyncingFromURL.current = false;
+    }, 200);
+    
+  }, [window.location.search, categories]);
 
-  // UPDATE URL WHEN CATEGORY CHANGES
-  const updateURL = useCallback(() => {
+  // Update URL when filters change - ONLY when not syncing from URL
+  useEffect(() => {
+    // Don't update URL if we're syncing from URL
+    if (isSyncingFromURL.current) {
+      return;
+    }
+    
+    // Don't update on initial load
+    if (isInitialLoad) {
+      return;
+    }
+    
     const params = new URLSearchParams();
     
     if (selectedCategory) {
@@ -3167,18 +3403,25 @@ const ProductsPage = ({ navigate }) => {
     }
     
     const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
-    console.log('🔄 Updating URL to:', newUrl);
-    navigate(newUrl, { replace: true });
-  }, [selectedCategory, searchQuery, sortBy, priceRange, selectedBrands, navigate]);
+    const currentUrl = window.location.pathname + window.location.search;
+    
+    // Only update if URL is different
+    if (newUrl !== currentUrl) {
+      console.log('🔄 Updating URL to:', newUrl);
+      // Save current scroll position before navigation
+      const currentScroll = window.scrollY;
+      sessionStorage.setItem('products_scroll_position', currentScroll);
+      navigate(newUrl, { replace: true });
+    }
+  }, [selectedCategory, searchQuery, sortBy, priceRange.min, priceRange.max, selectedBrands, isInitialLoad]);
 
-  // Update URL when filters change
-  useEffect(() => {
-    updateURL();
-  }, [selectedCategory, searchQuery, sortBy, priceRange.min, priceRange.max, selectedBrands, updateURL]);
-
-  // Handle category change
+  // Handle category change - NO SCROLL TO TOP
   const handleCategoryChange = (categoryId) => {
     console.log('🏷️ Category clicked:', categoryId);
+    
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
     
     if (categoryId === null) {
       // Clear category filter
@@ -3196,31 +3439,94 @@ const ProductsPage = ({ navigate }) => {
     
     // Reset to page 1 when category changes
     setCurrentPage(1);
+    
+    // DO NOT scroll to top - let the page stay where it is
   };
 
-  // Handle search with Enter key
+  // Handle search with Enter key - NO SCROLL TO TOP
   const handleSearchKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      // Save current scroll position
+      const currentScroll = window.scrollY;
+      sessionStorage.setItem('products_scroll_position', currentScroll);
       setCurrentPage(1);
     }
   };
 
-  // Clear all filters
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    // Save scroll position before search updates
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    setCurrentPage(1);
+  };
+
+  // Clear all filters - NO SCROLL TO TOP
   const handleClearFilters = () => {
     console.log('🗑️ Clearing all filters');
+    
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    
     clearFilters();
     setSelectedCategory(null);
     setSelectedCategoryName('');
     setSearchQuery('');
     setCurrentPage(1);
-    navigate('/products');
+    
+    // Navigate without forcing scroll
+    navigate('/products', { replace: true });
   };
 
-  // Clear search only
+  // Clear search only - NO SCROLL TO TOP
   const handleClearSearch = () => {
     console.log('🔍 Clearing search');
+    
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    
     setSearchQuery('');
+    setCurrentPage(1);
+  };
+
+  // Handle page change - NO SCROLL TO TOP
+  const handlePageChange = (page) => {
+    // Save current scroll position before changing page
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    setCurrentPage(page);
+  };
+
+  // Handle sort change - NO SCROLL TO TOP
+  const handleSortChange = (e) => {
+    const value = e.target.value;
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    setSortBy(value);
+    setCurrentPage(1);
+  };
+
+  // Handle price range change - NO SCROLL TO TOP
+  const handlePriceChange = (value) => {
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    setPriceRange({ ...priceRange, max: value });
+    setCurrentPage(1);
+  };
+
+  // Handle brand toggle - NO SCROLL TO TOP
+  const handleBrandToggle = (brand) => {
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('products_scroll_position', currentScroll);
+    toggleBrand(brand);
     setCurrentPage(1);
   };
 
@@ -3310,7 +3616,7 @@ const ProductsPage = ({ navigate }) => {
                           <input
                             type="checkbox"
                             checked={selectedBrands.includes(brand)}
-                            onChange={() => toggleBrand(brand)}
+                            onChange={() => handleBrandToggle(brand)}
                           />
                           <span className="brand-name">{brand}</span>
                           <span className="brand-check">
@@ -3350,7 +3656,7 @@ const ProductsPage = ({ navigate }) => {
                     min="0" 
                     max="50000" 
                     value={priceRange.max}
-                    onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                    onChange={(e) => handlePriceChange(Number(e.target.value))}
                     className="price-slider"
                   />
                   <div className="price-display">
@@ -3365,7 +3671,7 @@ const ProductsPage = ({ navigate }) => {
                 <h4>Trier par</h4>
                 <select 
                   value={sortBy} 
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={handleSortChange}
                   className="sort-select"
                 >
                   <option value="featured">En vedette</option>
@@ -3392,7 +3698,7 @@ const ProductsPage = ({ navigate }) => {
                   type="text"
                   placeholder="Rechercher un produit..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                   onKeyPress={handleSearchKeyPress}
                 />
                 {searchQuery && (
@@ -3436,7 +3742,7 @@ const ProductsPage = ({ navigate }) => {
                         {selectedBrands.map(brand => (
                           <span key={brand} className="filter-tag">
                             {brand}
-                            <button onClick={() => toggleBrand(brand)}>
+                            <button onClick={() => handleBrandToggle(brand)}>
                               <Icons.X size={12} />
                             </button>
                           </span>
@@ -3491,7 +3797,7 @@ const ProductsPage = ({ navigate }) => {
                     <button 
                       className="pagination-btn"
                       disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(currentPage - 1)}
+                      onClick={() => handlePageChange(currentPage - 1)}
                     >
                       <Icons.ChevronLeft />
                     </button>
@@ -3508,7 +3814,7 @@ const ProductsPage = ({ navigate }) => {
                             <button
                               key={i}
                               className={`page-number ${currentPage === pageNum ? 'active' : ''}`}
-                              onClick={() => setCurrentPage(pageNum)}
+                              onClick={() => handlePageChange(pageNum)}
                             >
                               {pageNum}
                             </button>
@@ -3526,7 +3832,7 @@ const ProductsPage = ({ navigate }) => {
                     <button 
                       className="pagination-btn"
                       disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(currentPage + 1)}
+                      onClick={() => handlePageChange(currentPage + 1)}
                     >
                       <Icons.ChevronRight />
                     </button>
@@ -3597,7 +3903,7 @@ const ProductsPage = ({ navigate }) => {
                       <input
                         type="checkbox"
                         checked={selectedBrands.includes(brand)}
-                        onChange={() => toggleBrand(brand)}
+                        onChange={() => handleBrandToggle(brand)}
                       />
                       <span className="brand-name">{brand}</span>
                     </label>
@@ -3614,7 +3920,7 @@ const ProductsPage = ({ navigate }) => {
                     min="0" 
                     max="50000" 
                     value={priceRange.max}
-                    onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                    onChange={(e) => handlePriceChange(Number(e.target.value))}
                     className="price-slider"
                   />
                   <div className="price-display">
@@ -3629,7 +3935,7 @@ const ProductsPage = ({ navigate }) => {
                 <h4>Trier par</h4>
                 <select 
                   value={sortBy} 
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={handleSortChange}
                   className="sort-select"
                 >
                   <option value="featured">En vedette</option>
@@ -5228,11 +5534,12 @@ const DashboardPage = ({ navigate }) => {
 // ==================== ORDER DETAIL PAGE ====================
 // ==================== FIXED ORDER DETAIL PAGE ====================
 // ==================== DEBUGGED ORDER DETAIL PAGE ====================
+// ==================== FIXED ORDER DETAIL PAGE (No scroll to top) ====================
+// ==================== FIXED ORDER DETAIL PAGE WITH SCROLL POSITION ====================
 const OrderDetailPage = ({ navigate }) => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState(null);
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -5244,17 +5551,11 @@ const OrderDetailPage = ({ navigate }) => {
     const path = window.location.pathname;
     const orderId = path.split('/').pop();
     
-    console.log('🔍 OrderDetailPage mounted');
-    console.log('📝 Current path:', path);
-    console.log('🆔 Order ID extracted:', orderId);
-    console.log('👤 Current user:', user);
-    
     if (orderId && orderId !== 'orders' && !isNaN(parseInt(orderId))) {
       fetchOrder(orderId);
     } else {
       setError('ID de commande invalide');
       setLoading(false);
-      console.error('❌ Invalid order ID:', orderId);
     }
   }, [isAuthenticated, navigate, user]);
 
@@ -5263,51 +5564,19 @@ const OrderDetailPage = ({ navigate }) => {
     setError(null);
     
     try {
-      console.log('🚀 Fetching order with ID:', orderId);
-      console.log('🔑 Auth token present:', !!localStorage.getItem('token'));
-      
       const response = await api.get(`/orders/${orderId}`);
       
-      console.log('📦 Full API Response:', response);
-      console.log('✅ Response data:', response.data);
-      console.log('📊 Response status:', response.status);
-      console.log('🔍 Response headers:', response.headers);
-      
       if (response.data.success && response.data.data) {
-        console.log('✅ Order found:', response.data.data);
         setOrder(response.data.data);
-        setDebugInfo({ status: 'success', data: response.data.data });
       } else {
-        console.error('❌ Order not found in response:', response.data);
         setError(response.data.error || 'Commande non trouvée');
-        setDebugInfo({ status: 'error', response: response.data });
       }
     } catch (err) {
-      console.error('❌ Failed to fetch order:', err);
-      console.error('🔴 Error response:', err.response);
-      console.error('🔴 Error message:', err.message);
-      console.error('🔴 Error stack:', err.stack);
-      
-      // Log more details about the error
       if (err.response) {
-        console.error('📡 Response status:', err.response.status);
-        console.error('📡 Response data:', err.response.data);
-        console.error('📡 Response headers:', err.response.headers);
         setError(err.response.data?.error || `Erreur ${err.response.status}: La commande n'existe pas`);
-      } else if (err.request) {
-        console.error('📡 No response received:', err.request);
-        setError('Impossible de contacter le serveur');
       } else {
-        console.error('📡 Error setting up request:', err.message);
-        setError('Erreur lors de la préparation de la requête');
+        setError('Erreur lors du chargement de la commande');
       }
-      
-      setDebugInfo({ 
-        status: 'error', 
-        error: err.message,
-        response: err.response?.data,
-        statusCode: err.response?.status
-      });
     } finally {
       setLoading(false);
     }
@@ -5326,6 +5595,13 @@ const OrderDetailPage = ({ navigate }) => {
       console.error('Failed to cancel order:', err);
       alert('Erreur lors de l\'annulation de la commande');
     }
+  };
+
+  // Handle back button - SAVE SCROLL POSITION before navigating back
+  const handleBack = () => {
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('scroll_orders', currentScroll);
+    navigate('/orders');
   };
 
   const getStatusClass = (status) => {
@@ -5354,15 +5630,7 @@ const OrderDetailPage = ({ navigate }) => {
           <Icons.AlertCircle size={64} />
           <h2>Erreur</h2>
           <p>{error}</p>
-          {debugInfo && (
-            <div className="debug-info" style={{ marginTop: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px', textAlign: 'left', fontSize: '12px' }}>
-              <h4>Informations de débogage:</h4>
-              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                {JSON.stringify(debugInfo, null, 2)}
-              </pre>
-            </div>
-          )}
-          <button className="btn-primary" onClick={() => navigate('/orders')} style={{ marginTop: '20px' }}>
+          <button className="btn-primary" onClick={handleBack}>
             Retour à mes commandes
           </button>
         </div>
@@ -5376,7 +5644,7 @@ const OrderDetailPage = ({ navigate }) => {
         <Icons.Package size={64} />
         <h2>Commande non trouvée</h2>
         <p>La commande que vous recherchez n'existe pas ou a été supprimée.</p>
-        <button className="btn-primary" onClick={() => navigate('/orders')}>
+        <button className="btn-primary" onClick={handleBack}>
           Voir mes commandes
         </button>
       </div>
@@ -5387,7 +5655,7 @@ const OrderDetailPage = ({ navigate }) => {
     <div className="order-detail-page">
       <div className="container">
         <div className="order-detail-header">
-          <button onClick={() => navigate('/orders')} className="back-btn">
+          <button onClick={handleBack} className="back-btn">
             ← Retour aux commandes
           </button>
           <h1>Commande #{order.order_number}</h1>
@@ -5438,7 +5706,7 @@ const OrderDetailPage = ({ navigate }) => {
                   <th>Prix unitaire</th>
                   <th>Quantité</th>
                   <th>Total</th>
-                 </tr>
+                  </tr>
               </thead>
               <tbody>
                 {order.items && order.items.length > 0 ? (
@@ -5446,9 +5714,6 @@ const OrderDetailPage = ({ navigate }) => {
                     <tr key={index}>
                       <td>
                         <div className="product-info-cell">
-                          {item.product_image && (
-                            <img src={item.product_image} alt={item.product_name} className="product-thumb-small" />
-                          )}
                           <span>{item.product_name}</span>
                         </div>
                       </td>
@@ -5572,19 +5837,70 @@ const VerificationErrorPage = ({ navigate }) => {
 
 // ==================== ORDERS PAGE ====================
 // ==================== FIXED ORDERS PAGE ====================
+// ==================== FIXED ORDERS PAGE (No scroll to top) ====================
+// ==================== FIXED ORDERS PAGE WITH DATA CACHING ====================
 const OrdersPage = ({ navigate }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cachedOrders, setCachedOrders] = useState([]);
+  const [hasRestored, setHasRestored] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     } else {
+      // Check cache first
+      const cached = sessionStorage.getItem('cached_orders');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setCachedOrders(parsed);
+        setOrders(parsed);
+      }
       fetchOrders();
     }
   }, [isAuthenticated, navigate]);
+
+  // Save orders to cache when loaded
+  useEffect(() => {
+    if (orders.length > 0 && !isInitialLoad) {
+      sessionStorage.setItem('cached_orders', JSON.stringify(orders));
+      setCachedOrders(orders);
+    }
+  }, [orders, isInitialLoad]);
+
+  // RESTORE SCROLL POSITION WHEN COMPONENT MOUNTS
+  useEffect(() => {
+    if (!hasRestored && !loading) {
+      const savedPosition = sessionStorage.getItem('scroll_orders');
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedPosition), behavior: 'instant' });
+          sessionStorage.removeItem('scroll_orders');
+          console.log('✅ Restored orders scroll position:', parseInt(savedPosition));
+        }, 150);
+      }
+      setHasRestored(true);
+    }
+    setIsInitialLoad(false);
+  }, [loading, hasRestored]);
+
+  // Save scroll position and cache before leaving
+  useEffect(() => {
+    return () => {
+      // Save scroll position
+      const scrollY = window.scrollY;
+      sessionStorage.setItem('scroll_orders', scrollY);
+      console.log('💾 Saved orders scroll on unmount:', scrollY);
+      
+      // Save orders to cache
+      if (orders.length > 0) {
+        sessionStorage.setItem('cached_orders', JSON.stringify(orders));
+      }
+    };
+  }, [orders]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -5610,6 +5926,15 @@ const OrdersPage = ({ navigate }) => {
     }
   };
 
+  // Handle order click - SAVE SCROLL POSITION before navigating
+  const handleOrderClick = (orderId) => {
+    console.log('🔍 Navigating to order detail:', orderId);
+    // Save current scroll position before navigation
+    const currentScroll = window.scrollY;
+    sessionStorage.setItem('scroll_orders', currentScroll);
+    navigate(`/orders/${orderId}`);
+  };
+
   const getStatusClass = (status) => {
     switch(status) {
       case 'en cours': return 'status-pending';
@@ -5630,7 +5955,11 @@ const OrdersPage = ({ navigate }) => {
     }
   };
 
-  if (loading) {
+  // Show cached data while loading
+  const displayOrders = orders.length > 0 ? orders : cachedOrders;
+  const isLoading = loading && displayOrders.length === 0;
+
+  if (loading && displayOrders.length === 0) {
     return (
       <div className="orders-page">
         <div className="container">
@@ -5644,7 +5973,7 @@ const OrdersPage = ({ navigate }) => {
     );
   }
 
-  if (error) {
+  if (error && displayOrders.length === 0) {
     return (
       <div className="orders-page">
         <div className="container">
@@ -5661,12 +5990,11 @@ const OrdersPage = ({ navigate }) => {
     );
   }
 
-  return (
-    <div className="orders-page">
-      <div className="container">
-        <h1>Mes Commandes</h1>
-
-        {orders.length === 0 ? (
+  if (displayOrders.length === 0) {
+    return (
+      <div className="orders-page">
+        <div className="container">
+          <h1>Mes Commandes</h1>
           <div className="no-orders">
             <Icons.Package size={64} />
             <h2>Aucune commande</h2>
@@ -5678,82 +6006,83 @@ const OrdersPage = ({ navigate }) => {
               Découvrir nos produits
             </button>
           </div>
-        ) : (
-          <>
-            <div className="orders-grid">
-              {orders.map(order => {
-                // Log each order to see its structure
-                console.log('📦 Order:', order.id, order.order_number, order);
-                return (
-                  <div
-                    key={order.id}
-                    className="order-card"
-                    onClick={() => {
-                      console.log('🔍 Navigating to order detail:', order.id);
-                      navigate(`/orders/${order.id}`);
-                    }}
-                  >
-                    <div className="order-header">
-                      <div className="order-header-left">
-                        <h3>Commande #{order.order_number || order.id}</h3>
-                        <span className="order-date">
-                          {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <span className={`order-status ${getStatusClass(order.status)}`}>
-                        {getStatusText(order.status)}
-                      </span>
-                    </div>
+        </div>
+      </div>
+    );
+  }
 
-                    <div className="order-items-preview">
-                      {order.items && order.items.slice(0, 3).map((item, idx) => (
-                        <div key={idx} className="order-item-preview">
-                          <span className="item-name">{item.product_name}</span>
-                          <span className="item-quantity">x{item.quantity}</span>
-                        </div>
-                      ))}
-                      {order.items && order.items.length > 3 && (
-                        <div className="more-items">
-                          + {order.items.length - 3} autre(s) article(s)
-                        </div>
-                      )}
-                    </div>
+  return (
+    <div className="orders-page">
+      <div className="container">
+        <h1>Mes Commandes</h1>
 
-                    <div className="order-footer">
-                      <div className="order-total">
-                        <span>Total:</span>
-                        <strong>{parseFloat(order.total).toFixed(2)} MAD</strong>
-                      </div>
-                      {order.payment_method === 'espèces' && (
-                        <span className="payment-badge">
-                          <Icons.Truck size={14} />
-                          Paiement à la livraison
-                        </span>
-                      )}
-                    </div>
+        <div className="orders-grid">
+          {displayOrders.map(order => {
+            console.log('📦 Order:', order.id, order.order_number, order);
+            return (
+              <div
+                key={order.id}
+                className="order-card"
+                onClick={() => handleOrderClick(order.id)}
+              >
+                <div className="order-header">
+                  <div className="order-header-left">
+                    <h3>Commande #{order.order_number || order.id}</h3>
+                    <span className="order-date">
+                      {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-            
-            <button 
-              className="refresh-btn" 
-              onClick={fetchOrders}
-              style={{ marginTop: '20px', padding: '10px 20px' }}
-            >
-              <Icons.RefreshCw size={16} /> Actualiser
-            </button>
-          </>
-        )}
+                  <span className={`order-status ${getStatusClass(order.status)}`}>
+                    {getStatusText(order.status)}
+                  </span>
+                </div>
+
+                <div className="order-items-preview">
+                  {order.items && order.items.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="order-item-preview">
+                      <span className="item-name">{item.product_name}</span>
+                      <span className="item-quantity">x{item.quantity}</span>
+                    </div>
+                  ))}
+                  {order.items && order.items.length > 3 && (
+                    <div className="more-items">
+                      + {order.items.length - 3} autre(s) article(s)
+                    </div>
+                  )}
+                </div>
+
+                <div className="order-footer">
+                  <div className="order-total">
+                    <span>Total:</span>
+                    <strong>{parseFloat(order.total).toFixed(2)} MAD</strong>
+                  </div>
+                  {order.payment_method === 'espèces' && (
+                    <span className="payment-badge">
+                      <Icons.Truck size={14} />
+                      Paiement à la livraison
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <button 
+          className="refresh-btn" 
+          onClick={fetchOrders}
+          style={{ marginTop: '20px', padding: '10px 20px' }}
+        >
+          <Icons.RefreshCw size={16} /> Actualiser
+        </button>
       </div>
     </div>
   );
 };
-
 // ==================== CHECKOUT PAGE ====================
 const CheckoutPage = ({ navigate }) => {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -9505,7 +9834,7 @@ function App() {
   const navigate = (path) => {
     window.history.pushState({}, '', path);
     setCurrentPath(path);
-    window.scrollTo(0, 0);
+    
   };
 
   useEffect(() => {
