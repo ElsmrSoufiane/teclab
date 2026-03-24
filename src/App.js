@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
 import './App.css';
-
+import PushNotificationDemo from './PushNotificationDemo';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
@@ -9226,7 +9226,7 @@ function App() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-          
+                  <PushNotificationDemo />
                 </div>
               </FavoritesProvider>
             </CouponProvider>
