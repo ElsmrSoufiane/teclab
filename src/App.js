@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
 import './App.css';
+
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
@@ -1020,6 +1021,7 @@ const CouponProvider = ({ children }) => {
 // ==================== COMPONENTS ====================
 
 // Carousel Component
+// ==================== OPTIMIZED CAROUSEL (No Framer Motion) ====================
 const Carousel = () => {
   const [offers, setOffers] = useState([
     {
@@ -1048,71 +1050,75 @@ const Carousel = () => {
     }
   ]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % offers.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [offers.length]);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 50) {
+      setCurrentIndex((prev) => (prev + 1) % offers.length);
+    } else if (touchEndX.current - touchStartX.current > 50) {
+      setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length);
+    }
+  };
 
   return (
-    <div className="carousel-container">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          className="carousel-slide"
-          style={{ backgroundColor: offers[currentIndex].bgColor }}
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -100 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="carousel-content">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              style={{ color: offers[currentIndex].textColor }}
-            >
-              {offers[currentIndex].title}
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              style={{ color: offers[currentIndex].textColor }}
-            >
-              {offers[currentIndex].subtitle}
-            </motion.p>
-            <motion.button 
-              className="carousel-btn"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              En savoir plus
-            </motion.button>
-          </div>
-          <motion.div 
-            className="carousel-image"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <img src={offers[currentIndex].image} alt={offers[currentIndex].title} />
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
+    <div 
+      className="carousel-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div 
+        className="carousel-slide"
+        style={{ backgroundColor: offers[currentIndex].bgColor }}
+      >
+        <div className="carousel-content">
+          <h2 style={{ color: offers[currentIndex].textColor }}>
+            {offers[currentIndex].title}
+          </h2>
+          <p style={{ color: offers[currentIndex].textColor }}>
+            {offers[currentIndex].subtitle}
+          </p>
+          <button className="carousel-btn">
+            En savoir plus
+          </button>
+        </div>
+        <div className="carousel-image">
+          <img 
+            src={offers[currentIndex].image} 
+            alt={offers[currentIndex].title}
+            loading="lazy"
+          />
+        </div>
+      </div>
       
-      <button className="carousel-nav carousel-prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}>
-        <Icons.ChevronLeft />
-      </button>
-      <button className="carousel-nav carousel-next" onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}>
-        <Icons.ChevronRight />
-      </button>
+      {!isMobile && (
+        <>
+          <button className="carousel-nav carousel-prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}>
+            <Icons.ChevronLeft />
+          </button>
+          <button className="carousel-nav carousel-next" onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}>
+            <Icons.ChevronRight />
+          </button>
+        </>
+      )}
     </div>
   );
 };
@@ -1346,19 +1352,39 @@ const ProductProvider = ({ children }) => {
 // Product Card Component
 // ==================== PRODUCT CARD WITH PRO DISCOUNT ====================
 // ==================== PRODUCT CARD WITH PRO DISCOUNT CORRIGÉ ====================
+// ==================== OPTIMIZED PRODUCT CARD (No Framer Motion) ====================
 const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, isFavorite }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const [isInView, setIsInView] = useState(false);
   const navigate = useNavigate();
   const { isPro, proDiscount } = useAuth();
 
-  // Calculate discounted price for pro users
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
+    
+    if (!isMobile) {
+      const observer = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      }, { threshold: 0.1 });
+      
+      if (ref.current) {
+        observer.observe(ref.current);
+      }
+      return () => observer.disconnect();
+    } else {
+      setIsInView(true);
+    }
+  }, [isMobile]);
+
   const getDisplayPrice = () => {
     if (isPro && proDiscount > 0 && product.original_price) {
-      return product.price; // Already discounted from API
+      return product.price;
     }
     return product.price;
   };
@@ -1393,7 +1419,6 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
     
     setFavoriteLoading(true);
     try {
-      // ✅ Passer le nom du produit pour l'afficher dans le modal
       await onToggleFavorite(product.id, isFavorite, product.name);
     } finally {
       setFavoriteLoading(false);
@@ -1410,20 +1435,22 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
   if (!product) return null;
 
   return (
-    <motion.div 
+    <div 
       ref={ref}
       className="product-card"
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={slideUp}
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.3 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      style={{
+        opacity: isInView ? 1 : 0.9,
+        transition: 'opacity 0.2s ease'
+      }}
       onClick={handleViewDetails}
     >
       <div className="product-image-container">
-        <img src={product.image || '/placeholder.jpg'} alt={product.name || 'Product'} className="product-image" />
+        <img 
+          src={product.image || '/placeholder.jpg'} 
+          alt={product.name || 'Product'} 
+          className="product-image"
+          loading="lazy"
+        />
         
         {product.badge && (
           <span className="product-badge">{product.badge}</span>
@@ -1441,53 +1468,34 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
           </span>
         )}
 
-        <motion.div 
-          className="product-actions"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : 20 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.button 
+        <div className="product-actions">
+          <button 
             className="action-btn" 
             onClick={handleAddToCart}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             disabled={product.stock === 0}
           >
             <Icons.ShoppingBag />
-          </motion.button>
-          <motion.button 
+          </button>
+          <button 
             className="action-btn"
             onClick={handleViewDetails}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
           >
             <Icons.Eye />
-          </motion.button>
-          <motion.button 
+          </button>
+          <button 
             className={`action-btn ${isFavorite ? 'favorite active' : ''}`}
             onClick={handleToggleFavorite}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             disabled={favoriteLoading}
           >
             <Icons.Heart className={favoriteLoading ? 'loading' : ''} />
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
-        <AnimatePresence>
-          {added && (
-            <motion.div 
-              className="added-animation"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1.5, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Icons.Check />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {added && (
+          <div className="added-animation">
+            <Icons.Check />
+          </div>
+        )}
       </div>
 
       <div className="product-info">
@@ -1517,7 +1525,7 @@ const ProductCard = ({ product, onAddToCart, onViewDetails, onToggleFavorite, is
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 // ==================== RATING COMPONENTS ====================
@@ -2360,16 +2368,38 @@ const CouponsPage = ({ navigate }) => {
 };
 
 // ==================== HEADER COMPONENT ====================
+// ==================== OPTIMIZED HEADER (No Framer Motion) ====================
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+  const categoryMenuRef = useRef(null);
   const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
   const { setSearchQuery, categories } = useProducts();
   const { favoritesCount } = useFavorites();
   const { couponsCount } = useCoupons();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target)) {
+        setShowCategoryMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -2392,482 +2422,411 @@ const Header = ({ currentPath, navigate }) => {
 
   return (
     <>
-      <div className="announcement-bar hide-mobile">
-        <div className="marquee">
-          <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
+      {!isMobile && (
+        <div className="announcement-bar hide-mobile">
+          <div className="marquee">
+            <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 1000DH</span>
+          </div>
         </div>
-      </div>
+      )}
 
-      <motion.header 
-        className="header"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <header className="header">
         <div className="header-top">
           <div className="container">
             <div className="header-left">
-              <motion.button 
+              <button 
                 className="menu-toggle mobile-only" 
                 onClick={() => setShowMobileMenu(true)}
-                whileHover={{ backgroundColor: 'var(--primary-dark)' }}
-                whileTap={{ scale: 0.95 }}
                 aria-label="Menu"
               >
                 <Icons.Menu />
-              </motion.button>
+              </button>
 
               <a href="/" className="logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                 <img src="https://www.teclab.ma/storage/products/partenaires/teclab-logo-320px.png" alt="TECLAB" />
               </a>
 
-              <motion.button 
-                className="menu-toggle desktop-only" 
-                onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-                whileHover={{ backgroundColor: 'var(--primary-dark)' }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Icons.Menu />
-                <span>Catégories</span>
-              </motion.button>
-            </div>
-
-            <form className="search-form desktop-only" onSubmit={handleSearch}>
-              <input 
-                type="text"
-                placeholder="Rechercher un produit..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-              <motion.button 
-                type="submit"
-                whileHover={{ backgroundColor: 'var(--primary-dark)' }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="Rechercher"
-              >
-                <Icons.Search />
-              </motion.button>
-            </form>
-
-            <div className="header-right">
-              <motion.button 
-                className="header-icon mobile-search-toggle"
-                onClick={() => setShowSearch(!showSearch)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Rechercher"
-              >
-                <Icons.Search />
-              </motion.button>
-
-              <motion.a 
-                href="/coupons" 
-                className="header-icon coupons-icon" 
-                onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Coupons"
-              >
-                <Icons.Percent />
-                {isAuthenticated && couponsCount > 0 && (
-                  <motion.span 
-                    className="count coupons-count"
-                    key={couponsCount}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500 }}
-                  >
-                    {couponsCount}
-                  </motion.span>
-                )}
-              </motion.a>
-              
-              <motion.a 
-                href="/wishlist" 
-                className="header-icon wishlist-icon" 
-                onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Favoris"
-              >
-                <Icons.Heart />
-                {isAuthenticated && favoritesCount > 0 && (
-                  <motion.span 
-                    className="count wishlist-count"
-                    key={favoritesCount}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500 }}
-                  >
-                    {favoritesCount}
-                  </motion.span>
-                )}
-              </motion.a>
-              
-              <div className="ps-cart--mini">
-                <motion.a 
-                  href="/cart" 
-                  className="header-icon cart-icon" 
-                  onClick={(e) => { e.preventDefault(); navigate('/cart'); }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="Panier"
+              {!isMobile && (
+                <button 
+                  className="menu-toggle desktop-only" 
+                  onClick={() => setShowCategoryMenu(!showCategoryMenu)}
                 >
-                  <Icons.ShoppingBag />
-                  <motion.span 
-                    className="count cart-count"
-                    key={cartCount}
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {cartCount}
-                  </motion.span>
-                </motion.a>
-              </div>
-
-              <div className="user-menu desktop-only">
-                <Icons.User />
-                <div className="user-dropdown">
-                  {isAuthenticated ? (
-                    <>
-                      <span className="user-name">{user?.name}</span>
-                      <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
-                      <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
-                      <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
-                        Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
-                      </a>
-                      
-                      {user?.role === 'admin' && (
-                        <>
-                          <div className="dropdown-divider"></div>
-                          <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
-                            <Icons.User size={16} style={{ marginRight: '8px' }} /> Administration
-                          </a>
-                        </>
-                      )}
-                      
-                      <div className="dropdown-divider"></div>
-                      <button onClick={handleLogout} className="logout-btn">Déconnexion</button>
-                    </>
-                  ) : (
-                    <>
-                      <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a>
-                      <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a>
-                    </>
-                  )}
-                </div>
-              </div>
+                  <Icons.Menu />
+                  <span>Catégories</span>
+                </button>
+              )}
             </div>
-          </div>
-        </div>
 
-        <AnimatePresence>
-          {showSearch && (
-            <motion.div 
-              className="mobile-search-bar"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <form onSubmit={handleSearch}>
+            {!isMobile && (
+              <form className="search-form desktop-only" onSubmit={handleSearch}>
                 <input 
                   type="text"
                   placeholder="Rechercher un produit..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  autoFocus
                 />
                 <button type="submit" aria-label="Rechercher">
                   <Icons.Search />
                 </button>
-                <button 
-                  type="button" 
-                  className="close-search"
-                  onClick={() => setShowSearch(false)}
-                  aria-label="Fermer"
-                >
-                  <Icons.X />
-                </button>
               </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
 
-        <AnimatePresence>
-          {showCategoryMenu && (
-            <motion.div 
-              className="categories-mega-menu desktop-only"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="container">
-                <div className="categories-grid-header">
-                  {categories.length > 0 ? (
-                    categories.map(category => (
-                      <motion.div 
-                        key={category.id}
-                        className="category-menu-item"
-                        whileHover={{ x: 5 }}
-                        onClick={() => handleCategoryClick(category.id, category.name)}
-                      >
-                        <div className="category-menu-icon">
-                          <Icons.Package size={20} />
-                        </div>
-                        <div className="category-menu-content">
-                          <h4>{category.name}</h4>
-                          <span className="category-menu-count">
-                            {category.products_count || 0} produits
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="loading-categories">Chargement des catégories...</div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            <div className="header-right">
+              {isMobile && (
+                <button 
+                  className="header-icon mobile-search-toggle"
+                  onClick={() => setShowSearch(!showSearch)}
+                  aria-label="Rechercher"
+                >
+                  <Icons.Search />
+                </button>
+              )}
 
-        <AnimatePresence>
-          {showMobileMenu && (
-            <motion.div 
-              className="mobile-menu-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMobileMenu(false)}
-            >
-              <motion.div 
-                className="mobile-menu-content"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25 }}
-                onClick={e => e.stopPropagation()}
+              <a 
+                href="/coupons" 
+                className="header-icon coupons-icon" 
+                onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}
+                aria-label="Coupons"
               >
-                <div className="mobile-menu-header">
-                  <div className="mobile-user-info">
-                    {isAuthenticated && user?.role === 'admin' && (
-                      <>
-                        <div className="dropdown-divider"></div>
-                        <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
-                          <Icons.User size={16} /> Administration
-                        </a>
-                      </>
-                    )}
+                <Icons.Percent />
+                {isAuthenticated && couponsCount > 0 && (
+                  <span className="count coupons-count">
+                    {couponsCount}
+                  </span>
+                )}
+              </a>
+              
+              <a 
+                href="/wishlist" 
+                className="header-icon wishlist-icon" 
+                onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}
+                aria-label="Favoris"
+              >
+                <Icons.Heart />
+                {isAuthenticated && favoritesCount > 0 && (
+                  <span className="count wishlist-count">
+                    {favoritesCount}
+                  </span>
+                )}
+              </a>
+              
+              <div className="ps-cart--mini">
+                <a 
+                  href="/cart" 
+                  className="header-icon cart-icon" 
+                  onClick={(e) => { e.preventDefault(); navigate('/cart'); }}
+                  aria-label="Panier"
+                >
+                  <Icons.ShoppingBag />
+                  <span className="count cart-count">
+                    {cartCount}
+                  </span>
+                </a>
+              </div>
 
+              {!isMobile && (
+                <div className="user-menu desktop-only">
+                  <Icons.User />
+                  <div className="user-dropdown">
                     {isAuthenticated ? (
                       <>
-                        <div className="mobile-user-avatar">
-                          <Icons.User />
-                        </div>
-                        <div className="mobile-user-details">
-                          <span className="mobile-user-name">{user?.name}</span>
-                          <span className="mobile-user-email">{user?.email}</span>
-                        </div>
+                        <span className="user-name">{user?.name}</span>
+                        <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>Mon Compte</a>
+                        <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
+                        <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
+                          Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
+                        </a>
+                        
+                        {user?.role === 'admin' && (
+                          <>
+                            <div className="dropdown-divider"></div>
+                            <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }}>
+                              <Icons.User size={16} style={{ marginRight: '8px' }} /> Administration
+                            </a>
+                          </>
+                        )}
+                        
+                        <div className="dropdown-divider"></div>
+                        <button onClick={handleLogout} className="logout-btn">Déconnexion</button>
                       </>
                     ) : (
-                      <div className="mobile-guest">
-                        <span>Bonjour !</span>
-                        <div className="mobile-auth-links">
-                          <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); setShowMobileMenu(false); }}>
-                            Connexion
-                          </a>
-                          <span className="separator">|</span>
-                          <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); setShowMobileMenu(false); }}>
-                            Inscription
-                          </a>
-                        </div>
-                      </div>
+                      <>
+                        <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Connexion</a>
+                        <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Inscription</a>
+                      </>
                     )}
                   </div>
-                  <button className="close-btn" onClick={() => setShowMobileMenu(false)} aria-label="Fermer">
-                    <Icons.X />
-                  </button>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <div className="mobile-menu-body">
-                  {isAuthenticated && (
-                    <div className="mobile-stats">
-                      <div className="stat-item">
-                        <Icons.Heart />
-                        <span>{favoritesCount} Favoris</span>
+        {showSearch && isMobile && (
+          <div className="mobile-search-bar">
+            <form onSubmit={handleSearch}>
+              <input 
+                type="text"
+                placeholder="Rechercher un produit..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                autoFocus
+              />
+              <button type="submit" aria-label="Rechercher">
+                <Icons.Search />
+              </button>
+              <button 
+                type="button" 
+                className="close-search"
+                onClick={() => setShowSearch(false)}
+                aria-label="Fermer"
+              >
+                <Icons.X />
+              </button>
+            </form>
+          </div>
+        )}
+
+        {showCategoryMenu && !isMobile && (
+          <div className="categories-mega-menu desktop-only" ref={categoryMenuRef}>
+            <div className="container">
+              <div className="categories-grid-header">
+                {categories.length > 0 ? (
+                  categories.map(category => (
+                    <div 
+                      key={category.id}
+                      className="category-menu-item"
+                      onClick={() => handleCategoryClick(category.id, category.name)}
+                    >
+                      <div className="category-menu-icon">
+                        <Icons.Package size={20} />
                       </div>
-                      <div className="stat-item">
-                        <Icons.Percent />
-                        <span>{couponsCount} Coupons</span>
+                      <div className="category-menu-content">
+                        <h4>{category.name}</h4>
+                        <span className="category-menu-count">
+                          {category.products_count || 0} produits
+                        </span>
                       </div>
-                      <div className="stat-item">
-                        <Icons.ShoppingBag />
-                        <span>{cartCount} Articles</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="loading-categories">Chargement des catégories...</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showMobileMenu && (
+          <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
+            <div className="mobile-menu-content" onClick={e => e.stopPropagation()}>
+              <div className="mobile-menu-header">
+                <div className="mobile-user-info">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="mobile-user-avatar">
+                        <Icons.User />
+                      </div>
+                      <div className="mobile-user-details">
+                        <span className="mobile-user-name">{user?.name}</span>
+                        <span className="mobile-user-email">{user?.email}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mobile-guest">
+                      <span>Bonjour !</span>
+                      <div className="mobile-auth-links">
+                        <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); setShowMobileMenu(false); }}>
+                          Connexion
+                        </a>
+                        <span className="separator">|</span>
+                        <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); setShowMobileMenu(false); }}>
+                          Inscription
+                        </a>
                       </div>
                     </div>
                   )}
+                </div>
+                <button className="close-btn" onClick={() => setShowMobileMenu(false)} aria-label="Fermer">
+                  <Icons.X />
+                </button>
+              </div>
 
-                  <div className="mobile-menu-section">
-                    <h4>Navigation</h4>
-                    <div className="mobile-links-list">
+              <div className="mobile-menu-body">
+                {isAuthenticated && (
+                  <div className="mobile-stats">
+                    <div className="stat-item" onClick={() => { setShowMobileMenu(false); navigate('/wishlist'); }}>
+                      <Icons.Heart />
+                      <span>{favoritesCount} Favoris</span>
+                    </div>
+                    <div className="stat-item" onClick={() => { setShowMobileMenu(false); navigate('/coupons'); }}>
+                      <Icons.Percent />
+                      <span>{couponsCount} Coupons</span>
+                    </div>
+                    <div className="stat-item" onClick={() => { setShowMobileMenu(false); navigate('/cart'); }}>
+                      <Icons.ShoppingBag />
+                      <span>{cartCount} Articles</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mobile-menu-section">
+                  <h4>Navigation</h4>
+                  <div className="mobile-links-list">
+                    <a 
+                      href="/" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMobileMenu(false);
+                        navigate('/');
+                      }}
+                    >
+                      <Icons.Home size={18} /> Accueil
+                    </a>
+                    <a 
+                      href="/products" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMobileMenu(false);
+                        navigate('/products');
+                      }}
+                    >
+                      <Icons.Package size={18} /> Tous les produits
+                    </a>
+                    <a 
+                      href="/categories" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMobileMenu(false);
+                        navigate('/categories');
+                      }}
+                    >
+                      <Icons.Filter size={18} /> Catégories
+                    </a>
+                  </div>
+                </div>
+
+                <div className="mobile-menu-section">
+                  <h4>Catégories populaires</h4>
+                  <div className="mobile-categories-list">
+                    {categories.slice(0, 8).map(category => (
                       <a 
-                        href="/" 
+                        key={category.id}
+                        href={`/products?category=${category.id}`}
+                        className="mobile-category-link"
                         onClick={(e) => {
                           e.preventDefault();
                           setShowMobileMenu(false);
-                          navigate('/');
+                          navigate(`/products?category=${category.id}`);
                         }}
                       >
-                        <Icons.Home size={18} /> Accueil
+                        <span className="category-name">{category.name}</span>
+                        <span className="category-count">{category.products_count || 0}</span>
                       </a>
+                    ))}
+                    {categories.length > 8 && (
                       <a 
-                        href="/products" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/products');
-                        }}
-                      >
-                        <Icons.Package size={18} /> Tous les produits
-                      </a>
-                      <a 
-                        href="/categories" 
+                        href="/categories"
+                        className="view-all-categories"
                         onClick={(e) => {
                           e.preventDefault();
                           setShowMobileMenu(false);
                           navigate('/categories');
                         }}
                       >
-                        <Icons.Filter size={18} /> Catégories
+                        Voir toutes les catégories <Icons.ChevronRight size={14} />
                       </a>
-                    </div>
+                    )}
                   </div>
+                </div>
 
+                {isAuthenticated && (
                   <div className="mobile-menu-section">
-                    <h4>Catégories populaires</h4>
-                    <div className="mobile-categories-list">
-                      {categories.slice(0, 8).map(category => (
-                        <a 
-                          key={category.id}
-                          href={`/products?category=${category.id}`}
-                          className="mobile-category-link"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate(`/products?category=${category.id}`);
-                          }}
-                        >
-                          <span className="category-name">{category.name}</span>
-                          <span className="category-count">{category.products_count || 0}</span>
-                        </a>
-                      ))}
-                      {categories.length > 8 && (
-                        <a 
-                          href="/categories"
-                          className="view-all-categories"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate('/categories');
-                          }}
-                        >
-                          Voir toutes les catégories <Icons.ChevronRight size={14} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {isAuthenticated && (
-                    <div className="mobile-menu-section">
-                      <h4>Mon compte</h4>
-                      <div className="mobile-links-list">
-                        <a 
-                          href="/dashboard" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate('/dashboard');
-                          }}
-                        >
-                          <Icons.User size={18} /> Tableau de bord
-                        </a>
-                        <a 
-                          href="/orders" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate('/orders');
-                          }}
-                        >
-                          <Icons.Package size={18} /> Mes commandes
-                        </a>
-                        <a 
-                          href="/wishlist" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate('/wishlist');
-                          }}
-                        >
-                          <Icons.Heart size={18} /> Mes favoris
-                        </a>
-                        <a 
-                          href="/coupons" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowMobileMenu(false);
-                            navigate('/coupons');
-                          }}
-                        >
-                          <Icons.Percent size={18} /> Mes coupons
-                        </a>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mobile-menu-section">
-                    <h4>Informations</h4>
+                    <h4>Mon compte</h4>
                     <div className="mobile-links-list">
                       <a 
-                        href="/about" 
+                        href="/dashboard" 
                         onClick={(e) => {
                           e.preventDefault();
                           setShowMobileMenu(false);
-                          navigate('/about');
+                          navigate('/dashboard');
                         }}
                       >
-                        À propos
+                        <Icons.User size={18} /> Tableau de bord
                       </a>
                       <a 
-                        href="/contact" 
+                        href="/orders" 
                         onClick={(e) => {
                           e.preventDefault();
                           setShowMobileMenu(false);
-                          navigate('/contact');
+                          navigate('/orders');
                         }}
                       >
-                        Contact
+                        <Icons.Package size={18} /> Mes commandes
+                      </a>
+                      <a 
+                        href="/wishlist" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/wishlist');
+                        }}
+                      >
+                        <Icons.Heart size={18} /> Mes favoris
+                      </a>
+                      <a 
+                        href="/coupons" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowMobileMenu(false);
+                          navigate('/coupons');
+                        }}
+                      >
+                        <Icons.Percent size={18} /> Mes coupons
                       </a>
                     </div>
                   </div>
+                )}
 
-                  {isAuthenticated && (
-                    <button onClick={handleLogout} className="mobile-logout-btn">
-                      <Icons.LogOut size={18} /> Déconnexion
-                    </button>
-                  )}
+                <div className="mobile-menu-section">
+                  <h4>Informations</h4>
+                  <div className="mobile-links-list">
+                    <a 
+                      href="/about" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMobileMenu(false);
+                        navigate('/about');
+                      }}
+                    >
+                      À propos
+                    </a>
+                    <a 
+                      href="/contact" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMobileMenu(false);
+                        navigate('/contact');
+                      }}
+                    >
+                      Contact
+                    </a>
+                  </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.header>
+
+                {isAuthenticated && (
+                  <button onClick={handleLogout} className="mobile-logout-btn">
+                    <Icons.LogOut size={18} /> Déconnexion
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
     </>
   );
 };
-
 // ==================== FOOTER COMPONENT ====================
 const Footer = ({ navigate }) => {
   return (
@@ -9267,6 +9226,7 @@ function App() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+          
                 </div>
               </FavoritesProvider>
             </CouponProvider>
