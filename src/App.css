@@ -15848,3 +15848,274 @@ button:disabled,
     min-width: 36px !important;
   }
 }
+
+/* ==================== PRODUCT CARD LINKS ==================== */
+
+/* Make product title visible and clickable */
+.product-card .product-title {
+  color: #2c3e50 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  margin-bottom: 8px !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease !important;
+  display: block !important;
+  cursor: pointer !important;
+}
+
+.product-card .product-title:hover {
+  color: #6d9eeb !important;
+}
+
+/* Make entire product card clickable indicator */
+.product-card {
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.product-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Ensure text links in product info are visible */
+.product-card .product-info h3 {
+  color: #2c3e50 !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+}
+
+.product-card .product-info h3:hover {
+  color: #6d9eeb !important;
+}
+
+/* Fix for product price visibility */
+.product-card .current-price {
+  color: #6d9eeb !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+
+.product-card .original-price {
+  color: #999 !important;
+  text-decoration: line-through !important;
+  font-size: 13px !important;
+}
+
+/* Fix for product rating stars */
+.product-card .star {
+  color: #ddd !important;
+  font-size: 14px !important;
+}
+
+.product-card .star.filled {
+  color: #ffc107 !important;
+}
+
+.product-card .rating-count {
+  color: #999 !important;
+  font-size: 11px !important;
+  margin-left: 5px !important;
+}
+
+/* Fix for product badges */
+.product-card .product-badge {
+  background: #6d9eeb !important;
+  color: white !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  z-index: 2 !important;
+}
+
+.product-card .product-discount {
+  background: #ff6b6b !important;
+  color: white !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  z-index: 2 !important;
+}
+
+.product-card .product-discount.pro-discount {
+  background: #e67e22 !important;
+  color: white !important;
+}
+
+/* Fix for pro badge */
+.product-card .pro-badge-small {
+  background: #fff3e0 !important;
+  color: #e67e22 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+  border-radius: 12px !important;
+  border: 1px solid #e67e22 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.product-card:hover .pro-badge-small {
+  background: #e67e22 !important;
+  color: white !important;
+}
+
+.product-card:hover .pro-badge-small svg {
+  stroke: white !important;
+}
+
+/* Fix for action buttons */
+.product-card .action-btn {
+  background: white !important;
+  border: none !important;
+  width: 35px !important;
+  height: 35px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  color: #2c3e50 !important;
+}
+
+.product-card .action-btn:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  transform: scale(1.1) !important;
+}
+
+.product-card .action-btn.favorite.active {
+  background: #ff6b6b !important;
+  color: white !important;
+}
+
+.product-card .action-btn.favorite.active:hover {
+  background: #ff5252 !important;
+}
+
+/* Fix for product image */
+.product-card .product-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.3s ease !important;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05) !important;
+}
+
+/* Fix for product image container */
+.product-card .product-image-container {
+  position: relative !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 !important;
+  background: #f8f9fa !important;
+}
+
+/* Fix for product info container */
+.product-card .product-info {
+  padding: 15px !important;
+}
+
+/* Fix for rating stars in product card */
+.product-card .product-rating {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+/* Fix for price container */
+.product-card .product-price {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Fix for pro badge container */
+.product-card .pro-badge-container {
+  margin-top: 5px !important;
+}
+
+/* Mobile specific fixes */
+@media (max-width: 768px) {
+  .product-card .product-title {
+    font-size: 13px !important;
+    height: auto !important;
+    min-height: 36px !important;
+  }
+  
+  .product-card .current-price {
+    font-size: 15px !important;
+  }
+  
+  .product-card .original-price {
+    font-size: 12px !important;
+  }
+  
+  .product-card .product-badge,
+  .product-card .product-discount {
+    font-size: 10px !important;
+    padding: 3px 6px !important;
+  }
+  
+  .product-card .action-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .product-card .action-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* Ensure all text in product card has good contrast */
+.product-card {
+  background: white !important;
+  border: 1px solid #eaeaea !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  transition: all 0.3s ease !important;
+}
+
+.product-card * {
+  color: inherit;
+}
+
+/* Fix for loading state */
+.product-card .loading {
+  color: #999 !important;
+}
+
+/* Fix for added animation */
+.product-card .added-animation {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 50px !important;
+  height: 50px !important;
+  background: #28a745 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+}
