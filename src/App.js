@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import api from './api';
 import { favoritesApi, couponsApi } from './api';
 import './App.css';
-import PushNotificationDemo from './PushNotificationDemo';
+
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
@@ -4995,31 +4995,88 @@ const DashboardPage = ({ navigate }) => {
 };
 
 // ==================== ORDER DETAIL PAGE ====================
+// ==================== FIXED ORDER DETAIL PAGE ====================
+// ==================== DEBUGGED ORDER DETAIL PAGE ====================
 const OrderDetailPage = ({ navigate }) => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
     const path = window.location.pathname;
     const orderId = path.split('/').pop();
-    fetchOrder(orderId);
-  }, []);
+    
+    console.log('🔍 OrderDetailPage mounted');
+    console.log('📝 Current path:', path);
+    console.log('🆔 Order ID extracted:', orderId);
+    console.log('👤 Current user:', user);
+    
+    if (orderId && orderId !== 'orders' && !isNaN(parseInt(orderId))) {
+      fetchOrder(orderId);
+    } else {
+      setError('ID de commande invalide');
+      setLoading(false);
+      console.error('❌ Invalid order ID:', orderId);
+    }
+  }, [isAuthenticated, navigate, user]);
 
   const fetchOrder = async (orderId) => {
     setLoading(true);
+    setError(null);
+    
     try {
-      console.log('Fetching order:', orderId);
+      console.log('🚀 Fetching order with ID:', orderId);
+      console.log('🔑 Auth token present:', !!localStorage.getItem('token'));
+      
       const response = await api.get(`/orders/${orderId}`);
-      console.log('Order response:', response.data);
+      
+      console.log('📦 Full API Response:', response);
+      console.log('✅ Response data:', response.data);
+      console.log('📊 Response status:', response.status);
+      console.log('🔍 Response headers:', response.headers);
       
       if (response.data.success && response.data.data) {
+        console.log('✅ Order found:', response.data.data);
         setOrder(response.data.data);
+        setDebugInfo({ status: 'success', data: response.data.data });
       } else {
-        console.error('Order not found in response');
+        console.error('❌ Order not found in response:', response.data);
+        setError(response.data.error || 'Commande non trouvée');
+        setDebugInfo({ status: 'error', response: response.data });
       }
     } catch (err) {
-      console.error('Failed to fetch order:', err);
-      console.error('Error response:', err.response?.data);
+      console.error('❌ Failed to fetch order:', err);
+      console.error('🔴 Error response:', err.response);
+      console.error('🔴 Error message:', err.message);
+      console.error('🔴 Error stack:', err.stack);
+      
+      // Log more details about the error
+      if (err.response) {
+        console.error('📡 Response status:', err.response.status);
+        console.error('📡 Response data:', err.response.data);
+        console.error('📡 Response headers:', err.response.headers);
+        setError(err.response.data?.error || `Erreur ${err.response.status}: La commande n'existe pas`);
+      } else if (err.request) {
+        console.error('📡 No response received:', err.request);
+        setError('Impossible de contacter le serveur');
+      } else {
+        console.error('📡 Error setting up request:', err.message);
+        setError('Erreur lors de la préparation de la requête');
+      }
+      
+      setDebugInfo({ 
+        status: 'error', 
+        error: err.message,
+        response: err.response?.data,
+        statusCode: err.response?.status
+      });
     } finally {
       setLoading(false);
     }
@@ -5032,9 +5089,11 @@ const OrderDetailPage = ({ navigate }) => {
       const response = await api.put(`/orders/${order.id}/cancel`);
       if (response.data.success) {
         fetchOrder(order.id);
+        alert('Commande annulée avec succès');
       }
     } catch (err) {
       console.error('Failed to cancel order:', err);
+      alert('Erreur lors de l\'annulation de la commande');
     }
   };
 
@@ -5049,37 +5108,80 @@ const OrderDetailPage = ({ navigate }) => {
   };
 
   if (loading) {
-    return <div className="loading-spinner">Chargement...</div>;
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Chargement de la commande...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="not-found">
+          <Icons.AlertCircle size={64} />
+          <h2>Erreur</h2>
+          <p>{error}</p>
+          {debugInfo && (
+            <div className="debug-info" style={{ marginTop: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px', textAlign: 'left', fontSize: '12px' }}>
+              <h4>Informations de débogage:</h4>
+              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </div>
+          )}
+          <button className="btn-primary" onClick={() => navigate('/orders')} style={{ marginTop: '20px' }}>
+            Retour à mes commandes
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!order) {
-    return <div className="not-found">Commande non trouvée</div>;
+    return (
+      <div className="not-found">
+        <Icons.Package size={64} />
+        <h2>Commande non trouvée</h2>
+        <p>La commande que vous recherchez n'existe pas ou a été supprimée.</p>
+        <button className="btn-primary" onClick={() => navigate('/orders')}>
+          Voir mes commandes
+        </button>
+      </div>
+    );
   }
 
   return (
-    <motion.div 
-      className="order-detail-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
+    <div className="order-detail-page">
       <div className="container">
         <div className="order-detail-header">
+          <button onClick={() => navigate('/orders')} className="back-btn">
+            ← Retour aux commandes
+          </button>
           <h1>Commande #{order.order_number}</h1>
           <span className={`order-status ${getStatusClass(order.status)}`}>
-            {order.status}
+            {order.status === 'en cours' ? 'En cours' : 
+             order.status === 'expédiée' ? 'Expédiée' :
+             order.status === 'livré' ? 'Livrée' : 'Annulée'}
           </span>
         </div>
 
         <div className="order-info-grid">
           <div className="info-card">
-            <h3>Date</h3>
-            <p>{new Date(order.created_at).toLocaleDateString()}</p>
+            <h3>Date de commande</h3>
+            <p>{new Date(order.created_at).toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</p>
           </div>
 
           <div className="info-card">
             <h3>Adresse de livraison</h3>
-            <p>{order.shipping_address}</p>
+            <p>{order.shipping_address || 'Non renseignée'}</p>
           </div>
 
           <div className="info-card">
@@ -5090,57 +5192,71 @@ const OrderDetailPage = ({ navigate }) => {
           {order.coupon && (
             <div className="info-card">
               <h3>Coupon appliqué</h3>
-              <p>{order.coupon.code} - {order.discount_amount} MAD de réduction</p>
+              <p><strong>{order.coupon.code}</strong> - {order.discount_amount} MAD de réduction</p>
             </div>
           )}
         </div>
 
         <div className="order-items-section">
           <h2>Articles commandés</h2>
-          <table className="order-items-table">
-            <thead>
-              <tr>
-                <th>Produit</th>
-                <th>Prix unitaire</th>
-                <th>Quantité</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.product_name}</td>
-                  <td>{item.price} MAD</td>
-                  <td>{item.quantity}</td>
-                  <td>{(item.price * item.quantity).toFixed(2)} MAD</td>
+          <div className="items-table-container">
+            <table className="order-items-table">
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Prix unitaire</th>
+                  <th>Quantité</th>
+                  <th>Total</th>
+                 </tr>
+              </thead>
+              <tbody>
+                {order.items && order.items.length > 0 ? (
+                  order.items.map((item, index) => (
+                    <tr key={index}>
+                      <td>
+                        <div className="product-info-cell">
+                          {item.product_image && (
+                            <img src={item.product_image} alt={item.product_name} className="product-thumb-small" />
+                          )}
+                          <span>{item.product_name}</span>
+                        </div>
+                      </td>
+                      <td>{parseFloat(item.price).toFixed(2)} MAD</td>
+                      <td>{item.quantity}</td>
+                      <td>{(parseFloat(item.price) * item.quantity).toFixed(2)} MAD</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="text-center">Aucun article dans cette commande</td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan="3" className="text-right">Sous-total:</td>
+                  <td>{parseFloat(order.subtotal).toFixed(2)} MAD</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="order-totals">
-            <div className="total-row">
-              <span>Sous-total</span>
-              <span>{order.subtotal} MAD</span>
-            </div>
-            {order.discount_amount > 0 && (
-              <div className="total-row discount">
-                <span>Réduction</span>
-                <span>-{order.discount_amount} MAD</span>
-              </div>
-            )}
-            <div className="total-row">
-              <span>Livraison</span>
-              <span>{order.shipping > 0 ? `${order.shipping} MAD` : 'Gratuite'}</span>
-            </div>
-            <div className="total-row">
-              <span>TVA (20%)</span>
-              <span>{order.tax} MAD</span>
-            </div>
-            <div className="total-row grand-total">
-              <span>Total</span>
-              <span>{order.total} MAD</span>
-            </div>
+                {order.discount_amount > 0 && (
+                  <tr>
+                    <td colSpan="3" className="text-right discount">Réduction:</td>
+                    <td className="discount">-{parseFloat(order.discount_amount).toFixed(2)} MAD</td>
+                  </tr>
+                )}
+                <tr>
+                  <td colSpan="3" className="text-right">Livraison:</td>
+                  <td>{order.shipping > 0 ? `${parseFloat(order.shipping).toFixed(2)} MAD` : 'Gratuite'}</td>
+                </tr>
+                <tr>
+                  <td colSpan="3" className="text-right">TVA (20%):</td>
+                  <td>{parseFloat(order.tax).toFixed(2)} MAD</td>
+                </tr>
+                <tr className="total-row">
+                  <td colSpan="3" className="text-right"><strong>Total TTC:</strong></td>
+                  <td><strong>{parseFloat(order.total).toFixed(2)} MAD</strong></td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
 
@@ -5152,10 +5268,9 @@ const OrderDetailPage = ({ navigate }) => {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
-
 // ==================== VERIFICATION SUCCESS PAGE ====================
 const VerificationSuccessPage = ({ navigate }) => {
   const { checkVerification } = useAuth();
@@ -5225,9 +5340,11 @@ const VerificationErrorPage = ({ navigate }) => {
 };
 
 // ==================== ORDERS PAGE ====================
+// ==================== FIXED ORDERS PAGE ====================
 const OrdersPage = ({ navigate }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -5240,13 +5357,23 @@ const OrdersPage = ({ navigate }) => {
 
   const fetchOrders = async () => {
     setLoading(true);
+    setError(null);
     try {
+      console.log('🚀 Fetching orders...');
       const response = await api.get('/orders');
+      console.log('📦 Orders response:', response.data);
+      
       if (response.data.success && response.data.data) {
-        setOrders(response.data.data.data || response.data.data || []);
+        const ordersData = response.data.data.data || response.data.data || [];
+        console.log('✅ Orders loaded:', ordersData.length, 'orders');
+        setOrders(ordersData);
+      } else {
+        setError('Erreur lors du chargement des commandes');
       }
     } catch (err) {
-      console.error('Failed to fetch orders:', err);
+      console.error('❌ Failed to fetch orders:', err);
+      console.error('🔴 Error details:', err.response?.data);
+      setError(err.response?.data?.error || 'Erreur de connexion au serveur');
     } finally {
       setLoading(false);
     }
@@ -5274,27 +5401,37 @@ const OrdersPage = ({ navigate }) => {
 
   if (loading) {
     return (
-      <motion.div 
-        className="orders-page"
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-      >
+      <div className="orders-page">
         <div className="container">
           <h1>Mes Commandes</h1>
-          <div className="loading-spinner">Chargement de vos commandes...</div>
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Chargement de vos commandes...</p>
+          </div>
         </div>
-      </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="orders-page">
+        <div className="container">
+          <h1>Mes Commandes</h1>
+          <div className="error-container">
+            <Icons.AlertCircle size={48} />
+            <p>{error}</p>
+            <button className="btn-primary" onClick={fetchOrders}>
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <motion.div 
-      className="orders-page"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
-    >
+    <div className="orders-page">
       <div className="container">
         <h1>Mes Commandes</h1>
 
@@ -5311,63 +5448,78 @@ const OrdersPage = ({ navigate }) => {
             </button>
           </div>
         ) : (
-          <div className="orders-grid">
-            {orders.map(order => (
-              <motion.div
-                key={order.id}
-                className="order-card"
-                variants={slideUp}
-                whileHover={{ y: -5 }}
-                onClick={() => navigate(`/orders/${order.id}`)}
-              >
-                <div className="order-header">
-                  <div className="order-header-left">
-                    <h3>Commande #{order.order_number}</h3>
-                    <span className="order-date">
-                      {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                      })}
-                    </span>
-                  </div>
-                  <span className={`order-status ${getStatusClass(order.status)}`}>
-                    {getStatusText(order.status)}
-                  </span>
-                </div>
-
-                <div className="order-items-preview">
-                  {order.items && order.items.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="order-item-preview">
-                      <span className="item-name">{item.product_name}</span>
-                      <span className="item-quantity">x{item.quantity}</span>
+          <>
+            <div className="orders-grid">
+              {orders.map(order => {
+                // Log each order to see its structure
+                console.log('📦 Order:', order.id, order.order_number, order);
+                return (
+                  <div
+                    key={order.id}
+                    className="order-card"
+                    onClick={() => {
+                      console.log('🔍 Navigating to order detail:', order.id);
+                      navigate(`/orders/${order.id}`);
+                    }}
+                  >
+                    <div className="order-header">
+                      <div className="order-header-left">
+                        <h3>Commande #{order.order_number || order.id}</h3>
+                        <span className="order-date">
+                          {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      <span className={`order-status ${getStatusClass(order.status)}`}>
+                        {getStatusText(order.status)}
+                      </span>
                     </div>
-                  ))}
-                  {order.items && order.items.length > 3 && (
-                    <div className="more-items">
-                      + {order.items.length - 3} autre(s) article(s)
-                    </div>
-                  )}
-                </div>
 
-                <div className="order-footer">
-                  <div className="order-total">
-                    <span>Total:</span>
-                    <strong>{order.total} MAD</strong>
+                    <div className="order-items-preview">
+                      {order.items && order.items.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="order-item-preview">
+                          <span className="item-name">{item.product_name}</span>
+                          <span className="item-quantity">x{item.quantity}</span>
+                        </div>
+                      ))}
+                      {order.items && order.items.length > 3 && (
+                        <div className="more-items">
+                          + {order.items.length - 3} autre(s) article(s)
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="order-footer">
+                      <div className="order-total">
+                        <span>Total:</span>
+                        <strong>{parseFloat(order.total).toFixed(2)} MAD</strong>
+                      </div>
+                      {order.payment_method === 'espèces' && (
+                        <span className="payment-badge">
+                          <Icons.Truck size={14} />
+                          Paiement à la livraison
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {order.payment_method === 'espèces' && (
-                    <span className="payment-badge">
-                      <Icons.Truck size={14} />
-                      Paiement à la livraison
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+            
+            <button 
+              className="refresh-btn" 
+              onClick={fetchOrders}
+              style={{ marginTop: '20px', padding: '10px 20px' }}
+            >
+              <Icons.RefreshCw size={16} /> Actualiser
+            </button>
+          </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -9226,7 +9378,7 @@ function App() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <PushNotificationDemo />
+                 
                 </div>
               </FavoritesProvider>
             </CouponProvider>
