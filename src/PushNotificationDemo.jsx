@@ -8,13 +8,28 @@ const PushNotificationDemo = () => {
   const [message, setMessage] = useState('');
   const [showDemo, setShowDemo] = useState(true);
   const [lastTestResult, setLastTestResult] = useState('');
-  const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
+  const [browserSupport, setBrowserSupport] = useState({
+    notifications: false,
+    serviceWorker: false,
+    pushManager: false
+  });
   
   // Dragging state
   const [position, setPosition] = useState({ x: null, y: null });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const dragRef = useRef(null);
+
+  // Check browser support
+  const checkBrowserSupport = () => {
+    const support = {
+      notifications: 'Notification' in window,
+      serviceWorker: 'serviceWorker' in navigator,
+      pushManager: 'PushManager' in window
+    };
+    setBrowserSupport(support);
+    return support.notifications && support.serviceWorker && support.pushManager;
+  };
 
   // Load saved position
   useEffect(() => {
@@ -42,7 +57,6 @@ const PushNotificationDemo = () => {
       const newX = e.clientX - dragStart.x;
       const newY = e.clientY - dragStart.y;
       
-      // Keep within viewport bounds
       const maxX = window.innerWidth - (dragRef.current?.offsetWidth || 340);
       const maxY = window.innerHeight - (dragRef.current?.offsetHeight || 400);
       
@@ -57,7 +71,6 @@ const PushNotificationDemo = () => {
   const handleDragEnd = () => {
     if (isDragging) {
       setIsDragging(false);
-      // Save position
       if (position.x !== null && position.y !== null) {
         localStorage.setItem('notification_demo_position', JSON.stringify(position));
       }
@@ -75,16 +88,6 @@ const PushNotificationDemo = () => {
       };
     }
   }, [isDragging, dragStart]);
-
-  // ... (keep all your existing functions - isPushSupported, urlBase64ToUint8Array, etc.)
-  // I'll show only the changed parts, keep all your existing logic
-
-  // Check if push notifications are supported
-  const isPushSupported = () => {
-    return 'Notification' in window && 
-           'serviceWorker' in navigator && 
-           'PushManager' in window;
-  };
 
   // Convert VAPID key
   const urlBase64ToUint8Array = (base64String) => {
@@ -135,7 +138,7 @@ const PushNotificationDemo = () => {
 
         const options = {
           body: data.body || 'Découvrez nos dernières offres!',
-          icon: '/icon-192x192.png',
+          icon: data.icon || '/icon-192x192.png',
           badge: '/badge-72x72.png',
           vibrate: [200, 100, 200],
           data: {
@@ -177,7 +180,6 @@ const PushNotificationDemo = () => {
       const registration = await navigator.serviceWorker.register(swUrl);
       console.log('Service Worker registered:', registration);
       URL.revokeObjectURL(swUrl);
-      setServiceWorkerReady(true);
       return registration;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
@@ -191,6 +193,19 @@ const PushNotificationDemo = () => {
     setMessage('');
     
     try {
+      // Check browser support first
+      if (!checkBrowserSupport()) {
+        let errorMsg = '❌ Votre navigateur ne supporte pas les notifications push.\n\n';
+        if (!browserSupport.notifications) errorMsg += '- Notifications non supportées\n';
+        if (!browserSupport.serviceWorker) errorMsg += '- Service Workers non supportés\n';
+        if (!browserSupport.pushManager) errorMsg += '- Push Manager non supporté\n\n';
+        errorMsg += 'Utilisez Chrome, Firefox, Edge ou Safari (iOS 16.4+)';
+        setMessage(errorMsg);
+        setTimeout(() => setMessage(''), 8000);
+        setLoading(false);
+        return;
+      }
+      
       const result = await Notification.requestPermission();
       setPermission(result);
       
@@ -211,16 +226,14 @@ const PushNotificationDemo = () => {
         setIsSubscribed(true);
         setMessage('✅ Notifications activées avec succès!');
         
+        // Save to localStorage
         localStorage.setItem('push_enabled', 'true');
-        localStorage.setItem('push_subscription', JSON.stringify({
-          endpoint: subscription.endpoint
-        }));
         
         setTimeout(() => setMessage(''), 3000);
         
       } else if (result === 'denied') {
-        setMessage('❌ Permission refusée. Activez dans les paramètres du navigateur');
-        setTimeout(() => setMessage(''), 5000);
+        setMessage('❌ Permission refusée. Pour activer:\n\n1. Cliquez sur l\'icône 🔒 dans la barre d\'adresse\n2. Autorisez les notifications\n3. Rafraîchissez la page');
+        setTimeout(() => setMessage(''), 8000);
       } else {
         setMessage('⚠️ Permission non accordée');
         setTimeout(() => setMessage(''), 2000);
@@ -237,8 +250,8 @@ const PushNotificationDemo = () => {
   // Test notification
   const testNotification = () => {
     if (Notification.permission !== 'granted') {
-      setMessage('❌ Activez d\'abord les notifications');
-      setTimeout(() => setMessage(''), 3000);
+      setMessage('❌ Activez d\'abord les notifications (bouton vert ci-dessus)');
+      setTimeout(() => setMessage(''), 4000);
       return;
     }
     
@@ -261,10 +274,10 @@ const PushNotificationDemo = () => {
         alert('🔔 Offre ouverte!');
       };
       
-      setLastTestResult('✅ Notification envoyée!');
+      setLastTestResult('✅ Notification envoyée! Regardez en haut à droite de votre écran');
       setMessage('📨 Notification test envoyée!');
       setTimeout(() => setMessage(''), 2000);
-      setTimeout(() => setLastTestResult(''), 4000);
+      setTimeout(() => setLastTestResult(''), 5000);
       
     } catch (error) {
       setMessage('❌ Erreur: ' + error.message);
@@ -319,7 +332,6 @@ const PushNotificationDemo = () => {
       
       setIsSubscribed(false);
       localStorage.removeItem('push_enabled');
-      localStorage.removeItem('push_subscription');
       setMessage('🔕 Notifications désactivées');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
@@ -349,9 +361,20 @@ const PushNotificationDemo = () => {
       setShowDemo(false);
     }
     
-    const checkStatus = async () => {
-      if (!isPushSupported()) return;
+    // Check browser support
+    const supported = checkBrowserSupport();
+    
+    if (!supported) {
+      let supportMsg = '';
+      if (!browserSupport.notifications) supportMsg += '- Notifications API non supportée\n';
+      if (!browserSupport.serviceWorker) supportMsg += '- Service Workers non supportés\n';
+      if (!browserSupport.pushManager) supportMsg += '- Push Manager non supporté\n';
       
+      setMessage(`⚠️ Votre navigateur ne supporte pas les notifications push.\n\n${supportMsg}Utilisez Chrome, Firefox, Edge ou Safari (iOS 16.4+)`);
+      return;
+    }
+    
+    const checkStatus = async () => {
       setPermission(Notification.permission);
       
       if (Notification.permission === 'granted') {
@@ -376,6 +399,26 @@ const PushNotificationDemo = () => {
     
     checkStatus();
   }, []);
+
+  // Get position style
+  const getPositionStyle = () => {
+    if (position.x !== null && position.y !== null) {
+      return {
+        position: 'fixed',
+        top: position.y,
+        left: position.x,
+        zIndex: 9999,
+        maxWidth: '380px'
+      };
+    }
+    return {
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      zIndex: 9999,
+      maxWidth: '380px'
+    };
+  };
 
   // If demo is closed, show small button
   if (!showDemo) {
@@ -409,47 +452,84 @@ const PushNotificationDemo = () => {
     );
   }
 
-  // If not supported
-  if (!isPushSupported()) {
+  // Show unsupported message if browser doesn't support notifications
+  if (!browserSupport.notifications || !browserSupport.serviceWorker || !browserSupport.pushManager) {
     return (
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        background: 'white',
-        padding: '15px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        maxWidth: '280px',
-        zIndex: 9999
-      }}>
-        <button onClick={closeDemo} style={{ float: 'right', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>×</button>
-        <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️</div>
-        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Notifications non supportées</div>
-        <div style={{ fontSize: '12px', color: '#666' }}>Utilisez Chrome, Firefox ou Edge</div>
+      <div ref={dragRef} style={getPositionStyle()}>
+        <div style={{
+          background: 'white',
+          borderRadius: '16px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          padding: '20px',
+          position: 'relative'
+        }}>
+          <button
+            onClick={closeDemo}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'none',
+              border: 'none',
+              fontSize: '20px',
+              cursor: 'pointer',
+              color: '#999'
+            }}
+          >
+            ×
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '32px' }}>⚠️</div>
+            <h3 style={{ margin: 0, fontSize: '18px', color: '#333' }}>Notifications non supportées</h3>
+          </div>
+
+          <div style={{ 
+            background: '#fff3e0', 
+            padding: '12px', 
+            borderRadius: '8px',
+            marginBottom: '16px'
+          }}>
+            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#ef6c00' }}>
+              Votre navigateur ne supporte pas les notifications push
+            </p>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#666', fontSize: '13px' }}>
+              {!browserSupport.notifications && <li>❌ Notifications API non supportée</li>}
+              {!browserSupport.serviceWorker && <li>❌ Service Workers non supportés</li>}
+              {!browserSupport.pushManager && <li>❌ Push Manager non supporté</li>}
+            </ul>
+          </div>
+
+          <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>
+            <strong>Solutions:</strong>
+            <ul style={{ margin: '8px 0 0 20px' }}>
+              <li>Utilisez <strong>Google Chrome</strong> (version 50+)</li>
+              <li>Utilisez <strong>Mozilla Firefox</strong> (version 44+)</li>
+              <li>Utilisez <strong>Microsoft Edge</strong> (version 17+)</li>
+              <li>Sur iOS, utilisez <strong>Safari 16.4+</strong> et ajoutez le site à l'écran d'accueil</li>
+            </ul>
+          </div>
+
+          <button
+            onClick={closeDemo}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: '#6d9eeb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            Fermer
+          </button>
+        </div>
       </div>
     );
   }
-
-  // Get position style
-  const getPositionStyle = () => {
-    if (position.x !== null && position.y !== null) {
-      return {
-        position: 'fixed',
-        top: position.y,
-        left: position.x,
-        zIndex: 9999,
-        maxWidth: '340px'
-      };
-    }
-    return {
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      zIndex: 9999,
-      maxWidth: '340px'
-    };
-  };
 
   return (
     <div ref={dragRef} style={getPositionStyle()}>
@@ -458,7 +538,6 @@ const PushNotificationDemo = () => {
         borderRadius: '16px',
         boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
         padding: '20px',
-        animation: 'slideIn 0.3s ease',
         position: 'relative',
         cursor: isDragging ? 'grabbing' : 'default'
       }}>
@@ -654,6 +733,7 @@ const PushNotificationDemo = () => {
             borderRadius: '8px',
             fontSize: '12px',
             textAlign: 'center',
+            whiteSpace: 'pre-line',
             animation: 'fadeIn 0.3s ease'
           }}>
             {message}
@@ -670,7 +750,7 @@ const PushNotificationDemo = () => {
             borderRadius: '8px',
             fontSize: '12px',
             textAlign: 'center',
-            animation: 'fadeOut 4s forwards'
+            animation: 'fadeOut 5s forwards'
           }}>
             {lastTestResult}
           </div>
@@ -687,21 +767,11 @@ const PushNotificationDemo = () => {
         }}>
           <div>💡 Astuce: Cliquez et glissez la barre grise pour déplacer</div>
           <div style={{ marginTop: '4px' }}>Fermez l'onglet après test - la notification arrive quand même!</div>
+          <div style={{ marginTop: '4px' }}>📱 Supporté sur: Chrome, Firefox, Edge, Safari (iOS 16.4+)</div>
         </div>
       </div>
 
       <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        
         @keyframes fadeIn {
           from {
             opacity: 0;
