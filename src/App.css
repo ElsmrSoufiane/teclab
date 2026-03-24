@@ -14955,3 +14955,115 @@ p {
     right: 6px;
   }
 }
+/* ==================== SCROLL PERFORMANCE OPTIMIZATIONS ==================== */
+
+/* Enable hardware acceleration */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimize scrolling */
+html, body {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+}
+
+/* Reduce repaints during scroll */
+.main-content {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize images */
+img {
+  content-visibility: auto;
+  contain: paint;
+  will-change: auto;
+}
+
+/* Lazy loading images */
+img[loading="lazy"] {
+  content-visibility: auto;
+  contain: paint;
+}
+
+/* Optimize product cards */
+.product-card {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+.product-card img {
+  content-visibility: auto;
+  contain: paint;
+}
+
+/* Optimize product grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  will-change: contents;
+}
+
+/* Reduce animation complexity */
+.product-card,
+.category-card,
+.action-btn {
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Disable hover effects on mobile to improve performance */
+@media (max-width: 768px) {
+  .product-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .action-btn:hover {
+    transform: none;
+  }
+  
+  .product-card:hover .product-image {
+    transform: none;
+  }
+  
+  .product-actions {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+/* ==================== SCROLL PERFORMANCE FIXES ==================== */
+
+/* Enable hardware acceleration */
+.product-card,
+.carousel-slide,
+.products-grid {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Lazy load images - prevents loading all images at once */
+img {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 1000px;
+}
+
+/* Disable hover effects on mobile for better performance */
+@media (max-width: 768px) {
+  .product-card:hover {
+    transform: none !important;
+  }
+  .action-btn:hover {
+    transform: none !important;
+  }
+  .product-card:hover .product-image {
+    transform: none !important;
+  }
+}
