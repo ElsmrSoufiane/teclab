@@ -16796,3 +16796,247 @@ button:disabled,
     min-height: 32px !important;
   }
 }
+/* ==================== PRODUCT TABS FIX ==================== */
+
+/* Product tabs container - preserve existing structure */
+.product-tabs {
+  margin-top: 40px !important;
+}
+
+/* Tabs header - ensure proper styling */
+.product-tabs .tabs-header {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+  margin-bottom: 20px !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Tab buttons - make them visible */
+.product-tabs .tabs-header button {
+  background: transparent !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: #6c757d !important;
+  position: relative !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+/* Hover state */
+.product-tabs .tabs-header button:hover {
+  color: #6d9eeb !important;
+  background: transparent !important;
+}
+
+/* Active tab styling */
+.product-tabs .tabs-header button.active {
+  color: #6d9eeb !important;
+  background: transparent !important;
+}
+
+/* Underline for active tab */
+.product-tabs .tabs-header button.active::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: -2px !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+  background: #6d9eeb !important;
+  border-radius: 3px 3px 0 0 !important;
+}
+
+/* Tab content area */
+.product-tabs .tab-content {
+  background: #f8f9fa !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+}
+
+/* ==================== REVIEWS SECTION - STARS FIX ==================== */
+
+/* Star rating display */
+.star-rating,
+.product-rating,
+.review-card .star-rating,
+.reviews-summary .star-rating {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+/* Individual stars */
+.star,
+.star-rating .star,
+.product-rating .star,
+.review-card .star,
+.reviews-summary .star {
+  font-size: 18px !important;
+  color: #e0e0e0 !important;
+  display: inline-block !important;
+}
+
+/* Filled stars */
+.star.filled,
+.star-rating .star.filled,
+.product-rating .star.filled,
+.review-card .star.filled,
+.reviews-summary .star.filled {
+  color: #ffc107 !important;
+}
+
+/* Rating stars in product detail page */
+.product-detail-page .product-rating .star {
+  font-size: 18px !important;
+}
+
+/* Review stars input */
+.star-rating-input {
+  display: flex !important;
+  gap: 8px !important;
+  margin: 10px 0 !important;
+}
+
+.star-rating-input .star-btn {
+  background: none !important;
+  border: none !important;
+  font-size: 28px !important;
+  cursor: pointer !important;
+  color: #e0e0e0 !important;
+  padding: 0 4px !important;
+  transition: color 0.2s ease !important;
+}
+
+.star-rating-input .star-btn:hover,
+.star-rating-input .star-btn.active {
+  color: #ffc107 !important;
+}
+
+/* Review summary stars */
+.reviews-summary .stars {
+  display: flex !important;
+  gap: 4px !important;
+  justify-content: center !important;
+}
+
+.reviews-summary .star {
+  font-size: 20px !important;
+}
+
+/* Review card stars */
+.review-card .stars {
+  display: flex !important;
+  gap: 2px !important;
+}
+
+.review-card .star {
+  font-size: 14px !important;
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+  /* Tabs - make scrollable horizontally */
+  .product-tabs .tabs-header {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+    gap: 0 !important;
+  }
+  
+  .product-tabs .tabs-header button {
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .product-tabs .tab-content {
+    padding: 16px !important;
+  }
+  
+  /* Stars size on mobile */
+  .star,
+  .product-rating .star {
+    font-size: 16px !important;
+  }
+  
+  .star-rating-input .star-btn {
+    font-size: 24px !important;
+  }
+}
+
+/* ==================== PRODUCT DETAIL PAGE SPECIFIC ==================== */
+
+/* Product rating summary clickable area */
+.product-rating-summary {
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+  margin-bottom: 20px !important;
+  cursor: pointer !important;
+}
+
+.product-rating-summary .product-rating {
+  margin-bottom: 0 !important;
+}
+
+.write-review-link {
+  background: none !important;
+  border: none !important;
+  color: #6d9eeb !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  padding: 0 !important;
+}
+
+.write-review-link:hover {
+  color: #5a8ad4 !important;
+}
+
+/* Rating distribution */
+.rating-distribution {
+  margin-top: 15px !important;
+}
+
+.distribution-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.stars-label {
+  min-width: 70px !important;
+  font-size: 13px !important;
+  color: #666 !important;
+}
+
+.progress-bar {
+  flex: 1 !important;
+  height: 8px !important;
+  background: #e0e0e0 !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+
+.progress-fill {
+  height: 100% !important;
+  background: #ffc107 !important;
+  border-radius: 4px !important;
+}
+
+.count-label {
+  min-width: 35px !important;
+  font-size: 12px !important;
+  color: #999 !important;
+  text-align: right !important;
+}
