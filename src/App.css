@@ -18192,3 +18192,414 @@ button.generate-sku-btn {
   cursor: pointer !important;
   color: white !important;
 }
+
+/* ==================== COMPLETE BUTTON FIX - FORCE ALL BUTTON COLORS ==================== */
+
+/* Reset and force all buttons to have proper styling */
+button,
+[class*="btn"],
+[class*="button"],
+a[role="button"],
+input[type="button"],
+input[type="submit"],
+.quantity-selector button,
+.pagination-btn,
+.page-number,
+.menu-item,
+.close-btn,
+.modal-close-btn {
+  all: initial;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+}
+
+/* ==================== PRIMARY BUTTONS (BLUE) ==================== */
+.btn-primary,
+button[type="submit"],
+.add-to-cart-btn,
+.checkout-btn,
+.place-order-btn,
+.apply-coupon-btn,
+.submit-btn,
+.save-btn,
+.resend-btn,
+.reset-filters-btn,
+.view-all,
+.refresh-btn,
+.use-btn,
+.login-btn,
+.register-btn,
+[class*="submit"]:not([class*="cancel"]),
+[class*="save"]:not([class*="cancel"]),
+.add-btn,
+.ps-cart__footer .btn-primary,
+.coupon-footer .use-btn,
+.auth-box form button,
+.cart-summary .login-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+}
+
+.btn-primary:hover,
+button[type="submit"]:hover,
+.add-to-cart-btn:hover,
+.checkout-btn:hover,
+.place-order-btn:hover,
+.apply-coupon-btn:hover,
+.submit-btn:hover,
+.save-btn:hover,
+.resend-btn:hover,
+.reset-filters-btn:hover,
+.view-all:hover,
+.refresh-btn:hover,
+.use-btn:hover,
+.login-btn:hover,
+.register-btn:hover,
+.add-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(109, 158, 235, 0.3);
+}
+
+/* ==================== SECONDARY BUTTONS (WHITE WITH BLUE BORDER) ==================== */
+.btn-secondary,
+.cancel-btn,
+.clear-cart,
+.clear-btn,
+.clear-filters-btn,
+.clear-all-filters,
+.clear-section,
+.show-more-brands,
+.show-less-brands,
+.back-btn,
+.modal-close-btn,
+.cancel-order-btn:not(.delete-btn) {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  padding: 8px 16px !important;
+}
+
+.btn-secondary:hover,
+.cancel-btn:hover,
+.clear-cart:hover,
+.clear-btn:hover,
+.clear-filters-btn:hover,
+.clear-all-filters:hover,
+.clear-section:hover,
+.show-more-brands:hover,
+.show-less-brands:hover,
+.back-btn:hover,
+.modal-close-btn:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== DANGER BUTTONS (RED) ==================== */
+.remove-favorite-btn,
+.delete-btn,
+.cancel-order-btn,
+.remove-item,
+.mobile-logout-btn,
+.wishlist-btn.active,
+button.delete-btn,
+button.remove-favorite-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+}
+
+.remove-favorite-btn:hover,
+.delete-btn:hover,
+.cancel-order-btn:hover,
+.remove-item:hover,
+.mobile-logout-btn:hover,
+.wishlist-btn.active:hover,
+button.delete-btn:hover,
+button.remove-favorite-btn:hover {
+  background: #c82333 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== SUCCESS BUTTONS (GREEN) ==================== */
+.save-success-btn,
+.copy-btn.copied,
+.confirm-btn,
+.generate-sku-btn {
+  background: #28a745 !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+}
+
+.save-success-btn:hover,
+.copy-btn.copied:hover,
+.confirm-btn:hover,
+.generate-sku-btn:hover {
+  background: #218838 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== WARNING BUTTONS (YELLOW/ORANGE) ==================== */
+.warning-btn,
+.copy-btn {
+  background: #ffc107 !important;
+  color: #333 !important;
+  border: none !important;
+  padding: 8px 16px !important;
+}
+
+.warning-btn:hover,
+.copy-btn:hover {
+  background: #e0a800 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== QUANTITY SELECTOR BUTTONS (+ and -) ==================== */
+.quantity-selector button {
+  background: #f5f5f5 !important;
+  color: #2c3e50 !important;
+  border: 1px solid #e0e0e0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  border-radius: 4px !important;
+}
+
+.quantity-selector button:hover:not(:disabled) {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+/* ==================== PAGINATION BUTTONS ==================== */
+.pagination-btn,
+.page-number {
+  background: white !important;
+  color: #2c3e50 !important;
+  border: 1px solid #e0e0e0 !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important;
+}
+
+.pagination-btn:hover:not(:disabled),
+.page-number:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+.page-number.active {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ==================== ADMIN TABLE BUTTONS ==================== */
+.admin-table .edit-btn,
+.admin-table .view-btn {
+  background: #17a2b8 !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border-radius: 4px !important;
+}
+
+.admin-table .edit-btn:hover,
+.admin-table .view-btn:hover {
+  background: #138496 !important;
+  transform: translateY(-2px);
+}
+
+.admin-table .delete-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border-radius: 4px !important;
+}
+
+.admin-table .delete-btn:hover {
+  background: #c82333 !important;
+  transform: translateY(-2px);
+}
+
+.admin-table .gallery-btn {
+  background: #6c757d !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border-radius: 4px !important;
+}
+
+.admin-table .gallery-btn:hover {
+  background: #5a6268 !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== HEADER BUTTONS (Keep white on blue background) ==================== */
+.header .menu-toggle,
+.header .menu-toggle.desktop-only,
+.header .mobile-search-toggle,
+.header .header-icon {
+  background: transparent !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px !important;
+}
+
+.header .menu-toggle:hover,
+.header .mobile-search-toggle:hover,
+.header .header-icon:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== USER DROPDOWN BUTTONS ==================== */
+.user-dropdown .logout-btn,
+.user-dropdown a,
+.user-dropdown button {
+  background: transparent !important;
+  color: #2c3e50 !important;
+  border: none !important;
+  padding: 10px 15px !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  border-radius: 0 !important;
+}
+
+.user-dropdown .logout-btn:hover,
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background: #f8f9fa !important;
+  color: #6d9eeb !important;
+}
+
+/* ==================== MOBILE MENU BUTTONS ==================== */
+.mobile-auth-links a {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+}
+
+.mobile-logout-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+}
+
+/* ==================== ADMIN SIDEBAR MENU ==================== */
+.admin-dashboard-page .menu-item {
+  background: transparent !important;
+  color: #2c3e50 !important;
+  border: none !important;
+  padding: 12px 20px !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  border-radius: 0 !important;
+}
+
+.admin-dashboard-page .menu-item:hover {
+  background: #f8f9fa !important;
+  color: #6d9eeb !important;
+}
+
+.admin-dashboard-page .menu-item.active {
+  background: #e8f0fe !important;
+  color: #6d9eeb !important;
+  border-left: 3px solid #6d9eeb !important;
+}
+
+/* ==================== CLOSE BUTTONS (Modals) ==================== */
+.close-btn,
+.modal-close-btn {
+  background: #f0f0f0 !important;
+  color: #666 !important;
+  border: none !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.close-btn:hover,
+.modal-close-btn:hover {
+  background: #dc3545 !important;
+  color: white !important;
+  transform: rotate(90deg);
+}
+
+/* ==================== DISABLED BUTTONS ==================== */
+button:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.add-to-cart-btn:disabled,
+button[disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+/* ==================== ENSURE ALL BUTTONS HAVE VISIBLE TEXT ==================== */
+button,
+.btn-primary,
+[class*="btn"]:not(.btn-secondary):not(.cancel-btn):not(.clear-btn):not(.back-btn):not(.close-btn) {
+  color: white !important;
+}
+
+.btn-secondary,
+.cancel-btn,
+.clear-cart,
+.clear-btn,
+.back-btn,
+.close-btn {
+  color: #6d9eeb !important;
+}
+
+.btn-secondary:hover,
+.cancel-btn:hover,
+.clear-cart:hover,
+.clear-btn:hover,
+.back-btn:hover,
+.close-btn:hover {
+  color: white !important;
+}
+
+/* ==================== RESPONSIVE TOUCH TARGETS ==================== */
+@media (max-width: 768px) {
+  button,
+  .btn-primary,
+  .btn-secondary,
+  [class*="btn"] {
+    min-height: 44px !important;
+  }
+}
