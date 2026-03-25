@@ -16439,3 +16439,305 @@ button:disabled,
 .review-form .star-rating-input button.active {
     color: #ffc107 !important;
 }
+/* ==================== FIX ADMIN BUTTONS - FORCE ALL BUTTON STYLES ==================== */
+
+/* Reset any conflicting rules that might make admin buttons white */
+.admin-dashboard-page button,
+.admin-dashboard-page .btn,
+.admin-dashboard-page [class*="btn"],
+.admin-table button,
+.admin-table-container button,
+.admin-modal-content button,
+.admin-content button {
+  all: initial;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+/* ==================== ADMIN BUTTON TYPES ==================== */
+
+/* Primary buttons (Add, Save, Submit) */
+.admin-dashboard-page .add-btn,
+.admin-dashboard-page .submit-btn,
+.admin-dashboard-page .save-btn,
+.admin-dashboard-page .apply-btn,
+.admin-dashboard-page .btn-primary,
+.admin-modal-content .submit-btn {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+}
+
+.admin-dashboard-page .add-btn:hover,
+.admin-dashboard-page .submit-btn:hover,
+.admin-dashboard-page .save-btn:hover,
+.admin-dashboard-page .apply-btn:hover,
+.admin-dashboard-page .btn-primary:hover,
+.admin-modal-content .submit-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+}
+
+/* Edit buttons (View, Edit) */
+.admin-dashboard-page .edit-btn,
+.admin-dashboard-page .view-btn,
+.admin-table .edit-btn,
+.admin-table .view-btn {
+  background: #17a2b8 !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+}
+
+.admin-dashboard-page .edit-btn:hover,
+.admin-dashboard-page .view-btn:hover,
+.admin-table .edit-btn:hover,
+.admin-table .view-btn:hover {
+  background: #138496 !important;
+  transform: translateY(-2px);
+}
+
+/* Delete buttons */
+.admin-dashboard-page .delete-btn,
+.admin-table .delete-btn,
+.admin-dashboard-page .remove-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+}
+
+.admin-dashboard-page .delete-btn:hover,
+.admin-table .delete-btn:hover,
+.admin-dashboard-page .remove-btn:hover {
+  background: #c82333 !important;
+  transform: translateY(-2px);
+}
+
+/* Cancel buttons */
+.admin-dashboard-page .cancel-btn,
+.admin-modal-content .cancel-btn {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+  padding: 8px 16px !important;
+}
+
+.admin-dashboard-page .cancel-btn:hover,
+.admin-modal-content .cancel-btn:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  transform: translateY(-2px);
+}
+
+/* Back button */
+.admin-dashboard-page .back-btn,
+.admin-dashboard-page .view-site-btn {
+  background: #6c757d !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+}
+
+.admin-dashboard-page .back-btn:hover,
+.admin-dashboard-page .view-site-btn:hover {
+  background: #5a6268 !important;
+  transform: translateY(-2px);
+}
+
+/* Close button in modals */
+.admin-modal-content .close-btn {
+  background: #f8f9fa !important;
+  color: #6c757d !important;
+  border: 1px solid #dee2e6 !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.admin-modal-content .close-btn:hover {
+  background: #dc3545 !important;
+  color: white !important;
+  border-color: #dc3545 !important;
+  transform: rotate(90deg);
+}
+
+/* Generate SKU button */
+.admin-dashboard-page .generate-sku-btn {
+  background: #28a745 !important;
+  color: white !important;
+  border: none !important;
+  height: 42px !important;
+  white-space: nowrap !important;
+}
+
+.admin-dashboard-page .generate-sku-btn:hover {
+  background: #218838 !important;
+  transform: translateY(-2px);
+}
+
+/* Clear filters button */
+.admin-dashboard-page .clear-filters-btn,
+.admin-dashboard-page .clear-all-filters {
+  background: #ffc107 !important;
+  color: #333 !important;
+  border: none !important;
+}
+
+.admin-dashboard-page .clear-filters-btn:hover,
+.admin-dashboard-page .clear-all-filters:hover {
+  background: #e0a800 !important;
+  transform: translateY(-2px);
+}
+
+/* Pagination buttons */
+.admin-dashboard-page .pagination-btn,
+.admin-dashboard-page .page-number {
+  background: white !important;
+  color: #2c3e50 !important;
+  border: 1px solid #dee2e6 !important;
+  padding: 8px 12px !important;
+}
+
+.admin-dashboard-page .pagination-btn:hover:not(:disabled),
+.admin-dashboard-page .page-number:hover {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+.admin-dashboard-page .page-number.active {
+  background: #6d9eeb !important;
+  color: white !important;
+  border-color: #6d9eeb !important;
+}
+
+.admin-dashboard-page .pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status select dropdown */
+.admin-dashboard-page .status-select {
+  background: white !important;
+  color: #2c3e50 !important;
+  border: 1px solid #dee2e6 !important;
+  padding: 6px 10px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+}
+
+/* Menu items in sidebar */
+.admin-dashboard-page .menu-item {
+  background: transparent !important;
+  color: #2c3e50 !important;
+  border: none !important;
+  padding: 12px 20px !important;
+  width: 100% !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.admin-dashboard-page .menu-item:hover {
+  background: #f8f9fa !important;
+  color: #6d9eeb !important;
+}
+
+.admin-dashboard-page .menu-item.active {
+  background: #e8f0fe !important;
+  color: #6d9eeb !important;
+  border-left: 3px solid #6d9eeb !important;
+}
+
+/* Action buttons in table cells */
+.admin-table .action-buttons-cell {
+  display: flex !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+}
+
+.admin-table .edit-btn,
+.admin-table .delete-btn,
+.admin-table .view-btn,
+.admin-table .gallery-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-table .gallery-btn {
+  background: #6c757d !important;
+  color: white !important;
+}
+
+.admin-table .gallery-btn:hover {
+  background: #5a6268 !important;
+  transform: translateY(-2px);
+}
+
+/* Force all admin buttons to have proper colors - override any conflicting rules */
+.admin-dashboard-page button:not(.menu-item):not([class*="status"]):not(.pagination-btn):not(.page-number):not(.close-btn) {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* But keep special button types */
+.admin-dashboard-page .delete-btn,
+.admin-dashboard-page button.delete-btn {
+  background: #dc3545 !important !important;
+  color: white !important;
+}
+
+.admin-dashboard-page .edit-btn,
+.admin-dashboard-page button.edit-btn {
+  background: #17a2b8 !important;
+  color: white !important;
+}
+
+.admin-dashboard-page .cancel-btn,
+.admin-dashboard-page button.cancel-btn {
+  background: white !important;
+  color: #6d9eeb !important;
+  border: 2px solid #6d9eeb !important;
+}
+
+.admin-dashboard-page .back-btn {
+  background: #6c757d !important;
+  color: white !important;
+}
+
+/* Ensure text in buttons is always visible */
+.admin-dashboard-page button,
+.admin-dashboard-page .btn,
+.admin-dashboard-page [class*="btn"] {
+  color: white !important;
+}
+
+.admin-dashboard-page .cancel-btn,
+.admin-dashboard-page button.cancel-btn {
+  color: #6d9eeb !important;
+}
+
+.admin-dashboard-page .cancel-btn:hover,
+.admin-dashboard-page button.cancel-btn:hover {
+  color: white !important;
+}
