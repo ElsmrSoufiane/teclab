@@ -16426,3 +16426,16 @@ button:disabled,
   height: 16px !important;
   stroke: currentColor !important;
 }
+
+/* Force finale */
+.star-rating-input button,
+.star-rating-input .star-btn,
+.review-form .star-rating-input button {
+    color: #e4e5e9 !important;
+}
+
+.star-rating-input button.active,
+.star-rating-input .star-btn.active,
+.review-form .star-rating-input button.active {
+    color: #ffc107 !important;
+}
