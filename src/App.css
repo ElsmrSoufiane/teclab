@@ -17040,3 +17040,102 @@ button:disabled,
   color: #999 !important;
   text-align: right !important;
 }
+/* ==================== FIX MOBILE FILTER BUTTON ==================== */
+
+/* Mobile filter button - make it visible */
+.mobile-filter-btn.redesigned,
+.mobile-filter-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 12px 20px !important;
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 30px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(109, 158, 235, 0.3) !important;
+}
+
+.mobile-filter-btn.redesigned:hover,
+.mobile-filter-btn:hover {
+  background: #5a8ad4 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(109, 158, 235, 0.4) !important;
+}
+
+.mobile-filter-btn.redesigned:active,
+.mobile-filter-btn:active {
+  transform: translateY(0);
+}
+
+/* Filter button icon */
+.mobile-filter-btn.redesigned svg,
+.mobile-filter-btn svg {
+  stroke: white !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Filter badge (number of active filters) */
+.mobile-filter-btn.redesigned .filter-badge,
+.mobile-filter-btn .filter-badge {
+  background: #ff6b6b !important;
+  color: white !important;
+  border-radius: 20px !important;
+  padding: 2px 8px !important;
+  margin-left: 8px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+}
+
+/* ==================== ENSURE NO CONFLICTING STYLES ==================== */
+
+/* Override any generic button styles that might affect filter button */
+button.mobile-filter-btn,
+button.mobile-filter-btn.redesigned {
+  background: #6d9eeb !important;
+  color: white !important;
+  border: none !important;
+}
+
+button.mobile-filter-btn:hover,
+button.mobile-filter-btn.redesigned:hover {
+  background: #5a8ad4 !important;
+  color: white !important;
+}
+
+/* ==================== FILTER BUTTON POSITION ON MOBILE ==================== */
+
+@media (max-width: 768px) {
+  .products-toolbar.redesigned {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .mobile-filter-btn.redesigned {
+    order: 1 !important;
+    margin-left: auto !important;
+  }
+  
+  /* If search box and filter button are side by side */
+  .search-box.redesigned {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+}
+
+/* ==================== FOR LARGER SCREENS - HIDE MOBILE FILTER BUTTON ==================== */
+
+@media (min-width: 769px) {
+  .mobile-filter-btn.redesigned,
+  .mobile-filter-btn {
+    display: none !important;
+  }
+}
