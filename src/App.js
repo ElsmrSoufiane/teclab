@@ -7,6 +7,7 @@ import { OptimizedImage } from './OptimizedImage';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
+import TeclabAgent from "./ai";
 // Add this at the top of App.js or in a utils file
 const saveScrollPosition = (key) => {
   const scrollY = window.scrollY;
@@ -9868,7 +9869,7 @@ const AdminDashboardPage = ({ navigate }) => {
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showBackToTop, setShowBackToTop] = useState(false);
-
+ 
   const navigate = (path) => {
     window.history.pushState({}, '', path);
     setCurrentPath(path);
@@ -9976,7 +9977,7 @@ function App() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                 
+                 <TeclabAgent></TeclabAgent>
                 </div>
               </FavoritesProvider>
             </CouponProvider>
