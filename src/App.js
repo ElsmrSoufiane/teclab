@@ -1048,7 +1048,7 @@ const Carousel = () => {
       id: 1,
       title: 'Nouvelle Collection Orientale',
       subtitle: 'Découvrez nos 5 nouveaux parfums aux notes d\'Oud et d\'Ambre',
-      image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=800&auto=format',
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRATP-yERPwKhdgZxVxfJRQ_RRW3wzt_6Kenw&s',
       bgColor: '#2A1A0A',
       textColor: '#ffffff',
       badge: 'NOUVEAUTÉ'
@@ -1057,7 +1057,7 @@ const Carousel = () => {
       id: 2,
       title: 'Jusqu\'à -30%',
       subtitle: 'Sur une sélection de parfums signature',
-      image: 'https://images.unsplash.com/photo-1590736961262-6b5d4f5a87a1?w=800&auto=format',
+      image: 'https://andalusperfume.ma/wp-content/uploads/2025/09/PARAGON-Royal.jpg',
       bgColor: '#1A0A00',
       textColor: '#ffffff',
       badge: 'PROMOTION'
@@ -1066,19 +1066,10 @@ const Carousel = () => {
       id: 3,
       title: 'Coffret Cadeau Exclusif',
       subtitle: '3 miniatures offertes pour tout achat > 600 MAD',
-      image: 'https://images.unsplash.com/photo-1590736704728-f4734bb5a4a6?w=800&auto=format',
+      image: 'https://media.gqmagazine.fr/photos/66585a664b1f8f6af3d9fdfb/master/pass/PerfumeBrands_HP.jpg',
       bgColor: '#3A2A1A',
       textColor: '#ffffff',
       badge: 'OFFERT'
-    },
-    {
-      id: 4,
-      title: 'Livraison Offerte',
-      subtitle: 'Pour toute commande à partir de 500 MAD',
-      image: 'https://images.unsplash.com/photo-1588405748880-12d1d2a59f7b?w=800&auto=format',
-      bgColor: '#2A2A2A',
-      textColor: '#ffffff',
-      badge: 'LIVRAISON'
     }
   ]);
   
