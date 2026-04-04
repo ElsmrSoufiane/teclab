@@ -2851,50 +2851,40 @@ const Header = ({ currentPath, navigate }) => {
         )}
 
         {/* Desktop Categories Mega Menu */}
-        {showCategoryMenu && !isMobile && (
-          <div className="categories-mega-menu desktop-only" ref={categoryMenuRef}>
-            <div className="container">
-              <div className="categories-grid-header">
-                {/* All Categories Option */}
-                <div 
-                  className="category-menu-item all-categories"
-                  onClick={handleAllCategoriesClick}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="category-menu-icon">
-                    <Icons.Package size={20} />
-                  </div>
-                  <div className="category-menu-content">
-                    <h4>Toutes les catégories</h4>
-                    <span className="category-menu-count">
-                      Voir tous les produits
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Individual Categories */}
-                {categories.length > 0 ? (
-                  categories.map(category => (
-                    <div 
-                      key={category.id}
-                      className={`category-menu-item ${selectedCategory === category.id.toString() ? 'active' : ''}`}
-                      onClick={() => handleCategoryClick(category.id, category.name)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="category-menu-icon">
-                        <Icons.Package size={20} />
-                      </div>
-                      <div className="category-menu-content">
-                        <h4>{category.name}</h4>
-                        <span className="category-menu-count">
-                          {category.products_count || 0} produits
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="loading-categories">Chargement des catégories...</div>
-                )}
+       {/* Desktop Categories Mega Menu */}
+{showCategoryMenu && !isMobile && (
+  <div className="category-menu" ref={categoryMenuRef}>
+    <div className="container">
+      {/* All Categories Option */}
+      <div 
+        className="category-link"
+        onClick={handleAllCategoriesClick}
+        style={{ cursor: 'pointer' }}
+      >
+        <span className="category-icon">📦</span>
+        <span>Toutes les catégories</span>
+      </div>
+      
+      {/* Individual Categories */}
+      {categories.length > 0 ? (
+        categories.map(category => (
+          <div 
+            key={category.id}
+            className={`category-link ${selectedCategory === category.id.toString() ? 'active' : ''}`}
+            onClick={() => handleCategoryClick(category.id, category.name)}
+            style={{ cursor: 'pointer' }}
+          >
+            <span className="category-color" style={{ backgroundColor: category.color || '#D4AF37' }}></span>
+            <span>{category.name}</span>
+            <span className="category-count">({category.products_count || 0})</span>
+          </div>
+        ))
+      ) : (
+        <div className="loading-categories">Chargement des catégories...</div>
+      )}
+    </div>
+  </div>
+)}
               </div>
             </div>
           </div>
