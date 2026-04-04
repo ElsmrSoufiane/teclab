@@ -6144,88 +6144,89 @@ const CheckoutPage = ({ navigate }) => {
 };
 
 // ==================== ABOUT PAGE ====================
+// ==================== ABOUT PAGE ARIJ PARFUMS ====================
 const AboutPage = () => {
   const stats = [
-    { icon: Icons.Star, value: '20+', label: "Années d'expérience" },
-    { icon: Icons.Users, value: '500+', label: 'Clients professionnels' },
-    { icon: Icons.Package, value: '1200+', label: 'Produits disponibles' },
-    { icon: Icons.Truck, value: '48h', label: 'Délai de livraison' }
+    { icon: Icons.Star, value: '15+', label: "Années d'excellence" },
+    { icon: Icons.Users, value: '10K+', label: 'Clients satisfaits' },
+    { icon: Icons.Package, value: '120+', label: 'Fragrances uniques' },
+    { icon: Icons.Truck, value: '24h', label: 'Livraison express' }
   ];
 
-  const categories = [
+  const perfumeCategories = [
     {
-      title: '🧪 Tubes de Prélèvement',
-      description: 'Tubes PRP, tubes gel, tubes secs et toute la gamme de tubes vacutainer pour l\'analyse biologique et la médecine régénérative.',
-      icon: '🧪'
+      title: '🌸 Parfums Femme',
+      description: 'Des fragrances florales, fruitées et sensuelles qui révèlent votre féminité. Notre collection pour femme allie élégance et caractère.',
+      icon: '🌸'
     },
     {
-      title: '💉 Aiguilles & Accessoires',
-      description: 'Aiguilles de prélèvement, systèmes de collecte sécurisés, lancettes et accessoires pour chaque protocole clinique.',
-      icon: '💉'
+      title: '🌿 Parfums Homme',
+      description: 'Des compositions boisées, épicées et aromatiques pour l\'homme moderne. Puissance et raffinement dans chaque goutte.',
+      icon: '🌿'
     },
     {
-      title: '🏺 Consommables de Laboratoire',
-      description: 'Pipettes, embouts, plaques, tubes Eppendorf, milieux de culture et tout le consommable quotidien de vos laboratoires.',
-      icon: '🏺'
+      title: '✨ Parfums Unisex',
+      description: 'Des essences universelles qui transcendent les genres. Des fragrances uniques pour les personnalités audacieuses.',
+      icon: '✨'
     },
     {
-      title: '⚗️ Réactifs de Laboratoire',
-      description: 'Réactifs pour biochimie, hématologie, immunologie, sérologie et microbiologie, compatibles avec les automates du marché.',
-      icon: '⚗️'
+      title: '💎 Parfums de Luxe',
+      description: 'Notre collection exclusive avec des ingrédients rares : Oud, Safran, Ambre gris. L\'ultime expression du luxe.',
+      icon: '💎'
     },
     {
-      title: '🔬 Analyseurs de Laboratoire',
-      description: 'Automates d\'hématologie, biochimie, immunologie et urines. Installation, maintenance et formation incluses.',
-      icon: '🔬'
+      title: '🎁 Coffrets Cadeaux',
+      description: 'Des coffrets élégants pour offrir le parfum parfait. Idéal pour toutes les occasions spéciales.',
+      icon: '🎁'
     },
     {
-      title: '⚙️ Équipements de Laboratoire',
-      description: 'Centrifugeuses, réfrigérateurs médicaux, hottes, autoclaves, microscopes et équipements de protection individuelle.',
-      icon: '⚙️'
+      title: '🪵 Parfums Orientaux',
+      description: 'Des senteurs chaudes et envoûtantes aux notes d\'oud, de musc et de résines précieuses.',
+      icon: '🪵'
     }
   ];
 
   const whyChooseUs = [
     {
-      title: '🏅 Produits Certifiés & Homologués',
-      description: 'Tous nos produits sont conformes aux normes CE, ISO et aux exigences du Ministère de la Santé marocain.'
+      title: '🏺 Ingrédients Nobles',
+      description: 'Nous utilisons uniquement des matières premières d\'exception : essences naturelles, absolus rares et molécules exclusives.'
     },
     {
-      title: '🚚 Livraison Rapide Partout au Maroc',
-      description: 'Réseau logistique couvrant l\'ensemble du territoire national avec un délai garanti de 24 à 48 heures.'
+      title: '👃 Créations Uniques',
+      description: 'Chaque parfum est une création originale, pensée par des nez talentueux pour révéler votre personnalité.'
     },
     {
-      title: '💰 Tarifs Professionnels Exclusifs',
-      description: 'Programme de tarification dédié aux professionnels agréés avec remises progressives selon le volume de commande.'
+      title: '💎 Authenticité Garantie',
+      description: 'Tous nos produits sont 100% authentiques et conditionnés en France avec des flacons de qualité supérieure.'
     },
     {
-      title: '🎓 Expertise & Conseil Technique',
-      description: 'Une équipe de techniciens qualifiés disponible pour vous conseiller, former et assurer la maintenance de vos équipements.'
+      title: '🚚 Livraison Rapide',
+      description: 'Expédition sous 24h et livraison offerte dès 500 MAD d\'achat dans tout le Maroc.'
     },
     {
-      title: '🔄 Stock Permanent & Disponibilité',
-      description: 'Plus de 1 200 références disponibles en stock permanent pour garantir la continuité de vos activités sans interruption.'
+      title: '🎁 Échantillons Offerts',
+      description: 'Chaque commande est accompagnée d\'échantillons gratuits pour découvrir d\'autres fragrances.'
     },
     {
-      title: '🤝 Relation Durable & Service Après-Vente',
-      description: 'Un interlocuteur dédié pour chaque client professionnel, un SAV réactif et un accompagnement sur le long terme.'
+      title: '🤝 Conseil Personnalisé',
+      description: 'Notre équipe d\'experts est à votre disposition pour vous aider à trouver le parfum qui vous correspond.'
     }
   ];
 
   const values = [
     {
       title: 'Notre Mission',
-      description: 'Fournir aux professionnels de santé marocains des équipements, réactifs et consommables de laboratoire de haute qualité, avec un service client réactif et des délais de livraison fiables sur l\'ensemble du territoire national.',
+      description: 'Offrir des parfums d\'exception accessibles à tous, en alliant qualité française et prix justes. Chaque fragrance raconte une histoire unique.',
       icon: '🎯'
     },
     {
       title: 'Notre Vision',
-      description: 'Devenir la référence incontournable pour l\'approvisionnement en matériel médico-laboratoire au Maroc, en construisant des partenariats durables fondés sur la confiance, l\'expertise et l\'innovation continue.',
+      description: 'Devenir la référence de la parfumerie de niche au Maroc, en proposant des créations originales qui subliment chaque personnalité.',
       icon: '🔭'
     },
     {
       title: 'Nos Valeurs',
-      description: 'Qualité sans compromis, intégrité dans chaque transaction, réactivité face aux besoins de nos clients, et engagement constant pour l\'amélioration de la santé au Maroc.',
+      description: 'Authenticité, qualité, passion et innovation. Chaque parfum Arij est le fruit d\'un savoir-faire artisanal et d\'une créativité sans limite.',
       icon: '💎'
     }
   ];
@@ -6282,6 +6283,7 @@ const AboutPage = () => {
       animate="visible"
       variants={fadeInVariants}
     >
+      {/* Hero Section */}
       <motion.section 
         className="about-hero-enhanced"
         variants={containerVariants}
@@ -6297,33 +6299,40 @@ const AboutPage = () => {
               variants={itemVariants}
               whileHover={{ scale: 1.05 }}
             >
-              🧬 À Propos de Nous
+              ✨ Arij Parfums ✨
             </motion.span>
             
-            <motion.h1 
-              variants={itemVariants}
-            >
-              Votre Partenaire de
+            <motion.h1 variants={itemVariants}>
+              L'Art de la
               <motion.span 
                 className="highlight-text"
                 animate={{ 
-                  textShadow: ["0 0 0 rgba(109, 158, 235, 0)", "0 0 20px rgba(109, 158, 235, 0.5)", "0 0 0 rgba(109, 158, 235, 0)"]
+                  textShadow: ["0 0 0 rgba(212, 175, 55, 0)", "0 0 20px rgba(212, 175, 55, 0.5)", "0 0 0 rgba(212, 175, 55, 0)"]
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                Confiance
+                Parfumerie
               </motion.span>
-              <br />en Laboratoire
+              <br />à l'État Pur
             </motion.h1>
             
             <motion.p 
               className="hero-subtitle-enhanced"
               variants={itemVariants}
             >
-              Depuis notre création, TECLAB accompagne les professionnels de la santé avec des 
-              solutions de qualité supérieure pour les laboratoires, cliniques et établissements 
-              médicaux au Maroc.
+              Depuis 2010, Arij Parfums crée des fragrances d'exception pour les amateurs de parfums raffinés.
+              Chaque flacon raconte une histoire, chaque note éveille une émotion.
             </motion.p>
+            
+            <motion.button 
+              className="btn-primary"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.location.href = '/products'}
+            >
+              Découvrir nos créations
+            </motion.button>
           </motion.div>
         </div>
         
@@ -6334,7 +6343,9 @@ const AboutPage = () => {
             rotate: [0, 5, 0]
           }}
           transition={{ duration: 6, repeat: Infinity }}
-        />
+        >
+          🌸
+        </motion.div>
         <motion.div 
           className="floating-element element-2"
           animate={{ 
@@ -6342,7 +6353,9 @@ const AboutPage = () => {
             rotate: [0, -5, 0]
           }}
           transition={{ duration: 7, repeat: Infinity }}
-        />
+        >
+          ✨
+        </motion.div>
         <motion.div 
           className="floating-element element-3"
           animate={{ 
@@ -6350,9 +6363,12 @@ const AboutPage = () => {
             opacity: [0.3, 0.6, 0.3]
           }}
           transition={{ duration: 5, repeat: Infinity }}
-        />
+        >
+          💎
+        </motion.div>
       </motion.section>
 
+      {/* Stats Section */}
       <motion.section 
         className="about-stats-enhanced"
         variants={containerVariants}
@@ -6367,10 +6383,7 @@ const AboutPage = () => {
                 key={index}
                 className="stat-item-enhanced"
                 variants={scaleVariants}
-                whileHover={{ 
-                  y: -10,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
-                }}
+                whileHover={{ y: -10 }}
               >
                 <motion.div 
                   className="stat-icon-enhanced"
@@ -6383,11 +6396,7 @@ const AboutPage = () => {
                   className="stat-value-enhanced"
                   initial={{ opacity: 0, scale: 0.5 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ 
-                    type: "spring",
-                    stiffness: 100,
-                    delay: 0.2 + index * 0.1
-                  }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
                 >
                   {stat.value}
                 </motion.div>
@@ -6398,6 +6407,7 @@ const AboutPage = () => {
         </div>
       </motion.section>
 
+      {/* History Section */}
       <motion.section 
         className="about-history-enhanced"
         variants={containerVariants}
@@ -6411,77 +6421,42 @@ const AboutPage = () => {
               className="history-text-enhanced"
               variants={itemVariants}
             >
-              <motion.h2
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100 }}
-              >
-                Notre Histoire
-              </motion.h2>
-              
-              <motion.h3
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.1 }}
-              >
-                Qui sommes-nous ?
-              </motion.h3>
-              
-              <motion.p
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
-              >
-                TECLAB est une entreprise marocaine spécialisée dans la distribution de matériel 
-                et de consommables pour les laboratoires d'analyse médicale, les cliniques, les 
-                cabinets médicaux et les établissements de santé.
+              <motion.h2 variants={itemVariants}>Notre Histoire</motion.h2>
+              <motion.h3 variants={itemVariants}>L'excellence olfactive depuis 2010</motion.h3>
+              <motion.p variants={itemVariants}>
+                Arij Parfums est né d'une passion : celle de créer des fragrances uniques qui transcendent 
+                les tendances. Fondée par des artisans parfumeurs passionnés, notre maison allie 
+                tradition française et inspirations orientales.
               </motion.p>
-              
-              <motion.p
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
-              >
-                Fondée avec une ambition claire — rendre accessible aux professionnels de santé 
-                marocains des produits de haute qualité à des prix compétitifs — TECLAB s'est 
-                imposée comme un acteur incontournable du secteur médical au Maroc.
+              <motion.p variants={itemVariants}>
+                Chaque parfum Arij est le fruit d'un savoir-faire méticuleux, utilisant les matières 
+                premières les plus nobles : absolu de rose de Damas, oud précieux, ambre gris de Somalie, 
+                et vanille de Madagascar.
               </motion.p>
-              
-              <motion.p
-                initial={{ x: -50, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
-              >
-                Notre équipe est composée de spécialistes passionnés qui comprennent les exigences 
-                du monde médical et s'engagent à fournir un service irréprochable, du conseil à 
-                la livraison.
+              <motion.p variants={itemVariants}>
+                Aujourd'hui, Arij Parfums est reconnue comme une référence de la parfumerie de niche au 
+                Maroc, avec une communauté de passionnés qui partagent notre amour des belles fragrances.
               </motion.p>
             </motion.div>
             
             <motion.div 
               className="history-badge-enhanced"
               variants={scaleVariants}
-              whileHover={{ 
-                scale: 1.1,
-                rotate: 5,
-                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
-              }}
+              whileHover={{ scale: 1.1, rotate: 5 }}
             >
               <motion.span 
                 className="badge-icon-enhanced"
-                animate={{ 
-                  rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
-                }}
+                animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
-                🔬
+                💎
               </motion.span>
             </motion.div>
           </div>
         </div>
       </motion.section>
 
+      {/* Quality Section */}
       <motion.section 
         className="about-quality-enhanced"
         variants={containerVariants}
@@ -6494,31 +6469,14 @@ const AboutPage = () => {
             className="quality-content-enhanced"
             variants={itemVariants}
           >
-            <motion.h2
-              animate={{ 
-                color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
-              }}
-              transition={{ duration: 5, repeat: Infinity }}
-            >
-              Notre Engagement Qualité
-            </motion.h2>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              Chaque produit que nous distribuons est rigoureusement sélectionné auprès de 
-              fournisseurs certifiés, garantissant fiabilité, précision et conformité aux 
-              normes internationales en vigueur.
+            <motion.h2>Des Ingrédients d'Exception</motion.h2>
+            <motion.p>
+              Nous sélectionnons uniquement les meilleures matières premières issues des plus grandes 
+              maisons de parfumerie françaises et des producteurs les plus renommés à travers le monde.
             </motion.p>
-            
             <motion.div 
               className="quality-badge-enhanced"
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 30px rgba(109, 158, 235, 0.3)"
-              }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <motion.span 
@@ -6528,12 +6486,13 @@ const AboutPage = () => {
               >
                 ✅
               </motion.span>
-              <span>Fournisseurs certifiés ISO & CE</span>
+              <span>100% Authentique - Fabriqué en France</span>
             </motion.div>
           </motion.div>
         </div>
       </motion.section>
 
+      {/* Values Section */}
       <motion.section 
         className="about-values-section-enhanced"
         variants={containerVariants}
@@ -6548,17 +6507,11 @@ const AboutPage = () => {
                 key={index}
                 className="value-card-enhanced"
                 variants={itemVariants}
-                whileHover={{ 
-                  y: -15,
-                  boxShadow: "0 30px 60px rgba(109, 158, 235, 0.2)"
-                }}
+                whileHover={{ y: -15 }}
               >
                 <motion.div 
                   className="value-icon-enhanced"
-                  animate={{ 
-                    rotate: [0, 5, -5, 0],
-                    scale: [1, 1.1, 1]
-                  }}
+                  animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }}
                   transition={{ duration: 3, delay: index * 0.2, repeat: Infinity }}
                 >
                   {value.icon}
@@ -6571,6 +6524,7 @@ const AboutPage = () => {
         </div>
       </motion.section>
 
+      {/* Categories Section */}
       <motion.section 
         className="about-categories-enhanced"
         variants={containerVariants}
@@ -6579,40 +6533,24 @@ const AboutPage = () => {
         viewport={{ once: true, amount: 0.1 }}
       >
         <div className="container">
-          <motion.h2 
-            className="section-title-enhanced"
-            variants={itemVariants}
-          >
-            Ce que nous proposons
+          <motion.h2 className="section-title-enhanced" variants={itemVariants}>
+            Nos Collections
           </motion.h2>
-          
-          <motion.p 
-            className="section-subtitle-enhanced"
-            variants={itemVariants}
-          >
-            Une gamme complète de produits et services pour répondre à tous vos besoins 
-            en laboratoire et équipements médicaux.
+          <motion.p className="section-subtitle-enhanced" variants={itemVariants}>
+            Des fragrances pour chaque instant, chaque personnalité
           </motion.p>
 
           <div className="categories-grid-enhanced">
-            {categories.map((category, index) => (
+            {perfumeCategories.map((category, index) => (
               <motion.div 
                 key={index}
                 className="category-card-enhanced"
                 variants={itemVariants}
-                whileHover={{ 
-                  y: -10,
-                  scale: 1.02,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)"
-                }}
-                custom={index}
+                whileHover={{ y: -10, scale: 1.02 }}
               >
                 <motion.div 
                   className="category-icon-enhanced"
-                  animate={{ 
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1]
-                  }}
+                  animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
                   transition={{ duration: 4, delay: index * 0.1, repeat: Infinity }}
                 >
                   {category.icon}
@@ -6625,6 +6563,7 @@ const AboutPage = () => {
         </div>
       </motion.section>
 
+      {/* Why Choose Us Section */}
       <motion.section 
         className="why-choose-us-enhanced"
         variants={containerVariants}
@@ -6633,19 +6572,11 @@ const AboutPage = () => {
         viewport={{ once: true, amount: 0.1 }}
       >
         <div className="container">
-          <motion.h2 
-            className="section-title-enhanced"
-            variants={itemVariants}
-          >
-            Pourquoi choisir TECLAB ?
+          <motion.h2 className="section-title-enhanced" variants={itemVariants}>
+            Pourquoi Choisir Arij ?
           </motion.h2>
-          
-          <motion.p 
-            className="section-subtitle-enhanced"
-            variants={itemVariants}
-          >
-            Nous ne sommes pas de simples distributeurs — nous sommes vos partenaires 
-            dans l'excellence médicale.
+          <motion.p className="section-subtitle-enhanced" variants={itemVariants}>
+            L'excellence de la parfumerie à portée de main
           </motion.p>
 
           <div className="why-choose-grid-enhanced">
@@ -6654,10 +6585,7 @@ const AboutPage = () => {
                 key={index}
                 className="why-choose-card-enhanced"
                 variants={itemVariants}
-                whileHover={{ 
-                  x: 10,
-                  boxShadow: "0 15px 30px rgba(109, 158, 235, 0.2)"
-                }}
+                whileHover={{ x: 10 }}
               >
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
@@ -6667,6 +6595,7 @@ const AboutPage = () => {
         </div>
       </motion.section>
 
+      {/* Contact Section */}
       <motion.section 
         className="about-contact-enhanced"
         variants={containerVariants}
@@ -6681,40 +6610,30 @@ const AboutPage = () => {
               variants={itemVariants}
               whileHover={{ y: -10 }}
             >
-              <motion.h3
-                animate={{ 
-                  color: ["#2c3e50", "#6d9eeb", "#2c3e50"]
-                }}
-                transition={{ duration: 5, repeat: Infinity }}
-              >
-                Besoin d'un conseil technique ?
-              </motion.h3>
+              <motion.h3>Un conseil personnalisé ?</motion.h3>
               <p>
-                Notre équipe spécialisée vous accompagne dans le choix de vos équipements 
-                et consommables de laboratoire.
+                Notre équipe d'experts en parfumerie est à votre disposition pour vous aider 
+                à trouver la fragrance qui vous correspond.
               </p>
+              <button className="btn-primary" onClick={() => window.location.href = '/contact'}>
+                Nous contacter
+              </button>
             </motion.div>
             
             <motion.div 
               className="contact-info-card-enhanced highlight"
               variants={itemVariants}
-              whileHover={{ 
-                scale: 1.02,
-                boxShadow: "0 30px 60px rgba(109, 158, 235, 0.4)"
-              }}
+              whileHover={{ scale: 1.02 }}
             >
               <motion.div 
                 className="phone-icon-enhanced"
-                animate={{ 
-                  rotate: [0, 15, -15, 0],
-                  scale: [1, 1.2, 1]
-                }}
+                animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
                 📞
               </motion.div>
               
-              <h4>Appelez-nous 24/7</h4>
+              <h4>Service Client Arij</h4>
               
               <motion.a 
                 href="tel:+212808626102" 
@@ -6735,12 +6654,12 @@ const AboutPage = () => {
               </motion.p>
               
               <motion.a 
-                href="mailto:info@teclab.ma" 
+                href="mailto:contact@arij-parfums.ma" 
                 className="email-enhanced"
-                whileHover={{ scale: 1.05, color: "#ff6b6b" }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                info@teclab.ma
+                contact@arij-parfums.ma
               </motion.a>
             </motion.div>
           </div>
