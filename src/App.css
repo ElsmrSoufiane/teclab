@@ -17874,3 +17874,445 @@ body,
 .product-card:nth-child(n) {
   animation-delay: calc(0.05s * var(--index, 0));
 }
+/* ==================== FIX MENU COMPTE UTILISATEUR - LIENS VISIBLES ==================== */
+
+/* Dropdown menu user - fond clair et texte visible */
+.user-dropdown,
+.user-dropdown-enhanced {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.user-dropdown .user-name,
+.user-dropdown-enhanced .user-dropdown-name {
+  background: linear-gradient(135deg, #2A2A2A 0%, #3A3A3A 100%) !important;
+  color: var(--primary-color) !important;
+  padding: 12px 15px !important;
+  border-radius: 16px 16px 0 0 !important;
+  margin: -1px -1px 0 -1px !important;
+}
+
+.user-dropdown a,
+.user-dropdown button,
+.user-dropdown-enhanced .user-dropdown-item {
+  color: #2D2D2D !important;
+  background: transparent !important;
+  padding: 12px 20px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  border-bottom: 1px solid #F0F0F0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.user-dropdown a:last-child,
+.user-dropdown button:last-child {
+  border-bottom: none !important;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover,
+.user-dropdown-enhanced .user-dropdown-item:hover {
+  background: rgba(212, 175, 55, 0.08) !important;
+  color: var(--primary-color) !important;
+  padding-left: 25px !important;
+}
+
+/* Icône utilisateur dans le header */
+.user-menu {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.user-menu:hover {
+  background: rgba(212, 175, 55, 0.15);
+}
+
+.user-menu svg {
+  stroke: white !important;
+}
+
+/* Version mobile du menu utilisateur */
+@media (max-width: 768px) {
+  .user-menu {
+    display: flex !important;
+  }
+  
+  .user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 220px;
+    z-index: 1000;
+  }
+}
+
+/* ==================== FIX LAYOUT FILTRES CATEGORIES NAVBAR ==================== */
+
+/* Navigation catégories - layout corrigé */
+.category-menu {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #FFFFFF !important;
+  border-top: 2px solid var(--primary-color) !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2) !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+  z-index: 999 !important;
+  padding: 25px 0 !important;
+}
+
+.category-menu .container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+}
+
+/* Style des liens de catégories */
+.category-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 24px !important;
+  background: #FDFBF7 !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  border-radius: 50px !important;
+  color: #2D2D2D !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.25s ease !important;
+  cursor: pointer !important;
+}
+
+.category-link:hover {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+  border-color: var(--primary-color) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3) !important;
+}
+
+.category-link .category-color {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+}
+
+.category-link .category-icon {
+  font-size: 16px !important;
+}
+
+/* Version responsive des catégories */
+@media (max-width: 992px) {
+  .category-menu .container {
+    gap: 10px !important;
+  }
+  
+  .category-link {
+    padding: 8px 18px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .category-menu {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: #FFFFFF !important;
+    border-top: 2px solid var(--primary-color) !important;
+    border-bottom: none !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 15px 0 20px !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.3s ease !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1) !important;
+  }
+  
+  .category-menu.open {
+    transform: translateY(0) !important;
+  }
+  
+  .category-menu .container {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 0 15px !important;
+  }
+  
+  .category-link {
+    justify-content: space-between !important;
+    padding: 12px 18px !important;
+    width: 100% !important;
+  }
+  
+  /* Bouton pour ouvrir/fermer les catégories sur mobile */
+  .mobile-categories-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 12px !important;
+    background: var(--primary-color) !important;
+    color: #1A1A1A !important;
+    border: none !important;
+    border-radius: 40px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    margin: 10px 0 !important;
+  }
+}
+
+/* Cache le toggle desktop sur mobile */
+.mobile-categories-toggle {
+  display: none !important;
+}
+
+/* ==================== DESIGN PLUS DORÉ, MOINS NOIR ==================== */
+
+/* Header plus clair */
+.header,
+.navigation {
+  background: #2A2A2A !important;
+}
+
+/* Plus de doré dans les bordures et séparateurs */
+hr,
+.divider,
+.separator {
+  border-color: rgba(212, 175, 55, 0.2) !important;
+}
+
+/* Cartes avec ombre dorée subtile */
+.product-card,
+.filter-sidebar,
+.cart-summary,
+.checkout-form,
+.auth-box {
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.08) !important;
+}
+
+.product-card:hover,
+.filter-sidebar:hover,
+.cart-summary:hover {
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15) !important;
+}
+
+/* Badges et indicateurs en doré */
+.badge,
+.tag,
+.count-badge {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+}
+
+/* Liens actifs et hover en doré */
+.nav-menu li.active a,
+.nav-menu li a:hover {
+  color: var(--primary-color) !important;
+}
+
+.nav-menu li.active a:after {
+  background: var(--primary-color) !important;
+}
+
+/* Boutons secondaires avec bordure dorée */
+.btn-secondary,
+.cancel-btn,
+.clear-cart,
+.clear-btn {
+  border: 2px solid var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background: transparent !important;
+}
+
+.btn-secondary:hover,
+.cancel-btn:hover,
+.clear-cart:hover,
+.clear-btn:hover {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+}
+
+/* Prix en doré */
+.current-price,
+.product-price .current,
+.cart-item .item-price,
+.summary-row.total {
+  color: var(--primary-color) !important;
+}
+
+/* Étoiles de notation en doré */
+.star.filled,
+.rating-star.filled {
+  color: var(--primary-color) !important;
+}
+
+/* Footer liens en doré au hover */
+.footer a:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Pagination active en doré */
+.pagination .page-number.active,
+.pagination .pagination-btn.active {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Checkbox et radio accent doré */
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  accent-color: var(--primary-color) !important;
+}
+
+/* Focus rings en doré */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
+  outline: none !important;
+}
+
+/* Scrollbar personnalisée en doré */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* ==================== AMÉLIORATIONS SUPPLEMENTAIRES ==================== */
+
+/* Backgrounds plus chauds */
+body,
+.main-content,
+.products-page,
+.wishlist-page,
+.cart-page {
+  background: #FDFBF7 !important;
+}
+
+/* Cartes avec fond blanc pur */
+.product-card,
+.filter-sidebar,
+.cart-summary,
+.checkout-form,
+.auth-box,
+.order-card,
+.review-card {
+  background: #FFFFFF !important;
+}
+
+/* Titres en noir élégant (pas noir pur) */
+h1, h2, h3, h4, h5, h6,
+.product-title,
+.cart-summary h3,
+.filter-header h3 {
+  color: #2D2D2D !important;
+}
+
+/* Textes en gris élégant */
+p, span, li, .product-description {
+  color: #4A4A4A !important;
+}
+
+/* Messages de succès avec bordure dorée */
+.success-message {
+  background: rgba(212, 175, 55, 0.1) !important;
+  border-left: 4px solid var(--primary-color) !important;
+  color: #2D2D2D !important;
+}
+
+/* Animation de pulsation dorée pour les notifications */
+@keyframes goldPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+.notification-badge,
+.cart-icon .count {
+  animation: goldPulse 1.5s infinite;
+}
+
+/* ==================== CORRECTION BOUTONS HEADER ==================== */
+
+/* Menu toggle button */
+.menu-toggle {
+  background: rgba(212, 175, 55, 0.15) !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  color: white !important;
+}
+
+.menu-toggle:hover {
+  background: rgba(212, 175, 55, 0.3) !important;
+}
+
+.menu-toggle span {
+  color: white !important;
+}
+
+/* Search button */
+.search-form button {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+}
+
+.search-form button:hover {
+  background: var(--primary-dark) !important;
+}
+
+/* Header icons */
+.header-icon svg {
+  stroke: white !important;
+}
+
+.header-icon:hover svg {
+  stroke: var(--primary-color) !important;
+}
+
+/* Cart count badge */
+.header-icon .count {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+  border: 2px solid #2A2A2A !important;
+}
