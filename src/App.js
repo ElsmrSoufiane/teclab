@@ -1041,33 +1041,47 @@ const CouponProvider = ({ children }) => {
 
 // Carousel Component
 // ==================== OPTIMIZED CAROUSEL (No Framer Motion) ====================
+// ==================== CAROUSEL ARIJ PARFUMS ====================
 const Carousel = () => {
   const [offers, setOffers] = useState([
     {
       id: 1,
-      title: 'Livraison Gratuite',
-      subtitle: 'Pour toute commande > 1000DH',
-      image: 'https://www.teclab.ma/storage/products/generated-image-c96cf929-90af-4249-aced-bea1c63d6f5d.png',
-      bgColor: '#6d9eeb',
-      textColor: '#ffffff'
+      title: 'Nouvelle Collection Orientale',
+      subtitle: 'Découvrez nos 5 nouveaux parfums aux notes d\'Oud et d\'Ambre',
+      image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=800&auto=format',
+      bgColor: '#2A1A0A',
+      textColor: '#ffffff',
+      badge: 'NOUVEAUTÉ'
     },
     {
       id: 2,
-      title: 'Promotion Spéciale',
-      subtitle: 'Jusqu\'à -25% sur une sélection',
-      image: 'https://www.teclab.ma/storage/products/generated-image-7aeac712-54fd-49ab-a84e-62610d086010.png',
-      bgColor: '#ff6b6b',
-      textColor: '#ffffff'
+      title: 'Jusqu\'à -30%',
+      subtitle: 'Sur une sélection de parfums signature',
+      image: 'https://images.unsplash.com/photo-1590736961262-6b5d4f5a87a1?w=800&auto=format',
+      bgColor: '#1A0A00',
+      textColor: '#ffffff',
+      badge: 'PROMOTION'
     },
     {
       id: 3,
-      title: 'Nouveaux Produits',
-      subtitle: 'Découvrez notre nouvelle gamme',
-      image: 'https://www.teclab.ma/storage/products/generated-image-f19f78ff-6f6e-46de-9f9d-21a88cdea097.png',
-      bgColor: '#4ecdc4',
-      textColor: '#ffffff'
+      title: 'Coffret Cadeau Exclusif',
+      subtitle: '3 miniatures offertes pour tout achat > 600 MAD',
+      image: 'https://images.unsplash.com/photo-1590736704728-f4734bb5a4a6?w=800&auto=format',
+      bgColor: '#3A2A1A',
+      textColor: '#ffffff',
+      badge: 'OFFERT'
+    },
+    {
+      id: 4,
+      title: 'Livraison Offerte',
+      subtitle: 'Pour toute commande à partir de 500 MAD',
+      image: 'https://images.unsplash.com/photo-1588405748880-12d1d2a59f7b?w=800&auto=format',
+      bgColor: '#2A2A2A',
+      textColor: '#ffffff',
+      badge: 'LIVRAISON'
     }
   ]);
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const touchStartX = useRef(0);
@@ -1077,7 +1091,7 @@ const Carousel = () => {
     setIsMobile(window.innerWidth <= 768);
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % offers.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, [offers.length]);
 
@@ -1097,47 +1111,71 @@ const Carousel = () => {
     }
   };
 
+  const currentOffer = offers[currentIndex];
+
   return (
     <div 
       className="carousel-container"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ backgroundColor: currentOffer.bgColor }}
     >
-      <div 
-        className="carousel-slide"
-        style={{ backgroundColor: offers[currentIndex].bgColor }}
-      >
+      {/* Badge */}
+      <div className="carousel-badge">{currentOffer.badge}</div>
+      
+      <div className="carousel-slide">
         <div className="carousel-content">
-          <h2 style={{ color: offers[currentIndex].textColor }}>
-            {offers[currentIndex].title}
+          <h2 style={{ color: currentOffer.textColor }}>
+            {currentOffer.title}
           </h2>
-          <p style={{ color: offers[currentIndex].textColor }}>
-            {offers[currentIndex].subtitle}
+          <p style={{ color: currentOffer.textColor }}>
+            {currentOffer.subtitle}
           </p>
-          <button className="carousel-btn">
-            En savoir plus
+          <button 
+            className="carousel-btn"
+            onClick={() => window.location.href = '/products'}
+          >
+            Découvrir
           </button>
         </div>
         <div className="carousel-image">
           <img 
-            src={offers[currentIndex].image} 
-            alt={offers[currentIndex].title}
+            src={currentOffer.image} 
+            alt={currentOffer.title}
             loading="lazy"
           />
+          <div className="perfume-mist"></div>
         </div>
       </div>
       
       {!isMobile && (
         <>
-          <button className="carousel-nav carousel-prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}>
+          <button 
+            className="carousel-nav carousel-prev" 
+            onClick={() => setCurrentIndex((prev) => (prev - 1 + offers.length) % offers.length)}
+          >
             <Icons.ChevronLeft />
           </button>
-          <button className="carousel-nav carousel-next" onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}>
+          <button 
+            className="carousel-nav carousel-next" 
+            onClick={() => setCurrentIndex((prev) => (prev + 1) % offers.length)}
+          >
             <Icons.ChevronRight />
           </button>
         </>
       )}
+      
+      {/* Indicateurs */}
+      <div className="carousel-dots">
+        {offers.map((_, index) => (
+          <button
+            key={index}
+            className={`carousel-dot ${currentIndex === index ? 'active' : ''}`}
+            onClick={() => setCurrentIndex(index)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
