@@ -2586,6 +2586,7 @@ const CouponsPage = ({ navigate }) => {
 // ==================== COMPLETE WORKING HEADER COMPONENT ====================
 // ==================== HEADER COMPONENT CORRIGÉ ====================
 // ==================== HEADER COMPONENT COMPLET AVEC MENU MOBILE ====================
+// ==================== HEADER COMPONENT COMPLET CORRIGÉ ====================
 const Header = ({ currentPath, navigate }) => {
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -2677,8 +2678,6 @@ const Header = ({ currentPath, navigate }) => {
         <div className="announcement-bar hide-mobile">
           <div className="marquee">
             <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 500 MAD</span>
-            <span><Icons.Percent /> -20% SUR VOTRE PREMIÈRE COMMANDE</span>
-            <span><Icons.Gift /> ÉCHANTILLONS OFFERTS AVEC CHAQUE COMMANDE</span>
           </div>
         </div>
       )}
@@ -2687,7 +2686,6 @@ const Header = ({ currentPath, navigate }) => {
         <div className="header-top">
           <div className="container">
             <div className="header-left">
-              {/* Mobile Menu Button */}
               <button 
                 className="menu-toggle mobile-only" 
                 onClick={() => setShowMobileMenu(true)}
@@ -2696,13 +2694,11 @@ const Header = ({ currentPath, navigate }) => {
                 <Icons.Menu />
               </button>
 
-              {/* Logo */}
               <a href="/" className="logo" onClick={handleLogoClick}>
                 <span className="logo-text">Arij</span>
                 <span className="logo-subtitle">Parfums</span>
               </a>
 
-              {/* Desktop Category Button */}
               {!isMobile && (
                 <button 
                   className="menu-toggle desktop-only" 
@@ -2714,7 +2710,6 @@ const Header = ({ currentPath, navigate }) => {
               )}
             </div>
 
-            {/* Desktop Search Form */}
             {!isMobile && (
               <form className="search-form desktop-only" onSubmit={handleSearch}>
                 <input 
@@ -2729,9 +2724,7 @@ const Header = ({ currentPath, navigate }) => {
               </form>
             )}
 
-            {/* Header Icons */}
             <div className="header-right">
-              {/* Mobile Search Toggle */}
               {isMobile && (
                 <button 
                   className="header-icon mobile-search-toggle"
@@ -2742,7 +2735,6 @@ const Header = ({ currentPath, navigate }) => {
                 </button>
               )}
 
-              {/* Coupons Icon */}
               <a 
                 href="/coupons" 
                 className="header-icon coupons-icon" 
@@ -2755,7 +2747,6 @@ const Header = ({ currentPath, navigate }) => {
                 )}
               </a>
               
-              {/* Wishlist Icon */}
               <a 
                 href="/wishlist" 
                 className="header-icon wishlist-icon" 
@@ -2768,7 +2759,6 @@ const Header = ({ currentPath, navigate }) => {
                 )}
               </a>
               
-              {/* Cart Icon */}
               <div className="ps-cart--mini">
                 <a 
                   href="/cart" 
@@ -2781,7 +2771,6 @@ const Header = ({ currentPath, navigate }) => {
                 </a>
               </div>
 
-              {/* Desktop User Menu */}
               {!isMobile && (
                 <div className="user-menu desktop-only">
                   <Icons.User />
@@ -2793,9 +2782,6 @@ const Header = ({ currentPath, navigate }) => {
                         <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); }}>Mes Commandes</a>
                         <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); }}>
                           Mes Favoris {favoritesCount > 0 && `(${favoritesCount})`}
-                        </a>
-                        <a href="/coupons" onClick={(e) => { e.preventDefault(); navigate('/coupons'); }}>
-                          Mes Coupons {couponsCount > 0 && `(${couponsCount})`}
                         </a>
                         {user?.role === 'admin' && (
                           <>
@@ -2821,7 +2807,6 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
         {showSearch && isMobile && (
           <div className="mobile-search-bar">
             <form onSubmit={handleSearch}>
@@ -2847,7 +2832,6 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         )}
 
-        {/* Desktop Categories Mega Menu */}
         {showCategoryMenu && !isMobile && (
           <div className="category-menu" ref={categoryMenuRef}>
             <div className="container">
@@ -2880,11 +2864,10 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         )}
 
-        {/* ==================== MENU MOBILE COMPLET ==================== */}
+        {/* MOBILE MENU COMPLET */}
         {showMobileMenu && (
           <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
             <div className="mobile-menu-content" ref={mobileMenuRef} onClick={e => e.stopPropagation()}>
-              {/* Header du menu mobile */}
               <div className="mobile-menu-header">
                 <div className="mobile-user-info">
                   {isAuthenticated ? (
@@ -2917,9 +2900,7 @@ const Header = ({ currentPath, navigate }) => {
                 </button>
               </div>
 
-              {/* Corps du menu mobile */}
               <div className="mobile-menu-body">
-                {/* Statistiques utilisateur */}
                 {isAuthenticated && (
                   <div className="mobile-stats">
                     <div className="stat-item" onClick={() => { setShowMobileMenu(false); navigate('/wishlist'); }}>
@@ -2937,205 +2918,79 @@ const Header = ({ currentPath, navigate }) => {
                   </div>
                 )}
 
-                {/* Navigation principale */}
                 <div className="mobile-menu-section">
                   <h4>Navigation</h4>
                   <div className="mobile-links-list">
-                    <a 
-                      href="/" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/');
-                      }}
-                    >
+                    <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); setShowMobileMenu(false); }}>
                       <Icons.Home size={18} /> Accueil
                     </a>
-                    <a 
-                      href="/products" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/products');
-                      }}
-                    >
+                    <a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); setShowMobileMenu(false); }}>
                       <Icons.Package size={18} /> Tous les parfums
                     </a>
-                    <a 
-                      href="/categories" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/categories');
-                      }}
-                    >
+                    <a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); setShowMobileMenu(false); }}>
                       <Icons.Filter size={18} /> Collections
-                    </a>
-                    <a 
-                      href="/about" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/about');
-                      }}
-                    >
-                      <Icons.Info size={18} /> Notre histoire
-                    </a>
-                    <a 
-                      href="/contact" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/contact');
-                      }}
-                    >
-                      <Icons.Phone size={18} /> Contact
                     </a>
                   </div>
                 </div>
 
-                {/* Collections / Catégories */}
                 <div className="mobile-menu-section">
                   <h4>Collections</h4>
                   <div className="mobile-categories-list">
-                    {/* Toutes les collections */}
                     <div 
                       className="mobile-category-link all-categories"
-                      onClick={() => {
-                        handleAllCategoriesClick();
-                        setShowMobileMenu(false);
-                      }}
+                      onClick={() => { handleAllCategoriesClick(); setShowMobileMenu(false); }}
                       style={{ cursor: 'pointer' }}
                     >
-                      <span className="category-name">
-                        <span className="category-icon">🌸</span>
-                        Toutes les collections
-                      </span>
+                      <span className="category-name">Toutes les collections</span>
                       <span className="category-count">Voir tout</span>
                     </div>
                     
-                    {/* Catégories individuelles */}
                     {categories.slice(0, 8).map(category => (
                       <div 
                         key={category.id}
                         className={`mobile-category-link ${selectedCategory === category.id.toString() ? 'active' : ''}`}
-                        onClick={() => {
-                          handleCategoryClick(category.id, category.name);
-                          setShowMobileMenu(false);
-                        }}
+                        onClick={() => { handleCategoryClick(category.id, category.name); setShowMobileMenu(false); }}
                         style={{ cursor: 'pointer' }}
                       >
-                        <span className="category-name">
-                          <span className="category-icon" style={{ color: category.color || '#D4AF37' }}>🌸</span>
-                          {category.name}
-                        </span>
+                        <span className="category-name">{category.name}</span>
                         <span className="category-count">{category.products_count || 0}</span>
                       </div>
                     ))}
-                    
-                    {categories.length > 8 && (
-                      <a 
-                        href="/categories"
-                        className="view-all-categories"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/categories');
-                        }}
-                      >
-                        Voir toutes les collections <Icons.ChevronRight size={14} />
-                      </a>
-                    )}
                   </div>
                 </div>
 
-                {/* Section compte utilisateur (si connecté) */}
                 {isAuthenticated && (
                   <div className="mobile-menu-section">
                     <h4>Mon compte</h4>
                     <div className="mobile-links-list">
-                      <a 
-                        href="/dashboard" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/dashboard');
-                        }}
-                      >
+                      <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); setShowMobileMenu(false); }}>
                         <Icons.User size={18} /> Tableau de bord
                       </a>
-                      <a 
-                        href="/orders" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/orders');
-                        }}
-                      >
+                      <a href="/orders" onClick={(e) => { e.preventDefault(); navigate('/orders'); setShowMobileMenu(false); }}>
                         <Icons.Package size={18} /> Mes commandes
                       </a>
-                      <a 
-                        href="/wishlist" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/wishlist');
-                        }}
-                      >
+                      <a href="/wishlist" onClick={(e) => { e.preventDefault(); navigate('/wishlist'); setShowMobileMenu(false); }}>
                         <Icons.Heart size={18} /> Mes favoris
                       </a>
-                      <a 
-                        href="/coupons" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowMobileMenu(false);
-                          navigate('/coupons');
-                        }}
-                      >
+                      <a href="/coupons" onClick={(e) => { e.preventDefault(); navigate('/coupons'); setShowMobileMenu(false); }}>
                         <Icons.Percent size={18} /> Mes coupons
                       </a>
                     </div>
                   </div>
                 )}
 
-                {/* Section information */}
                 <div className="mobile-menu-section">
                   <h4>Informations</h4>
                   <div className="mobile-links-list">
-                    <a 
-                      href="/about" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/about');
-                      }}
-                    >
-                      À propos d'Arij
+                    <a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); setShowMobileMenu(false); }}>
+                      À propos
                     </a>
-                    <a 
-                      href="/contact" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/contact');
-                      }}
-                    >
-                      Contact & SAV
-                    </a>
-                    <a 
-                      href="/faq" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowMobileMenu(false);
-                        navigate('/faq');
-                      }}
-                    >
-                      FAQ
+                    <a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); setShowMobileMenu(false); }}>
+                      Contact
                     </a>
                   </div>
                 </div>
 
-                {/* Bouton de déconnexion */}
                 {isAuthenticated && (
                   <button onClick={handleLogout} className="mobile-logout-btn">
                     <Icons.LogOut size={18} /> Déconnexion
