@@ -2663,9 +2663,15 @@ const Header = ({ currentPath, navigate }) => {
                 <Icons.Menu />
               </button>
 
-              <a href="/" className="logo" onClick={handleLogoClick}>
-                <img src="https://www.teclab.ma/storage/products/partenaires/teclab-logo-320px.png" alt="TECLAB" />
-              </a>
+            {/* Logo - Version texte pour Arij Parfums */}
+<a 
+  href="/" 
+  className="logo" 
+  onClick={handleLogoClick}
+>
+  <span className="logo-text">Arij</span>
+  <span className="logo-subtitle">Parfums</span>
+</a>
 
               {!isMobile && (
                 <button 
