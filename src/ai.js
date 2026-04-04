@@ -8,26 +8,26 @@ const TeclabAgent = () => {
   const messagesEndRef = useRef(null);
   const chatWindowRef = useRef(null);
 
-  // Product Database with better descriptions
+  // Product Database for Arij Parfums
   const products = [
-    { id: 1, name: "Tube Sous Vide SEC (Sans Additifs) 4ml", price: 95.00, category: "TUBES DE PRELEVEMENT", brand: "VACULAB", stock: 25, description: "Tube sous vide SEC sans additifs 4ml en plastique pour prélèvement sanguin", details: "Volume: 4ml, Sans additifs, Stérile" },
-    { id: 2, name: "Tube PRP GEL+NC1:9", price: 140.00, category: "TUBES DE PRELEVEMENT", brand: "VACULAB", stock: 18, description: "Tube PRP avec gel séparateur pour plasma riche en plaquettes", details: "Avec gel, Rapport 1:9, Pour PRP" },
-    { id: 3, name: "Tube Sous Vide ESR 1,6ml Verre", price: 800.00, category: "TUBES DE PRELEVEMENT", brand: "VACULAB", stock: 12, description: "Tube sous vide pour vitesse de sédimentation (ESR) en verre", details: "Volume: 1.6ml, Matériel: Verre, Pour VS" },
-    { id: 4, name: "Tube Sous Vide EDTA Plastique", price: 105.00, category: "TUBES DE PRELEVEMENT", brand: "VACULAB", stock: 35, description: "Tube sous vide avec EDTA pour hématologie", details: "EDTA, Pour hématologie, Plastique" },
-    { id: 5, name: "VANCOMYCINE VA-30", price: 550.00, category: "AIGUILLES ET ACCESSOIRES", brand: "BIOKAR", stock: 28, description: "Vancomycine VA-30 pour tests de sensibilité", details: "Antibiotique, Tests de sensibilité, 30μg" },
-    { id: 6, name: "PIPERACILLINE/TAZOBACTAM TPZ-36", price: 680.00, category: "AIGUILLES ET ACCESSOIRES", brand: "BIOKAR", stock: 18, description: "Piperacilline/Tazobactam TPZ-36", details: "Combinaison antibiotique, Spectre large" },
-    { id: 7, name: "Support Mobile Détecteur Veines", price: 2500.00, category: "CONSOMMABLES", brand: "QUALMEDI", stock: 8, description: "Support mobile pour détecteur de veines", details: "Mobile, Hauteur réglable, Stable" },
-    { id: 8, name: "Sparadrap adulte", price: 150.00, category: "CONSOMMABLES", brand: "CURE-AID", stock: 45, description: "Sparadrap adulte pour fixation de pansements", details: "Adhésif, Hypoallergénique, 10m" },
-    { id: 9, name: "RF LATEX", price: 1200.00, category: "REACTIFS", brand: "HYCEL", stock: 15, description: "Réactif RF Latex pour facteur rhumatoïde", details: "Détection du facteur rhumatoïde, Résultats rapides" },
-    { id: 10, name: "Analyseur biochimie BT-330", price: 45000.00, category: "ANALYSEURS", brand: "BIOELAB", stock: 3, description: "Analyseur de biochimie BT-330 pour tests cliniques", details: "300 tests/heure, Écran tactile, 80 paramètres" },
-    { id: 11, name: "Détecteur veines QV-600", price: 12000.00, category: "ANALYSEURS", brand: "QUALMEDI", stock: 5, description: "Détecteur de veines QV-600 pour localisation facile", details: "Infrarouge, Portable, Batterie rechargeable" },
-    { id: 12, name: "Analyseur biochimie AS-280", price: 38000.00, category: "ANALYSEURS", brand: "BIOELAB", stock: 4, description: "Analyseur de biochimie AS-280 compact et fiable", details: "200 tests/heure, Compact, Interface intuitive" },
-    { id: 13, name: "Analyseur hématologie BH-5390", price: 65000.00, category: "ANALYSEURS", brand: "URIT", stock: 2, description: "Analyseur d'hématologie 5 différences", details: "5 différences, 80 échantillons/heure, 23 paramètres" },
-    { id: 14, name: "Analyseur HbA1c MQ-3000", price: 32000.00, category: "ANALYSEURS", brand: "MEDCONN", stock: 3, description: "Analyseur d'hémoglobine glyquée", details: "Résultats en 5 min, Contrôle diabète, Précis" },
-    { id: 15, name: "Analyseur gaz du sang EG-i", price: 68000.00, category: "ANALYSEURS", brand: "EAGLENOS", stock: 2, description: "Analyseur de gaz du sang", details: "pH, pCO2, pO2, Électrolytes, Rapide" },
+    { id: 1, name: "Arij Royal Oud", price: 890.00, category: "Parfums de Luxe", brand: "Arij", stock: 15, description: "Parfum oriental luxueux aux notes d'Oud rare et d'Ambre", details: "Oud, Ambre, Safran, 100ml" },
+    { id: 2, name: "Rose de Damas", price: 750.00, category: "Parfums Femme", brand: "Arij", stock: 22, description: "Fragrance florale intense à la rose de Damas", details: "Rose, Jasmin, Musc, 100ml" },
+    { id: 3, name: "Boisé Intense", price: 680.00, category: "Parfums Homme", brand: "Arij", stock: 18, description: "Parfum boisé et épicé pour l'homme moderne", details: "Santal, Cèdre, Poivre, 100ml" },
+    { id: 4, name: "Ambre Nuit", price: 920.00, category: "Parfums Unisex", brand: "Arij", stock: 12, description: "Fragrance envoûtante à l'ambre et à la vanille", details: "Ambre, Vanille, Benjoin, 100ml" },
+    { id: 5, name: "Fleur d'Oranger", price: 590.00, category: "Parfums Femme", brand: "Arij", stock: 30, description: "Parfum frais et floral à la fleur d'oranger", details: "Fleur d'oranger, Néroli, Musc, 100ml" },
+    { id: 6, name: "Cèdre Noir", price: 720.00, category: "Parfums Homme", brand: "Arij", stock: 20, description: "Fragrance boisée intense au cèdre et au cuir", details: "Cèdre, Cuir, Vétiver, 100ml" },
+    { id: 7, name: "Vanille Exotique", price: 650.00, category: "Parfums Femme", brand: "Arij", stock: 25, description: "Parfum gourmand à la vanille de Madagascar", details: "Vanille, Coco, Caramel, 100ml" },
+    { id: 8, name: "Musk Blanc", price: 550.00, category: "Parfums Unisex", brand: "Arij", stock: 35, description: "Fragrance douce et sensuelle au musc blanc", details: "Musc, Fleurs blanches, Bois, 100ml" },
+    { id: 9, name: "Coffret Découverte", price: 350.00, category: "Coffrets", brand: "Arij", stock: 50, description: "Coffret de 5 miniatures (5x10ml)", details: "5 parfums signature, Format voyage" },
+    { id: 10, name: "Arij Noir", price: 1200.00, category: "Parfums de Luxe", brand: "Arij", stock: 8, description: "Parfum exclusif aux notes de cuir et de tabac", details: "Cuir, Tabac, Patchouli, 100ml" },
+    { id: 11, name: "Gardenia", price: 620.00, category: "Parfums Femme", brand: "Arij", stock: 28, description: "Fragrance florale élégante au gardénia", details: "Gardénia, Tubéreuse, Musc, 100ml" },
+    { id: 12, name: "Santal Royal", price: 850.00, category: "Parfums Homme", brand: "Arij", stock: 16, description: "Parfum boisé et crémeux au santal", details: "Santal, Ambre, Vanille, 100ml" },
+    { id: 13, name: "Yuzu Frais", price: 580.00, category: "Parfums Unisex", brand: "Arij", stock: 32, description: "Fragrance fraîche et acidulée au yuzu", details: "Yuzu, Citron, Gingembre, 100ml" },
+    { id: 14, name: "Patchouli Noir", price: 780.00, category: "Parfums Homme", brand: "Arij", stock: 14, description: "Parfum mystérieux au patchouli et à la fève tonka", details: "Patchouli, Fève tonka, Cacao, 100ml" },
+    { id: 15, name: "Fleur de Lys", price: 640.00, category: "Parfums Femme", brand: "Arij", stock: 24, description: "Fragrance royale à la fleur de lys", details: "Lys, Iris, Vanille, 100ml" },
   ];
 
-  // Function to close chat window
+  // Close chat window
   const closeChat = () => {
     setIsOpen(false);
   };
@@ -64,46 +64,62 @@ const TeclabAgent = () => {
   const searchProducts = (query) => {
     const lowerQuery = query.toLowerCase();
     
-    if (lowerQuery.includes('tube') || lowerQuery.includes('prélèvement') || lowerQuery.includes('edta') || lowerQuery.includes('citrate')) {
-      return products.filter(p => p.category === 'TUBES DE PRELEVEMENT');
+    // Category searches
+    if (lowerQuery.includes('femme') || lowerQuery.includes('woman') || lowerQuery.includes('féminin')) {
+      return products.filter(p => p.category === 'Parfums Femme');
     }
-    if (lowerQuery.includes('aiguille') || lowerQuery.includes('antibiotique') || lowerQuery.includes('vancomycine') || lowerQuery.includes('piperacilline')) {
-      return products.filter(p => p.category === 'AIGUILLES ET ACCESSOIRES');
+    if (lowerQuery.includes('homme') || lowerQuery.includes('man') || lowerQuery.includes('masculin')) {
+      return products.filter(p => p.category === 'Parfums Homme');
     }
-    if (lowerQuery.includes('consommable') || lowerQuery.includes('support') || lowerQuery.includes('sparadrap')) {
-      return products.filter(p => p.category === 'CONSOMMABLES');
+    if (lowerQuery.includes('unisex') || lowerQuery.includes('mixte')) {
+      return products.filter(p => p.category === 'Parfums Unisex');
     }
-    if (lowerQuery.includes('réactif') || lowerQuery.includes('latex') || lowerQuery.includes('rf')) {
-      return products.filter(p => p.category === 'REACTIFS');
+    if (lowerQuery.includes('luxe') || lowerQuery.includes('premium')) {
+      return products.filter(p => p.category === 'Parfums de Luxe');
     }
-    if (lowerQuery.includes('analyseur') || lowerQuery.includes('détecteur') || lowerQuery.includes('machine') || lowerQuery.includes('biochimie') || lowerQuery.includes('hématologie')) {
-      return products.filter(p => p.category === 'ANALYSEURS');
-    }
-    if (lowerQuery.includes('vaculab')) {
-      return products.filter(p => p.brand === 'VACULAB');
-    }
-    if (lowerQuery.includes('biokar')) {
-      return products.filter(p => p.brand === 'BIOKAR');
-    }
-    if (lowerQuery.includes('qualmedi')) {
-      return products.filter(p => p.brand === 'QUALMEDI');
-    }
-    if (lowerQuery.includes('bioelab')) {
-      return products.filter(p => p.brand === 'BIOELAB');
+    if (lowerQuery.includes('coffret') || lowerQuery.includes('cadeau') || lowerQuery.includes('gift')) {
+      return products.filter(p => p.category === 'Coffrets');
     }
     
+    // Note searches
+    if (lowerQuery.includes('oud') || lowerQuery.includes('oriental')) {
+      return products.filter(p => p.name.toLowerCase().includes('oud') || p.details.toLowerCase().includes('oud'));
+    }
+    if (lowerQuery.includes('rose')) {
+      return products.filter(p => p.name.toLowerCase().includes('rose') || p.details.toLowerCase().includes('rose'));
+    }
+    if (lowerQuery.includes('boisé') || lowerQuery.includes('wood')) {
+      return products.filter(p => p.category === 'Parfums Homme' && (p.name.toLowerCase().includes('boisé') || p.name.toLowerCase().includes('cèdre') || p.name.toLowerCase().includes('santal')));
+    }
+    if (lowerQuery.includes('vanille')) {
+      return products.filter(p => p.name.toLowerCase().includes('vanille') || p.details.toLowerCase().includes('vanille'));
+    }
+    if (lowerQuery.includes('ambre')) {
+      return products.filter(p => p.name.toLowerCase().includes('ambre') || p.details.toLowerCase().includes('ambre'));
+    }
+    if (lowerQuery.includes('floral')) {
+      return products.filter(p => p.category === 'Parfums Femme' || p.details.toLowerCase().includes('fleur'));
+    }
+    
+    // Price range search
     if (lowerQuery.match(/\d+/)) {
       const priceMatch = lowerQuery.match(/(\d+)/);
       if (priceMatch && (lowerQuery.includes('sous') || lowerQuery.includes('moins de') || lowerQuery.includes('under'))) {
         const maxPrice = parseInt(priceMatch[1]);
         return products.filter(p => p.price <= maxPrice);
       }
+      if (priceMatch && (lowerQuery.includes('plus de') || lowerQuery.includes('above') || lowerQuery.includes('supérieur'))) {
+        const minPrice = parseInt(priceMatch[1]);
+        return products.filter(p => p.price >= minPrice);
+      }
     }
     
+    // General search
     return products.filter(p => 
       p.name.toLowerCase().includes(lowerQuery) || 
       p.description.toLowerCase().includes(lowerQuery) ||
-      p.brand.toLowerCase().includes(lowerQuery)
+      p.category.toLowerCase().includes(lowerQuery) ||
+      p.details.toLowerCase().includes(lowerQuery)
     );
   };
 
@@ -113,25 +129,25 @@ const TeclabAgent = () => {
 
   const formatProductList = (productsList) => {
     if (productsList.length === 0) {
-      return "❌ Désolé, aucun produit trouvé.\n\n💡 Suggestions:\n• \"Montre-moi les tubes EDTA\"\n• \"Analyseurs biochimie\"\n• \"Produits VACULAB\"\n• \"Antibiotiques BIOKAR\"\n• \"Produits sous 5000 MAD\"";
+      return "❌ Désolé, aucun parfum trouvé.\n\n💡 Suggestions:\n• \"Montre-moi les parfums femme\"\n• \"Parfums boisés pour homme\"\n• \"Parfums Arij de luxe\"\n• \"Coffrets cadeaux\"\n• \"Parfums sous 600 MAD\"";
     }
     
-    let response = `🔍 ${productsList.length} produit(s) trouvé(s):\n\n`;
+    let response = `🔍 ${productsList.length} parfum(s) trouvé(s):\n\n`;
     productsList.slice(0, 4).forEach(product => {
-      response += `📦 ${product.name}\n`;
+      response += `🌸 ${product.name}\n`;
       response += `   💰 Prix: ${formatPrice(product.price)}\n`;
-      response += `   📊 Stock: ${product.stock > 0 ? `✅ ${product.stock} unités` : '❌ Rupture'}\n`;
-      response += `   🏭 Marque: ${product.brand}\n`;
+      response += `   📊 Stock: ${product.stock > 0 ? `✅ ${product.stock} disponibles` : '❌ Rupture'}\n`;
+      response += `   🏷️ Catégorie: ${product.category}\n`;
       response += `   📝 ${product.description}\n`;
-      if (product.details) response += `   🔧 ${product.details}\n`;
+      response += `   🔧 Notes: ${product.details}\n`;
       response += `\n`;
     });
     
     if (productsList.length > 4) {
-      response += `📌 ... et ${productsList.length - 4} autre(s) produit(s).\n`;
-      response += `💡 Demandez \"plus de détails sur [produit]\" pour en savoir plus.`;
+      response += `📌 ... et ${productsList.length - 4} autre(s) parfum(s).\n`;
+      response += `💡 Demandez \"plus de détails sur [nom]\" pour en savoir plus.`;
     } else {
-      response += `💡 Besoin d'aide? Demandez-moi les détails d'un produit spécifique.`;
+      response += `💡 Besoin d'aide? Demandez-moi les détails d'un parfum spécifique.`;
     }
     return response;
   };
@@ -154,60 +170,74 @@ const TeclabAgent = () => {
       let responseText = "";
       
       if (userQuery.match(/^(bonjour|salut|hello|hi|coucou|hey)/)) {
-        responseText = "🥼 Bonjour! Je suis l'assistant Teclab.\n\nJe peux vous aider avec:\n✅ Consulter nos produits (tubes, analyseurs, réactifs)\n✅ Vérifier les prix et disponibilités\n✅ Rechercher par marque (VACULAB, BIOKAR, etc.)\n✅ Trouver des produits selon votre budget\n\nComment puis-je vous aider aujourd'hui?";
+        responseText = "🌸 Bonjour! Je suis l'assistant Arij Parfums.\n\nJe peux vous aider avec:\n✅ Découvrir nos collections de parfums\n✅ Vérifier les prix et disponibilités\n✅ Rechercher par notes (Oud, Rose, Vanille...)\n✅ Trouver le parfum idéal selon vos goûts\n✅ Coffrets cadeaux et promotions\n\nComment puis-je vous aider à trouver votre fragrance parfaite aujourd'hui?";
       }
       else if (userQuery.includes('aide') || userQuery.includes('help') || userQuery.includes('peux-tu') || userQuery.includes('que faire')) {
-        responseText = "🥼 Voici ce que je peux faire pour vous:\n\n📦 Rechercher des produits\n\"Montre-moi les tubes EDTA\"\n\n💰 Vérifier les prix\n\"Prix de l'analyseur AS-280\"\n\n🏷️ Filtrer par marque\n\"Produits VACULAB\"\n\n📊 Voir disponibilité\n\"Le détecteur QV-600 est-il en stock?\"\n\n💵 Recherche par prix\n\"Produits sous 5000 MAD\"\n\n🔬 Catégories disponibles:\n- Tubes de prélèvement (VACULAB)\n- Antibiotiques (BIOKAR)\n- Analyseurs (biochimie, hématologie)\n- Réactifs de laboratoire\n- Consommables\n\nQue voulez-vous explorer?";
+        responseText = "🌸 Voici ce que je peux faire pour vous:\n\n📦 **Rechercher des parfums**\n\"Montre-moi les parfums femme\"\n\n💰 **Vérifier les prix**\n\"Prix de Arij Royal Oud\"\n\n🏷️ **Filtrer par catégorie**\n\"Parfums de luxe\"\n\n📊 **Voir disponibilité**\n\"Le parfum Rose de Damas est-il en stock?\"\n\n💵 **Recherche par prix**\n\"Parfums sous 600 MAD\"\n\n🌸 **Recherche par notes**\n\"Parfums à l'oud\"\n\"Parfums floraux\"\n\"Parfums boisés\"\n\n🎁 **Coffrets cadeaux**\n\"Coffrets disponibles\"\n\nQue souhaitez-vous découvrir?";
       }
       else if (userQuery.includes('prix') || userQuery.includes('price') || userQuery.includes('coût') || userQuery.includes('combien')) {
         const productMatch = products.find(p => 
           userQuery.includes(p.name.toLowerCase().split(' ')[0]) ||
           userQuery.includes(p.name.toLowerCase().split(' ')[1]) ||
-          userQuery.includes(p.name.toLowerCase().substring(0, 20))
+          userQuery.includes(p.name.toLowerCase().substring(0, 15))
         );
         if (productMatch) {
-          responseText = `📊 **${productMatch.name}**\n\n💰 **Prix:** ${formatPrice(productMatch.price)}\n🏭 **Marque:** ${productMatch.brand}\n📦 **Stock:** ${productMatch.stock > 0 ? `${productMatch.stock} unités disponibles` : 'En rupture de stock'}\n📝 **Description:** ${productMatch.description}\n🔧 **Caractéristiques:** ${productMatch.details || 'Contactez-nous pour plus de détails'}\n\n💡 **Besoin d'aide?** Demandez-moi les produits similaires!`;
+          responseText = `🌸 **${productMatch.name}**\n\n💰 **Prix:** ${formatPrice(productMatch.price)}\n🏷️ **Catégorie:** ${productMatch.category}\n📦 **Stock:** ${productMatch.stock > 0 ? `${productMatch.stock} disponibles` : 'Rupture de stock'}\n📝 **Description:** ${productMatch.description}\n🔧 **Notes olfactives:** ${productMatch.details}\n\n💡 **Vous aimerez aussi:**\n• Parfums similaires dans la même collection\n• Coffrets découverte disponibles`;
         } else {
-          responseText = "🔍 Quel produit vous intéresse?\n\nExemples:\n• \"Prix du tube EDTA\"\n• \"Combien coûte l'analyseur AS-280?\"\n• \"Tarif vancomycine VA-30\"\n\nDonnez-moi le nom exact du produit pour une réponse précise.";
+          responseText = "🔍 Quel parfum vous intéresse?\n\nExemples:\n• \"Prix de Arij Royal Oud\"\n• \"Combien coûte Rose de Damas?\"\n• \"Tarif du coffret découverte\"\n\nDonnez-moi le nom exact du parfum pour une réponse précise.";
         }
       }
       else if (userQuery.includes('stock') || userQuery.includes('disponible') || userQuery.includes('available') || userQuery.includes('en stock')) {
         const productMatch = products.find(p => 
           userQuery.includes(p.name.toLowerCase().split(' ')[0]) ||
-          userQuery.includes(p.name.toLowerCase().substring(0, 20))
+          userQuery.includes(p.name.toLowerCase().substring(0, 15))
         );
         if (productMatch) {
           const stockStatus = productMatch.stock > 0 
-            ? `✅ **EN STOCK** - ${productMatch.stock} unités disponibles` 
-            : "❌ **RUPTURE DE STOCK** - Réapprovisionnement en cours";
-          responseText = `📦 **${productMatch.name}**\n${stockStatus}\n\n🏭 **Marque:** ${productMatch.brand}\n💰 **Prix:** ${formatPrice(productMatch.price)}\n\n⏱️ **Délai de livraison:** 2-3 jours ouvrables\n📞 **Contact:** 05 22 123 456 pour une commande urgente`;
+            ? `✅ **EN STOCK** - ${productMatch.stock} flacons disponibles` 
+            : "❌ **RUPTURE DE STOCK** - Réapprovisionnement dans 2 semaines";
+          responseText = `🌸 **${productMatch.name}**\n${stockStatus}\n\n🏷️ **Catégorie:** ${productMatch.category}\n💰 **Prix:** ${formatPrice(productMatch.price)}\n\n⏱️ **Livraison:** 24-48h\n📞 **Contact:** +212 808 626 102 pour une commande urgente`;
         } else {
-          responseText = "🔍 Vérifions la disponibilité ensemble!\n\nQuel produit vous intéresse?\nExemples:\n• \"Tube EDTA en stock?\"\n• \"Analyseur BH-5390 disponible\"\n• \"Vancomycine VA-30 stock\"";
+          responseText = "🔍 Vérifions la disponibilité ensemble!\n\nQuel parfum vous intéresse?\nExemples:\n• \"Arij Royal Oud en stock?\"\n• \"Rose de Damas disponible\"\n• \"Coffret découverte stock\"";
         }
       }
       else if (userQuery.includes('montre') || userQuery.includes('affiche') || userQuery.includes('cherche') || 
-               userQuery.includes('trouve') || userQuery.includes('liste') || userQuery.includes('catalogue')) {
+               userQuery.includes('trouve') || userQuery.includes('liste') || userQuery.includes('catalogue') ||
+               userQuery.includes('collection') || userQuery.includes('parfum')) {
         const results = searchProducts(userQuery);
         responseText = formatProductList(results);
       }
+      else if (userQuery.includes('note') || userQuery.includes('olfactive') || userQuery.includes('sent')) {
+        if (userQuery.includes('oud')) {
+          responseText = "🌸 **Parfums à l'Oud**\n\nL'oud est une note précieuse et boisée.\n\nNos parfums contenant de l'oud:\n• Arij Royal Oud (Parfum de Luxe) - 890 MAD\n• Ambre Nuit (Unisex) - 920 MAD\n\nCes fragrances sont riches, chaleureuses et envoûtantes.";
+        } else if (userQuery.includes('rose')) {
+          responseText = "🌸 **Parfums à la Rose**\n\nLa rose est la reine des fleurs en parfumerie.\n\nNos parfums contenant de la rose:\n• Rose de Damas (Femme) - 750 MAD\n• Fleur de Lys (Femme) - 640 MAD\n\nDes fragrances élégantes et romantiques.";
+        } else if (userQuery.includes('vanille')) {
+          responseText = "🌸 **Parfums à la Vanille**\n\nLa vanille apporte douceur et gourmandise.\n\nNos parfums contenant de la vanille:\n• Vanille Exotique (Femme) - 650 MAD\n• Ambre Nuit (Unisex) - 920 MAD\n• Santal Royal (Homme) - 850 MAD\n\nDes fragrances réconfortantes et sensuelles.";
+        } else if (userQuery.includes('boisé') || userQuery.includes('bois')) {
+          responseText = "🌸 **Parfums Boisés**\n\nLes notes boisées apportent caractère et élégance.\n\nNotre collection boisée:\n• Bois Intense (Homme) - 680 MAD\n• Cèdre Noir (Homme) - 720 MAD\n• Santal Royal (Homme) - 850 MAD\n• Patchouli Noir (Homme) - 780 MAD\n\nParfaits pour les amateurs de fragrances viriles.";
+        } else {
+          responseText = "🌸 **Notes Olfactives**\n\nDécouvrez nos parfums par notes:\n\n🌹 **Florales:** Rose, Jasmin, Fleur d'Oranger\n🪵 **Boisées:** Oud, Santal, Cèdre, Patchouli\n🍦 **Gourmandes:** Vanille, Caramel, Cacao\n✨ **Orientales:** Ambre, Musc, Encens\n🍊 **Fraîches:** Yuzu, Citron, Gingembre\n\nQuelle note vous attire? Dites-moi \"Parfums à l'oud\" ou \"Parfums floraux\"!";
+        }
+      }
       else {
         const specificProduct = products.find(p => 
-          userQuery.includes(p.name.toLowerCase().substring(0, 25))
+          userQuery.includes(p.name.toLowerCase().substring(0, 20))
         );
         if (specificProduct) {
-          responseText = "📋 **FICHE PRODUIT**\n\n" +
-            `🔬 **Nom:** ${specificProduct.name}\n` +
+          responseText = "🌸 **FICHE PARFUM**\n\n" +
+            `✨ **Nom:** ${specificProduct.name}\n` +
             `💰 **Prix:** ${formatPrice(specificProduct.price)}\n` +
             `🏷️ **Catégorie:** ${specificProduct.category}\n` +
-            `🏭 **Marque:** ${specificProduct.brand}\n` +
-            `📦 **Stock:** ${specificProduct.stock > 0 ? `${specificProduct.stock} unités` : 'Rupture'}\n` +
+            `📦 **Stock:** ${specificProduct.stock > 0 ? `${specificProduct.stock} flacons` : 'Rupture'}\n` +
             `📝 **Description:** ${specificProduct.description}\n` +
-            `🔧 **Caractéristiques:** ${specificProduct.details || 'Nous contacter pour plus dinformations'}\n\n` +
+            `🔧 **Notes olfactives:** ${specificProduct.details}\n\n` +
             `💡 **Suggestions:**\n` +
-            `• Voulez-vous voir des produits similaires?\n` +
-            `• Souhaitez-vous connaître les accessoires compatibles?`;
+            `• Découvrez notre collection ${specificProduct.category.toLowerCase()}\n` +
+            `• Offrez-le en coffret cadeau\n` +
+            `• Demandez un échantillon gratuit avec votre commande`;
         } else {
-          responseText = "🥼 Je n'ai pas compris votre demande.\n\nVoici comment m'utiliser:\n\n📌 **Exemples:**\n• \"Montre-moi les tubes de prélèvement\"\n• \"Prix de l'analyseur AS-280\"\n• \"Produits VACULAB disponibles\"\n• \"Quel est le stock du détecteur QV-600?\"\n• \"Produits sous 1000 MAD\"\n\n🔍 **Catégories:**\n- Tubes de prélèvement\n- Antibiotiques\n- Analyseurs\n- Réactifs\n- Consommables\n\nPosez votre question en français ou anglais!";
+          responseText = "🌸 Je n'ai pas compris votre demande.\n\nVoici comment m'utiliser:\n\n📌 **Exemples:**\n• \"Montre-moi les parfums femme\"\n• \"Prix de Arij Royal Oud\"\n• \"Parfums en stock\"\n• \"Parfums sous 700 MAD\"\n• \"Parfums à l'oud\"\n• \"Coffrets cadeaux disponibles\"\n\n🌸 **Catégories disponibles:**\n- Parfums Femme\n- Parfums Homme\n- Parfums Unisex\n- Parfums de Luxe\n- Coffrets Cadeaux\n\nPosez votre question en français ou anglais!";
         }
       }
       
@@ -234,12 +264,14 @@ const TeclabAgent = () => {
   };
 
   const quickQuestions = [
-    "🔬 Tubes de prélèvement",
-    "💰 Prix analyseur AS-280",
-    "📦 Stock détecteur QV-600",
-    "💵 Produits sous 5000 MAD",
-    "🏭 Produits VACULAB",
-    "💊 Antibiotiques BIOKAR"
+    "🌸 Parfums Femme",
+    "🪵 Parfums Homme",
+    "💰 Prix Arij Royal Oud",
+    "📦 Stock Rose de Damas",
+    "💵 Parfums sous 600 MAD",
+    "🎁 Coffrets cadeaux",
+    "🪵 Parfums à l'oud",
+    "🌹 Parfums floraux"
   ];
 
   const styles = {
@@ -250,11 +282,11 @@ const TeclabAgent = () => {
       width: '65px',
       height: '65px',
       borderRadius: '50%',
-      background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
-      color: '#2c5f8a',
-      border: '2px solid #2c5f8a',
+      background: 'linear-gradient(135deg, #D4AF37 0%, #B8960F 100%)',
+      color: '#1A1A1A',
+      border: '2px solid #FFE066',
       cursor: 'pointer',
-      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+      boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -279,8 +311,8 @@ const TeclabAgent = () => {
       animation: 'slideUp 0.3s ease-out',
     },
     header: {
-      background: 'linear-gradient(135deg, #2c5f8a 0%, #1e3a5f 100%)',
-      color: 'white',
+      background: 'linear-gradient(135deg, #2A1A0A 0%, #3A2A1A 100%)',
+      color: '#D4AF37',
       padding: '14px 18px',
       display: 'flex',
       justifyContent: 'space-between',
@@ -291,9 +323,9 @@ const TeclabAgent = () => {
       alignItems: 'center',
       gap: '10px',
     },
-    doctorIcon: {
+    perfumeIcon: {
       fontSize: '28px',
-      background: 'white',
+      background: 'rgba(212, 175, 55, 0.2)',
       borderRadius: '50%',
       padding: '4px',
       width: '40px',
@@ -306,11 +338,13 @@ const TeclabAgent = () => {
       fontSize: '1.1rem',
       fontWeight: '600',
       margin: 0,
+      color: '#D4AF37',
     },
     headerSub: {
       fontSize: '0.7rem',
       opacity: 0.9,
       margin: 0,
+      color: 'rgba(255,255,255,0.8)',
     },
     closeBtn: {
       background: 'rgba(255, 255, 255, 0.2)',
@@ -327,9 +361,9 @@ const TeclabAgent = () => {
       transition: 'all 0.2s',
     },
     clearBtn: {
-      background: 'rgba(255, 255, 255, 0.15)',
+      background: 'rgba(212, 175, 55, 0.2)',
       border: 'none',
-      color: 'white',
+      color: '#D4AF37',
       padding: '4px 10px',
       borderRadius: '6px',
       cursor: 'pointer',
@@ -340,7 +374,7 @@ const TeclabAgent = () => {
       flex: 1,
       overflowY: 'auto',
       padding: '16px',
-      background: '#f8f9fc',
+      background: '#FDFBF7',
     },
     welcomeBox: {
       textAlign: 'center',
@@ -348,11 +382,12 @@ const TeclabAgent = () => {
       background: 'white',
       borderRadius: '12px',
       margin: '5px',
+      border: '1px solid rgba(212, 175, 55, 0.15)',
     },
     welcomeIcon: {
       fontSize: '48px',
       marginBottom: '10px',
-      background: '#f0f0f0',
+      background: 'rgba(212, 175, 55, 0.1)',
       borderRadius: '50%',
       padding: '10px',
       display: 'inline-block',
@@ -360,7 +395,7 @@ const TeclabAgent = () => {
     welcomeTitle: {
       fontSize: '1.2rem',
       marginBottom: '8px',
-      color: '#2c5f8a',
+      color: '#2A1A0A',
     },
     welcomeText: {
       color: '#666',
@@ -376,8 +411,8 @@ const TeclabAgent = () => {
       marginBottom: '15px',
     },
     categoryTag: {
-      background: '#e8f0f7',
-      color: '#2c5f8a',
+      background: 'rgba(212, 175, 55, 0.1)',
+      color: '#B8960F',
       padding: '4px 12px',
       borderRadius: '20px',
       fontSize: '0.7rem',
@@ -399,13 +434,13 @@ const TeclabAgent = () => {
       flexWrap: 'wrap',
     },
     suggestionBtn: {
-      background: '#f0f2f5',
-      border: '1px solid #e0e4e8',
+      background: 'white',
+      border: '1px solid rgba(212, 175, 55, 0.3)',
       padding: '6px 12px',
       borderRadius: '20px',
       cursor: 'pointer',
       fontSize: '0.7rem',
-      color: '#2c5f8a',
+      color: '#B8960F',
       transition: 'all 0.2s',
     },
     message: {
@@ -428,18 +463,18 @@ const TeclabAgent = () => {
       flexShrink: 0,
     },
     userAvatar: {
-      background: 'linear-gradient(135deg, #2c5f8a 0%, #1e3a5f 100%)',
+      background: 'linear-gradient(135deg, #2A1A0A 0%, #3A2A1A 100%)',
     },
     assistantAvatar: {
       background: 'white',
-      border: '2px solid #2c5f8a',
+      border: '2px solid #D4AF37',
     },
     messageContent: {
       maxWidth: '75%',
     },
     userContent: {
-      background: 'linear-gradient(135deg, #2c5f8a 0%, #1e3a5f 100%)',
-      color: 'white',
+      background: 'linear-gradient(135deg, #2A1A0A 0%, #3A2A1A 100%)',
+      color: '#D4AF37',
       padding: '8px 12px',
       borderRadius: '12px',
       fontSize: '0.85rem',
@@ -455,7 +490,7 @@ const TeclabAgent = () => {
       lineHeight: '1.5',
       whiteSpace: 'pre-wrap',
       boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-      border: '1px solid #e0e4e8',
+      border: '1px solid rgba(212, 175, 55, 0.2)',
     },
     time: {
       fontSize: '0.6rem',
@@ -468,13 +503,13 @@ const TeclabAgent = () => {
       padding: '8px 12px',
       borderRadius: '12px',
       fontSize: '0.85rem',
-      color: '#2c5f8a',
+      color: '#D4AF37',
       display: 'inline-block',
-      border: '1px solid #e0e4e8',
+      border: '1px solid rgba(212, 175, 55, 0.2)',
     },
     inputArea: {
       background: 'white',
-      borderTop: '1px solid #e9ecef',
+      borderTop: '1px solid rgba(212, 175, 55, 0.15)',
       padding: '12px 16px',
     },
     inputContainer: {
@@ -485,7 +520,7 @@ const TeclabAgent = () => {
     textarea: {
       flex: 1,
       padding: '10px',
-      border: '1px solid #dee2e6',
+      border: '1px solid rgba(212, 175, 55, 0.3)',
       borderRadius: '10px',
       fontFamily: 'inherit',
       fontSize: '0.85rem',
@@ -494,8 +529,8 @@ const TeclabAgent = () => {
     },
     sendBtn: {
       padding: '10px 20px',
-      background: 'linear-gradient(135deg, #2c5f8a 0%, #1e3a5f 100%)',
-      color: 'white',
+      background: 'linear-gradient(135deg, #D4AF37 0%, #B8960F 100%)',
+      color: '#1A1A1A',
       border: 'none',
       borderRadius: '10px',
       cursor: 'pointer',
@@ -522,22 +557,22 @@ const TeclabAgent = () => {
         onMouseLeave={() => setIsHovered(false)}
         style={{
           ...styles.floatBtn,
-          ...(isHovered ? { transform: 'scale(1.1)', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)' } : {}),
+          ...(isHovered ? { transform: 'scale(1.1)', boxShadow: '0 6px 20px rgba(212, 175, 55, 0.4)' } : {}),
         }}
       >
-        🥼
+        🌸
       </button>
 
       {isOpen && (
         <div ref={chatWindowRef} style={styles.chatWindow}>
           <div style={styles.header}>
             <div style={styles.headerLeft}>
-              <div style={styles.doctorIcon}>
-                🥼
+              <div style={styles.perfumeIcon}>
+                🌸
               </div>
               <div>
-                <h2 style={styles.headerTitle}>Teclab Agent</h2>
-                <p style={styles.headerSub}>Assistant produits laboratoire</p>
+                <h2 style={styles.headerTitle}>Arij Assistant</h2>
+                <p style={styles.headerSub}>Votre conseiller parfumerie</p>
               </div>
               <button onClick={clearChat} style={styles.clearBtn}>
                 🗑️ Nouveau
@@ -552,27 +587,27 @@ const TeclabAgent = () => {
             {messages.length === 0 ? (
               <div style={styles.welcomeBox}>
                 <div style={styles.welcomeIcon}>
-                  🥼
+                  🌸
                 </div>
-                <h3 style={styles.welcomeTitle}>Bonjour!</h3>
-                <p style={styles.welcomeText}>Je suis l'assistant Teclab. Je peux vous aider à trouver des produits de laboratoire, vérifier les prix et disponibilités.</p>
+                <h3 style={styles.welcomeTitle}>Bienvenue chez Arij Parfums</h3>
+                <p style={styles.welcomeText}>Je suis votre conseiller personnel. Je vous aide à trouver le parfum parfait selon vos goûts et votre budget.</p>
                 <div style={styles.categories}>
-                  <span style={styles.categoryTag}>🧪 Tubes</span>
-                  <span style={styles.categoryTag}>💊 Antibiotiques</span>
-                  <span style={styles.categoryTag}>🔬 Analyseurs</span>
-                  <span style={styles.categoryTag}>🧴 Réactifs</span>
-                  <span style={styles.categoryTag}>🛠️ Consommables</span>
+                  <span style={styles.categoryTag}>🌸 Femme</span>
+                  <span style={styles.categoryTag}>🪵 Homme</span>
+                  <span style={styles.categoryTag}>✨ Unisex</span>
+                  <span style={styles.categoryTag}>💎 Luxe</span>
+                  <span style={styles.categoryTag}>🎁 Coffrets</span>
                 </div>
                 <div style={styles.suggestions}>
-                  <div style={styles.suggestionTitle}>Questions fréquentes:</div>
+                  <div style={styles.suggestionTitle}>Suggestions rapides:</div>
                   <div style={styles.suggestionBtns}>
                     {quickQuestions.map((q, idx) => (
                       <button 
                         key={idx} 
                         onClick={() => setInput(q.replace(/^[^a-zA-Z]+/, ''))} 
                         style={styles.suggestionBtn}
-                        onMouseEnter={(e) => e.target.style.background = '#e8f0f7'}
-                        onMouseLeave={(e) => e.target.style.background = '#f0f2f5'}
+                        onMouseEnter={(e) => e.target.style.background = 'rgba(212, 175, 55, 0.1)'}
+                        onMouseLeave={(e) => e.target.style.background = 'white'}
                       >
                         {q}
                       </button>
@@ -587,7 +622,7 @@ const TeclabAgent = () => {
                     ...styles.avatar,
                     ...(msg.role === 'user' ? styles.userAvatar : styles.assistantAvatar)
                   }}>
-                    {msg.role === 'user' ? '👤' : '🥼'}
+                    {msg.role === 'user' ? '👤' : '🌸'}
                   </div>
                   <div style={styles.messageContent}>
                     <div style={msg.role === 'user' ? styles.userContent : styles.assistantContent}>
@@ -606,9 +641,9 @@ const TeclabAgent = () => {
             
             {isLoading && (
               <div style={styles.message}>
-                <div style={{...styles.avatar, ...styles.assistantAvatar}}>🥼</div>
+                <div style={{...styles.avatar, ...styles.assistantAvatar}}>🌸</div>
                 <div style={styles.loading}>
-                  🤔 Recherche en cours...
+                  🌸 Recherche du parfum idéal...
                 </div>
               </div>
             )}
@@ -622,12 +657,12 @@ const TeclabAgent = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Posez votre question..."
+                placeholder="Cherchez un parfum, une note, une catégorie..."
                 rows="2"
                 disabled={isLoading}
                 style={styles.textarea}
-                onFocus={(e) => e.target.style.borderColor = '#2c5f8a'}
-                onBlur={(e) => e.target.style.borderColor = '#dee2e6'}
+                onFocus={(e) => e.target.style.borderColor = '#D4AF37'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(212, 175, 55, 0.3)'}
               />
               <button 
                 onClick={sendMessage} 
@@ -672,18 +707,18 @@ const TeclabAgent = () => {
         @keyframes pulse {
           0%, 100% {
             transform: scale(1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
           }
           50% {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(44, 95, 138, 0.3);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
           }
         }
         
         textarea:focus {
           outline: none;
-          border-color: #2c5f8a;
-          box-shadow: 0 0 0 3px rgba(44, 95, 138, 0.1);
+          border-color: #D4AF37;
+          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
         }
         
         button:hover {
@@ -700,16 +735,17 @@ const TeclabAgent = () => {
         }
         
         ::-webkit-scrollbar-thumb {
-          background: #c1c9d2;
+          background: #D4AF37;
           border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-          background: #2c5f8a;
+          background: #B8960F;
         }
       `}</style>
     </>
   );
 };
+
 
 export default TeclabAgent;
