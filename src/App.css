@@ -18590,3 +18590,18 @@ main,
     width: 100% !important;
   }
 }
+/* Alternative - plus large */
+.navigation .category-menu,
+header .category-menu,
+nav .category-menu {
+  display: block !important;
+}
+
+.navigation .category-menu .container,
+header .category-menu .container,
+nav .category-menu .container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 12px !important;
+}
