@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-do
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
 import TeclabAgent from "./ai";
-import FallbackSubscribeButton from './notification';
+
 // Add this at the top of App.js or in a utils file
 const saveScrollPosition = (key) => {
   const scrollY = window.scrollY;
