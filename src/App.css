@@ -20091,3 +20091,252 @@ h1, h2, h3, h4, h5, h6,
   background: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
 }
+/* ==================== CARROUSEL RESPONSIVE POUR MOBILE ==================== */
+
+/* Conteneur principal */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+  transition: background-color 0.5s ease;
+}
+
+/* Slide */
+.carousel-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 60px;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Contenu texte */
+.carousel-content {
+  flex: 1;
+  max-width: 50%;
+  padding-right: 30px;
+  z-index: 2;
+}
+
+.carousel-content h2 {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.carousel-content p {
+  font-size: 16px;
+  margin-bottom: 25px;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+/* Image */
+.carousel-image {
+  flex: 1;
+  max-width: 45%;
+  height: 380px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.carousel-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Badge */
+.carousel-badge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: var(--primary-color);
+  color: #1A1A1A;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 10;
+}
+
+/* Navigation buttons */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.carousel-prev {
+  left: 20px;
+}
+
+.carousel-next {
+  right: 20px;
+}
+
+/* Dots */
+.carousel-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  width: 24px;
+  border-radius: 10px;
+}
+
+/* ==================== RESPONSIVE MOBILE ==================== */
+
+@media (max-width: 768px) {
+  .carousel-container {
+    height: 450px;
+  }
+
+  .carousel-slide {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .carousel-content {
+    max-width: 100%;
+    padding-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .carousel-content h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .carousel-content p {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .carousel-image {
+    max-width: 70%;
+    height: 180px;
+  }
+
+  .carousel-nav {
+    width: 36px;
+    height: 36px;
+  }
+
+  .carousel-prev {
+    left: 10px;
+  }
+
+  .carousel-next {
+    right: 10px;
+  }
+
+  .carousel-badge {
+    top: 10px;
+    left: 10px;
+    font-size: 10px;
+    padding: 4px 12px;
+  }
+
+  .carousel-dots {
+    bottom: 15px;
+    gap: 8px;
+  }
+
+  .carousel-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .carousel-dot.active {
+    width: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-container {
+    height: 400px;
+  }
+
+  .carousel-content h2 {
+    font-size: 20px;
+  }
+
+  .carousel-content p {
+    font-size: 12px;
+  }
+
+  .carousel-image {
+    max-width: 85%;
+    height: 160px;
+  }
+
+  .carousel-nav {
+    width: 32px;
+    height: 32px;
+  }
+
+  .carousel-nav svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .carousel-badge {
+    font-size: 9px;
+    padding: 3px 10px;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
