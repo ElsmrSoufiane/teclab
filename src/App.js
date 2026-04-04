@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-do
 import EmailCampaign from './EmailCampaign';
 import PropTypes from 'prop-types';
 import TeclabAgent from "./ai";
-
 // Add this at the top of App.js or in a utils file
 const saveScrollPosition = (key) => {
   const scrollY = window.scrollY;
@@ -2801,7 +2800,7 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         )}
 
-        {/* MENU CATÉGORIES CORRIGÉ */}
+        {/* MENU CATÉGORIES CORRIGÉ - PAS DE DIV SUPPLEMENTAIRE */}
         {showCategoryMenu && !isMobile && (
           <div className="category-menu" ref={categoryMenuRef}>
             <div className="container">
@@ -2834,11 +2833,11 @@ const Header = ({ currentPath, navigate }) => {
           </div>
         )}
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - à compléter si nécessaire */}
         {showMobileMenu && (
           <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
             <div className="mobile-menu-content" ref={mobileMenuRef} onClick={e => e.stopPropagation()}>
-              {/* ... contenu du menu mobile ... */}
+              {/* Contenu du menu mobile - gardez votre code existant ici */}
             </div>
           </div>
         )}
@@ -9695,7 +9694,6 @@ function App() {
                   </AnimatePresence>
                  <TeclabAgent></TeclabAgent>
                 </div>
-                <FallbackSubscribeButton></FallbackSubscribeButton>
               </FavoritesProvider>
             </CouponProvider>
           </ProductProvider>
