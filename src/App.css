@@ -20340,3 +20340,24 @@ h1, h2, h3, h4, h5, h6,
     opacity: 1;
   }
 }
+@media (max-width: 768px) {
+  /* Garder les boutons mais plus petits */
+  .carousel-nav {
+    display: flex;
+    width: 35px;
+    height: 35px;
+  }
+  
+  .carousel-nav svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .carousel-prev {
+    left: 10px;
+  }
+  
+  .carousel-next {
+    right: 10px;
+  }
+}
