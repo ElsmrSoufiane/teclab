@@ -19415,3 +19415,275 @@ p, span, li, div, a:not(.btn-primary):not(.btn-secondary) {
 .about-contact-enhanced p {
   color: rgba(255, 255, 255, 0.9) !important;
 }
+/* ==================== ARIJ PARFUMS - POLICES & TYPOGRAPHIE ==================== */
+
+/* Import des polices élégantes pour parfumerie */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Montserrat:wght@300;400;500;600&display=swap');
+
+/* Polices globales */
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6,
+.section-title,
+.product-title,
+.cart-summary h3,
+.filter-header h3,
+.modal-title {
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  letter-spacing: 0.02em;
+}
+
+/* Logo Arij Parfums */
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #D4AF37, #FFE066);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logo-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: -4px;
+}
+
+/* Effet hover sur le logo */
+.logo:hover .logo-text {
+  background: linear-gradient(135deg, #FFE066, #D4AF37);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logo:hover .logo-subtitle {
+  color: var(--primary-color);
+  letter-spacing: 4px;
+  transition: letter-spacing 0.3s ease;
+}
+
+/* Titres de section avec style parfum */
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.section-title::after {
+  content: '✦';
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  display: block;
+  margin-top: 10px;
+  letter-spacing: 10px;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* Titres de produits */
+.product-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+/* Prix avec style élégant */
+.current-price,
+.product-price .current {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Badges avec style parfum */
+.product-badge,
+.product-discount {
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 1px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+/* Menu navigation - style élégant */
+.nav-menu li a {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+/* Boutons avec touche parfum */
+.btn-primary,
+.add-to-cart-btn,
+.checkout-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+/* Prix dans le panier */
+.cart-summary .total {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+}
+
+/* Footer */
+.footer h4 {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+  font-size: 1rem;
+}
+
+/* Hero section about page */
+.hero-content-enhanced h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.hero-badge-enhanced {
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 2px;
+}
+
+/* Cartes catégories */
+.perfume-category-card h3,
+.category-card-enhanced h3 {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+}
+
+/* Notes de parfum */
+.note-card h4 {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logo-text {
+    font-size: 22px;
+  }
+  
+  .logo-subtitle {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+  }
+  
+  .section-title::after {
+    font-size: 1.2rem;
+  }
+  
+  .nav-menu li a {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 18px;
+  }
+  
+  .logo-subtitle {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+  }
+}
+
+/* Animation douce pour le logo */
+@keyframes logoShine {
+  0% {
+    background-position: -100%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+.logo-text {
+  background: linear-gradient(135deg, #D4AF37, #FFE066, #D4AF37);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: logoShine 3s linear infinite;
+}
+
+/* Éléments décoratifs parfum */
+.parfum-decor {
+  position: relative;
+}
+
+.parfum-decor::before {
+  content: '✦';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary-color);
+  font-size: 12px;
+}
+
+.parfum-decor::after {
+  content: '✦';
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary-color);
+  font-size: 12px;
+}
+
+/* Style pour les prix */
+.price-tag {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+}
+
+/* Notes olfactives */
+.notes-badge {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.7rem;
+  color: #999;
+  letter-spacing: 0.5px;
+}
