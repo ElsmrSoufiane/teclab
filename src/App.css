@@ -20042,3 +20042,52 @@ h1, h2, h3, h4, h5, h6,
     height: 160px;
   }
 }
+/* ==================== CORRECTION CARROUSEL - TEXTE VISIBLE ==================== */
+
+/* Assurer que le texte est toujours blanc/lisible */
+.carousel-slide .carousel-content h2,
+.carousel-slide .carousel-content p {
+  color: white !important;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Bouton du carrousel */
+.carousel-btn {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+  border: none !important;
+}
+
+.carousel-btn:hover {
+  background: var(--primary-dark) !important;
+  color: #1A1A1A !important;
+}
+
+/* Badge */
+.carousel-badge {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+  font-weight: 700 !important;
+}
+
+/* Navigation buttons */
+.carousel-nav {
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: white !important;
+}
+
+.carousel-nav:hover {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+}
+
+/* Dots */
+.carousel-dot {
+  border: 2px solid white !important;
+  background: transparent !important;
+}
+
+.carousel-dot.active {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
