@@ -18492,3 +18492,101 @@ main,
   position: relative !important;
   z-index: 1 !important;
 }
+/* ==================== FIX COMPLET CATEGORIES MENU ==================== */
+
+/* Force l'affichage du menu catégories */
+.category-menu {
+  display: block !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: white !important;
+  padding: 20px 0 !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  z-index: 999 !important;
+}
+
+/* Force le container en FLEX */
+.category-menu .container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 12px !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+}
+
+/* Style des liens de catégories */
+.category-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 24px !important;
+  background: #f5f5f5 !important;
+  border-radius: 40px !important;
+  text-decoration: none !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+/* Effet HOVER */
+.category-link:hover {
+  background: var(--primary-color) !important;
+  color: #1A1A1A !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3) !important;
+}
+
+/* Style pour les éléments internes du lien */
+.category-link .category-color {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+}
+
+.category-link .category-icon {
+  font-size: 16px !important;
+}
+
+.category-link .category-count {
+  font-size: 12px !important;
+  opacity: 0.7 !important;
+  margin-left: 4px !important;
+}
+
+/* Effet hover sur le count aussi */
+.category-link:hover .category-count {
+  color: #1A1A1A !important;
+}
+
+/* Version mobile */
+@media (max-width: 768px) {
+  .category-menu {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 15px !important;
+  }
+  
+  .category-menu .container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  
+  .category-link {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+}
