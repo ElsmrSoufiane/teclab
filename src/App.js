@@ -1041,36 +1041,36 @@ const CouponProvider = ({ children }) => {
 
 // Carousel Component
 // ==================== OPTIMIZED CAROUSEL (No Framer Motion) ====================
-// ==================== CAROUSEL ARIJ PARFUMS ====================
+// ==================== CAROUSEL KHLII AHL FES ====================
 const Carousel = () => {
-  const [offers, setOffers] = useState([
-    {
-      id: 1,
-      title: 'Nouvelle Collection Orientale',
-      subtitle: 'Découvrez nos 5 nouveaux parfums aux notes d\'Oud et d\'Ambre',
-      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRATP-yERPwKhdgZxVxfJRQ_RRW3wzt_6Kenw&s',
-      bgColor: '#2A1A0A',
-      textColor: '#ffffff',
-      badge: 'NOUVEAUTÉ'
-    },
-    {
-      id: 2,
-      title: 'Jusqu\'à -30%',
-      subtitle: 'Sur une sélection de parfums signature',
-      image: 'https://andalusperfume.ma/wp-content/uploads/2025/09/PARAGON-Royal.jpg',
-      bgColor: '#1A0A00',
-      textColor: '#ffffff',
-      badge: 'PROMOTION'
-    },
-    {
-      id: 3,
-      title: 'Coffret Cadeau Exclusif',
-      subtitle: '3 miniatures offertes pour tout achat > 600 MAD',
-      image: 'https://media.gqmagazine.fr/photos/66585a664b1f8f6af3d9fdfb/master/pass/PerfumeBrands_HP.jpg',
-      bgColor: '#3A2A1A',
-      textColor: '#ffffff',
-      badge: 'OFFERT'
-    }
+const [offers, setOffers] = useState([
+{
+id: 1,
+title: 'Khlii Traditionnel de Fes',
+subtitle: 'Viande confite dans la pure tradition Fassi - Recette ancestrale',
+image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=800',
+bgColor: '#3D0C0C',
+textColor: '#ffffff',
+badge: 'ARTISANAL'
+},
+{
+id: 2,
+title: 'Jusqu\'a -20%',
+subtitle: 'Sur notre selection de viandes sechees premium',
+image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=800',
+bgColor: '#2A1515',
+textColor: '#ffffff',
+badge: 'PROMOTION'
+},
+{
+id: 3,
+title: 'Coffret Decouverte',
+subtitle: 'Assortiment de nos specialites - Ideal pour offrir',
+image: 'https://images.unsplash.com/photo-1558030006-450675393462?w=800',
+bgColor: '#4A2020',
+textColor: '#ffffff',
+badge: 'COFFRET'
+}
   ]);
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -1136,7 +1136,7 @@ const Carousel = () => {
             alt={currentOffer.title}
             loading="lazy"
           />
-          <div className="perfume-mist"></div>
+          <div className="product-overlay"></div>
         </div>
       </div>
       
@@ -1818,7 +1818,7 @@ const ReviewsSummary = ({ stats }) => {
   // Récupérer et valider les données
   const totalReviews = typeof stats.total === 'number' ? stats.total : parseInt(stats.total) || 0;
   
-  // Gérer average qui peut être string ou number
+  // Gérer average qui peut ��tre string ou number
   let averageRating = 0;
   if (stats.average !== undefined && stats.average !== null) {
     if (typeof stats.average === 'number') {
@@ -2676,9 +2676,9 @@ const Header = ({ currentPath, navigate }) => {
     <>
       {!isMobile && (
         <div className="announcement-bar hide-mobile">
-          <div className="marquee">
-            <span><Icons.Truck /> LIVRAISON GRATUITE À PARTIR DE 500 MAD</span>
-          </div>
+<div className="marquee">
+<span><Icons.Truck /> KHLII AHL FES - VIANDES TRADITIONNELLES DE FES - LIVRAISON GRATUITE À PARTIR DE 500 MAD</span>
+</div>
         </div>
       )}
 
@@ -2694,10 +2694,10 @@ const Header = ({ currentPath, navigate }) => {
                 <Icons.Menu />
               </button>
 
-              <a href="/" className="logo" onClick={handleLogoClick}>
-                <span className="logo-text">Arij</span>
-                <span className="logo-subtitle">Parfums</span>
-              </a>
+<a href="/" className="logo" onClick={handleLogoClick}>
+<span className="logo-text">Khlii</span>
+<span className="logo-subtitle">Ahl Fes</span>
+</a>
 
               {!isMobile && (
                 <button 
@@ -2714,7 +2714,7 @@ const Header = ({ currentPath, navigate }) => {
               <form className="search-form desktop-only" onSubmit={handleSearch}>
                 <input 
                   type="text"
-                  placeholder="Rechercher un parfum..."
+                  placeholder="Rechercher un produit..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
@@ -2812,7 +2812,7 @@ const Header = ({ currentPath, navigate }) => {
             <form onSubmit={handleSearch}>
               <input 
                 type="text"
-                placeholder="Rechercher un parfum..."
+                placeholder="Rechercher un produit..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 autoFocus
@@ -2925,7 +2925,7 @@ const Header = ({ currentPath, navigate }) => {
                       <Icons.Home size={18} /> Accueil
                     </a>
                     <a href="/products" onClick={(e) => { e.preventDefault(); navigate('/products'); setShowMobileMenu(false); }}>
-                      <Icons.Package size={18} /> Tous les parfums
+                      <Icons.Package size={18} /> Nos Produits
                     </a>
                     <a href="/categories" onClick={(e) => { e.preventDefault(); navigate('/categories'); setShowMobileMenu(false); }}>
                       <Icons.Filter size={18} /> Collections
@@ -6303,47 +6303,47 @@ const CheckoutPage = ({ navigate }) => {
 };
 
 // ==================== ABOUT PAGE ====================
-// ==================== ABOUT PAGE ARIJ PARFUMS ====================
+// ==================== ABOUT PAGE KHLII AHL FES ====================
 const AboutPage = () => {
-  const stats = [
-    { icon: Icons.Star, value: '15+', label: "Années d'excellence" },
-    { icon: Icons.Users, value: '10K+', label: 'Clients satisfaits' },
-    { icon: Icons.Package, value: '120+', label: 'Fragrances uniques' },
-    { icon: Icons.Truck, value: '24h', label: 'Livraison express' }
-  ];
+const stats = [
+{ icon: Icons.Star, value: '25+', label: "Annees de savoir-faire" },
+{ icon: Icons.Users, value: '30K+', label: 'Clients fideles' },
+{ icon: Icons.Package, value: '50+', label: 'Produits de qualite' },
+{ icon: Icons.Truck, value: '48h', label: 'Livraison fraiche' }
+];
 
-  const perfumeCategories = [
-    {
-      title: '🌸 Parfums Femme',
-      description: 'Des fragrances florales, fruitées et sensuelles qui révèlent votre féminité. Notre collection pour femme allie élégance et caractère.',
-      icon: '🌸'
-    },
-    {
-      title: '🌿 Parfums Homme',
-      description: 'Des compositions boisées, épicées et aromatiques pour l\'homme moderne. Puissance et raffinement dans chaque goutte.',
-      icon: '🌿'
-    },
-    {
-      title: '✨ Parfums Unisex',
-      description: 'Des essences universelles qui transcendent les genres. Des fragrances uniques pour les personnalités audacieuses.',
-      icon: '✨'
-    },
-    {
-      title: '💎 Parfums de Luxe',
-      description: 'Notre collection exclusive avec des ingrédients rares : Oud, Safran, Ambre gris. L\'ultime expression du luxe.',
-      icon: '💎'
-    },
-    {
-      title: '🎁 Coffrets Cadeaux',
-      description: 'Des coffrets élégants pour offrir le parfum parfait. Idéal pour toutes les occasions spéciales.',
-      icon: '🎁'
-    },
-    {
-      title: '🪵 Parfums Orientaux',
-      description: 'Des senteurs chaudes et envoûtantes aux notes d\'oud, de musc et de résines précieuses.',
-      icon: '🪵'
-    }
-  ];
+const productCategories = [
+{
+title: 'Khlii Traditionnel',
+description: 'Notre specialite phare - Viande de boeuf confite selon la recette traditionnelle de Fes, preparee avec soin et patience.',
+icon: ''
+},
+{
+title: 'Gueddid Premium',
+description: 'Viande sechee au soleil selon les methodes ancestrales. Un gout authentique et une conservation naturelle.',
+icon: ''
+},
+{
+title: 'Merguez Artisanales',
+description: 'Saucisses epices preparees avec des viandes selectionnees et un melange d\'epices unique de Fes.',
+icon: ''
+},
+{
+title: 'Viandes Sechees',
+description: 'Selection de viandes sechees premium - Boeuf, agneau, preparees selon nos recettes familiales.',
+icon: ''
+},
+{
+title: 'Coffrets Decouverte',
+description: 'Assortiments de nos meilleures specialites pour decouvrir ou offrir les saveurs de Fes.',
+icon: ''
+},
+{
+title: 'Epices & Condiments',
+description: 'Epices et condiments selectionnes pour accompagner nos viandes et sublimer vos plats.',
+icon: ''
+}
+];
 
   const whyChooseUs = [
     {
@@ -6352,7 +6352,7 @@ const AboutPage = () => {
     },
     {
       title: '👃 Créations Uniques',
-      description: 'Chaque parfum est une création originale, pensée par des nez talentueux pour révéler votre personnalité.'
+      description: 'Chaque produit est une creation artisanale, preparee par des maitres bouchers pour reveler les saveurs authentiques.'
     },
     {
       title: '💎 Authenticité Garantie',
@@ -6364,28 +6364,28 @@ const AboutPage = () => {
     },
     {
       title: '🎁 Échantillons Offerts',
-      description: 'Chaque commande est accompagnée d\'échantillons gratuits pour découvrir d\'autres fragrances.'
+      description: 'Chaque commande est accompagnee d\'echantillons gratuits pour decouvrir nos autres specialites.'
     },
     {
       title: '🤝 Conseil Personnalisé',
-      description: 'Notre équipe d\'experts est à votre disposition pour vous aider à trouver le parfum qui vous correspond.'
+      description: 'Notre equipe d\'experts est a votre disposition pour vous aider a trouver les produits qui vous correspondent.'
     }
   ];
 
   const values = [
     {
       title: 'Notre Mission',
-      description: 'Offrir des parfums d\'exception accessibles à tous, en alliant qualité française et prix justes. Chaque fragrance raconte une histoire unique.',
+      description: 'Offrir des viandes d\'exception accessibles a tous, en alliant qualite traditionnelle et prix justes. Chaque produit raconte une histoire unique.',
       icon: '🎯'
     },
     {
       title: 'Notre Vision',
-      description: 'Devenir la référence de la parfumerie de niche au Maroc, en proposant des créations originales qui subliment chaque personnalité.',
+      description: 'Devenir la reference des viandes traditionnelles au Maroc, en proposant des produits authentiques qui subliment chaque table.',
       icon: '🔭'
     },
     {
       title: 'Nos Valeurs',
-      description: 'Authenticité, qualité, passion et innovation. Chaque parfum Arij est le fruit d\'un savoir-faire artisanal et d\'une créativité sans limite.',
+      description: 'Authenticite, qualite, passion et tradition. Chaque produit Khlii Ahl Fes est le fruit d\'un savoir-faire artisanal et d\'une transmission familiale.',
       icon: '💎'
     }
   ];
@@ -6458,7 +6458,7 @@ const AboutPage = () => {
               variants={itemVariants}
               whileHover={{ scale: 1.05 }}
             >
-              ✨ Arij Parfums ✨
+              Khlii Ahl Fes
             </motion.span>
             
             <motion.h1 variants={itemVariants}>
@@ -6470,7 +6470,7 @@ const AboutPage = () => {
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                Parfumerie
+                Viandes Traditionnelles
               </motion.span>
               <br />à l'État Pur
             </motion.h1>
@@ -6479,8 +6479,8 @@ const AboutPage = () => {
               className="hero-subtitle-enhanced"
               variants={itemVariants}
             >
-              Depuis 2010, Arij Parfums crée des fragrances d'exception pour les amateurs de parfums raffinés.
-              Chaque flacon raconte une histoire, chaque note éveille une émotion.
+Depuis des generations, Khlii Ahl Fes perpetue l'art de la preparation des viandes traditionnelles de Fes.
+Chaque produit raconte notre histoire, chaque saveur reveille les traditions ancestrales.
             </motion.p>
             
             <motion.button 
@@ -6581,20 +6581,20 @@ const AboutPage = () => {
               variants={itemVariants}
             >
               <motion.h2 variants={itemVariants}>Notre Histoire</motion.h2>
-              <motion.h3 variants={itemVariants}>L'excellence olfactive depuis 2010</motion.h3>
+              <motion.h3 variants={itemVariants}>L'excellence culinaire depuis des generations</motion.h3>
               <motion.p variants={itemVariants}>
-                Arij Parfums est né d'une passion : celle de créer des fragrances uniques qui transcendent 
-                les tendances. Fondée par des artisans parfumeurs passionnés, notre maison allie 
-                tradition française et inspirations orientales.
+Khlii Ahl Fes est ne d'une passion familiale : celle de perpetuer les recettes ancestrales de Fes.
+Fondee par des artisans bouchers passionnes, notre maison allie
+tradition fassi et savoir-faire transmis de generation en generation.
               </motion.p>
               <motion.p variants={itemVariants}>
-                Chaque parfum Arij est le fruit d'un savoir-faire méticuleux, utilisant les matières 
-                premières les plus nobles : absolu de rose de Damas, oud précieux, ambre gris de Somalie, 
-                et vanille de Madagascar.
+Chaque produit Khlii Ahl Fes est le fruit d'un savoir-faire meticuleux, utilisant les matieres
+premieres les plus nobles : viandes selectionnees avec soin, epices traditionnelles de Fes,
+et huiles d'olive de premiere qualite.
               </motion.p>
               <motion.p variants={itemVariants}>
-                Aujourd'hui, Arij Parfums est reconnue comme une référence de la parfumerie de niche au 
-                Maroc, avec une communauté de passionnés qui partagent notre amour des belles fragrances.
+Aujourd'hui, Khlii Ahl Fes est reconnue comme une reference des viandes traditionnelles au
+Maroc, avec une communaute de gourmets qui partagent notre amour des saveurs authentiques.
               </motion.p>
             </motion.div>
             
@@ -6631,7 +6631,7 @@ const AboutPage = () => {
             <motion.h2>Des Ingrédients d'Exception</motion.h2>
             <motion.p>
               Nous sélectionnons uniquement les meilleures matières premières issues des plus grandes 
-              maisons de parfumerie françaises et des producteurs les plus renommés à travers le monde.
+              fournisseurs locaux selectionnes et des eleveurs les plus renommes du Maroc.
             </motion.p>
             <motion.div 
               className="quality-badge-enhanced"
@@ -6696,11 +6696,11 @@ const AboutPage = () => {
             Nos Collections
           </motion.h2>
           <motion.p className="section-subtitle-enhanced" variants={itemVariants}>
-            Des fragrances pour chaque instant, chaque personnalité
+            Des produits pour chaque occasion, chaque palais
           </motion.p>
 
           <div className="categories-grid-enhanced">
-            {perfumeCategories.map((category, index) => (
+            {productCategories.map((category, index) => (
               <motion.div 
                 key={index}
                 className="category-card-enhanced"
@@ -6732,10 +6732,10 @@ const AboutPage = () => {
       >
         <div className="container">
           <motion.h2 className="section-title-enhanced" variants={itemVariants}>
-            Pourquoi Choisir Arij ?
+            Pourquoi Choisir Khlii Ahl Fes ?
           </motion.h2>
           <motion.p className="section-subtitle-enhanced" variants={itemVariants}>
-            L'excellence de la parfumerie à portée de main
+            L'excellence des viandes traditionnelles a portee de main
           </motion.p>
 
           <div className="why-choose-grid-enhanced">
@@ -6771,8 +6771,8 @@ const AboutPage = () => {
             >
               <motion.h3>Un conseil personnalisé ?</motion.h3>
               <p>
-                Notre équipe d'experts en parfumerie est à votre disposition pour vous aider 
-                à trouver la fragrance qui vous correspond.
+Notre equipe d'experts en viandes traditionnelles est a votre disposition pour vous aider
+a trouver les produits qui vous correspondent.
               </p>
               <button className="btn-primary" onClick={() => window.location.href = '/contact'}>
                 Nous contacter
@@ -6792,7 +6792,7 @@ const AboutPage = () => {
                 📞
               </motion.div>
               
-              <h4>Service Client Arij</h4>
+              <h4>Service Client Khlii Ahl Fes</h4>
               
               <motion.a 
                 href="tel:+212808626102" 
@@ -6813,12 +6813,12 @@ const AboutPage = () => {
               </motion.p>
               
               <motion.a 
-                href="mailto:contact@arij-parfums.ma" 
+                href="mailto:contact@khlii-ahlfes.ma" 
                 className="email-enhanced"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                contact@arij-parfums.ma
+                contact@khlii-ahlfes.ma
               </motion.a>
             </motion.div>
           </div>
